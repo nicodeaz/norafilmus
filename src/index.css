@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0f0e0d;
+  --color-cream: #f5efe6;
+  --color-brand-red: #e53935;
+  --color-brand-red-deep: #c62828;
+  --color-brand-blue: #2e4f8c;
+
+  /* Nefelibata Script es paga (My Creative Land, no está en Google Fonts) —
+     'Give You Glory' es un placeholder gratuito hasta tener los archivos
+     reales. Cuando lleguen: self-hostear + actualizar acá y en index.html. */
+  --font-display: 'Protest Riot', sans-serif;
+  --font-signature: 'Give You Glory', cursive;
+  --font-label: 'Quicksand', sans-serif;
+  /* Cuerpo largo (trayectoria, bios extensas): no existía token para esto,
+     todo el texto corrido vivía en font-label a 14px. Newsreader es la
+     misma serif que ya se usó y aprobó en los artifacts del archivo. */
+  --font-body: 'Newsreader', Georgia, serif;
+
+  /* Escala tipográfica — SUPERPROMPT.md §02. Nada de tamaños sueltos fuera
+     de esta tabla: cada rol de texto del sitio cae en uno de estos cinco. */
+  --text-display-xl: clamp(3.5rem, 12vw, 9rem);
+  --text-display-xl--line-height: 0.9;
+  --text-display-l: clamp(2.5rem, 7vw, 5.5rem);
+  --text-display-l--line-height: 0.92;
+  --text-display-m: clamp(1.75rem, 4vw, 3rem);
+  --text-display-m--line-height: 0.95;
+  /* clamp corregido respecto al superprompt: un preferred en vw puro no
+     interpola dentro de [min,max] en los anchos reales del sitio (320–1920px
+     da ~4–23px). Se arma como rem base + vw chico, que sí se mantiene en
+     el rango 17–19px pedido. */
+  --text-body: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --text-body--line-height: 1.7;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.4;
+}
+
+/* Foco de teclado — SUPERPROMPT.md §05. Sin capa (`@layer`), a propósito:
+   el CSS sin capa siempre le gana a las utilities de Tailwind (viven en la
+   capa `utilities`) pase lo que pase con el orden o la especificidad — así
+   este anillo se ve incluso donde un componente ya trae `outline-none`
+   (ej. los ítems de PillarMenu, que lo necesitan para no heredar el foco por
+   default del navegador y reemplazarlo por este). `:focus-visible` no se
+   dispara con click de mouse, solo con teclado — no hace falta JS extra. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-red);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: #2d2a26;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-red);
+}

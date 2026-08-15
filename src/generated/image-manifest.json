@@ -1,0 +1,96 @@
+{
+  "/img/about/los-golpes-de-clara-afiche.jpg": {
+    "width": 540,
+    "height": 360,
+    "widths": [
+      480
+    ]
+  },
+  "/img/about/los-golpes-de-clara-foto-1.jpg": {
+    "width": 960,
+    "height": 640,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/about/los-golpes-de-clara-foto-2.jpg": {
+    "width": 960,
+    "height": 640,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/about/los-golpes-de-clara-foto-4.jpg": {
+    "width": 544,
+    "height": 360,
+    "widths": [
+      480
+    ]
+  },
+  "/img/about/mujeres-a-la-obra-afiche.jpg": {
+    "width": 309,
+    "height": 360,
+    "widths": [
+      309
+    ]
+  },
+  "/img/about/rapina-afiche.jpg": {
+    "width": 491,
+    "height": 360,
+    "widths": [
+      480
+    ]
+  },
+  "/img/about/rapina-foto-3.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/about/rapina-foto-5.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/about/rapina-foto-6.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/menu/rapina.jpg": {
+    "width": 900,
+    "height": 900,
+    "widths": [
+      480
+    ]
+  },
+  "/img/nora-logo.png": {
+    "width": 1535,
+    "height": 564,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/nora-portrait.png": {
+    "width": 362,
+    "height": 689,
+    "widths": [
+      362
+    ]
+  }
+}

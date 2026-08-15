@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nora Filmus — Actriz, productora y pedagoga teatral</title>
+    <!-- Descripción para buscadores y para la tarjeta que se ve al compartir el
+         link (LinkedIn, WhatsApp). Es lo primero que lee una productora que
+         busca a Nora: va con las credenciales al frente, no con rótulos. -->
+    <meta
+      name="description"
+      content="Actriz, productora y pedagoga teatral argentina radicada en Dublín. 36 años en artes escénicas: teatro independiente, producción para cine y TV, y coordinación de programas de formación artística."
+    />
+    <meta property="og:title" content="Nora Filmus — Actriz, productora y pedagoga teatral" />
+    <meta
+      property="og:description"
+      content="36 años en artes escénicas, entre Buenos Aires y Dublín."
+    />
+    <meta property="og:type" content="profile" />
+    <meta property="og:image" content="/img/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- schema.org Person — SUPERPROMPT.md §05. Estático y en español (no
+         sigue el toggle EN/ES del sitio, que es client-side): es lo que lee
+         un buscador cuando indexa la página, y matchea el idioma del resto
+         del HTML estático (title/description de arriba). Solo datos
+         verificables contra CV/ y content.ts — nada de inventar un dominio
+         para `url` mientras el sitio no esté publicado en uno real. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nora Filmus",
+        "jobTitle": ["Actriz", "Productora", "Pedagoga teatral"],
+        "image": "/img/nora-portrait.png",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Dublin",
+          "addressCountry": "IE"
+        },
+        "alumniOf": {
+          "@type": "EducationalOrganization",
+          "name": "Universidad Nacional de las Artes (UNA)"
+        },
+        "sameAs": [
+          "https://www.instagram.com/noraritafilmus/",
+          "https://www.linkedin.com/in/nora-filmus-ab353013/"
+        ]
+      }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Give+You+Glory&family=Quicksand:wght@300..700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-ink text-cream antialiased selection:bg-brand-red selection:text-cream">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
