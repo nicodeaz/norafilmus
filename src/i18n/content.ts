@@ -60,16 +60,31 @@ export interface Credit {
   work: string;
   detail: string;
   years: string;
+  /**
+   * Foto propia de ESTE crédito — no una imagen fija de toda la sección.
+   * Solo un puñado de créditos tiene material real; el resto se despliega
+   * sin foto. Evita que la misma imagen aparezca dos veces (el mosaico del
+   * Hero ya la muestra como preview; acá es la única otra vez que se ve, y
+   * solo si el usuario abre el acordeón).
+   */
+  image?: { src: string; alt: string; credit: string };
 }
 
 export type TimelineCategory = 'actuacion' | 'docencia' | 'produccion' | 'formacion';
+export type Decade = '1990s' | '2000s' | '2010s' | '2020s';
 
-/** Un hito de la línea de tiempo de #trayectoria (F5). */
+/**
+ * Un hito de la línea de tiempo de #trayectoria (F5). `decade` es dato de
+ * autor, no se calcula parseando `year` en runtime — varios años vienen como
+ * "en curso" o "temporada 1", que no tienen un año numérico limpio para
+ * derivar la década.
+ */
 export interface TimelineEntry {
   year: string;
   title: string;
   detail: string;
   category: TimelineCategory;
+  decade: Decade;
 }
 
 /** Forma completa del contenido de un idioma — si ES y EN se desalinean, rompe el build. */
@@ -97,6 +112,7 @@ export interface SiteContent {
     titleAccent: string;
     body1: string;
     body2: string;
+    /** Foto ancla del Acto — distinta del archivo que usa el mosaico del Hero para este pilar. */
     image: { src: string; alt: string; credit: string; caption: string };
     stageTitle: string;
     stageCredits: Credit[];
@@ -130,6 +146,7 @@ export interface SiteContent {
     titleAccent: string;
     body1: string;
     body2: string;
+    /** Foto ancla del Acto — distinta del afiche que usa el mosaico del Hero para este pilar. */
     image: { src: string; alt: string; credit: string; caption: string };
     stageTitle: string;
     stageCredits: Credit[];
@@ -267,14 +284,23 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones de Disney, RAI y Telefé.',
       image: {
-        src: '/img/crear/rapina-tarantulas.jpg',
-        alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
+        src: '/img/about/rapina-foto-5.jpg',
+        alt: 'Escena de la pieza "Bañera", de Rapiña',
         credit: 'Marcela Russarabian',
-        caption: 'Rapiña · "Como las tarántulas" · 2017–2019',
+        caption: 'Rapiña · "Bañera" · 2017–2019',
       },
       stageTitle: 'Teatro',
       stageCredits: [
-        { work: 'Rapiña', detail: 'Elenco · Belisario Club de Cultura', years: '2017–2019' },
+        {
+          work: 'Rapiña',
+          detail: 'Elenco · Belisario Club de Cultura',
+          years: '2017–2019',
+          image: {
+            src: '/img/crear/rapina-tarantulas.jpg',
+            alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
+            credit: 'Marcela Russarabian',
+          },
+        },
         { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
         { work: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación', years: '2010–2013' },
         { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
@@ -329,15 +355,33 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
       image: {
-        src: '/img/about/los-golpes-de-clara-afiche.jpg',
-        alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
+        src: '/img/about/los-golpes-de-clara-foto-2.jpg',
+        alt: 'Escena de Los golpes de Clara, obra que Nora produjo',
         credit: 'Nicolás Finoli',
         caption: 'Los golpes de Clara · Producción ejecutiva · 2017–2025',
       },
       stageTitle: 'Teatro',
       stageCredits: [
-        { work: 'Los golpes de Clara', detail: 'Producción ejecutiva — texto: Carolina Guevara', years: '2017–2025' },
-        { work: '¡Mujeres a la obra!', detail: 'Producción — 1º ciclo de teatro y feminismos, CELCIT', years: '2018' },
+        {
+          work: 'Los golpes de Clara',
+          detail: 'Producción ejecutiva — texto: Carolina Guevara',
+          years: '2017–2025',
+          image: {
+            src: '/img/about/los-golpes-de-clara-afiche.jpg',
+            alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
+            credit: 'Nicolás Finoli',
+          },
+        },
+        {
+          work: '¡Mujeres a la obra!',
+          detail: 'Producción — 1º ciclo de teatro y feminismos, CELCIT',
+          years: '2018',
+          image: {
+            src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+            alt: 'Afiche del ciclo ¡Mujeres a la obra!',
+            credit: 'CELCIT',
+          },
+        },
         { work: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', years: '2018–2019' },
         { work: 'Improvisación Mosquito', detail: 'Producción — Productora Demos, Teatro Porteño', years: '2019' },
         { work: 'Que no quede huella', detail: 'Gestión del subsidio Proteatro', years: '2015–2017' },
@@ -369,40 +413,40 @@ export const content: Record<Language, SiteContent> = {
       filterProducing: 'Producción',
       filterTraining: 'Formación',
       items: [
-        { year: '1990', title: 'Primeras clases de teatro', detail: 'Con Alicia Aller', category: 'formacion' },
-        { year: '1992–1993', title: 'Actuación I y II', detail: 'Eduardo Pávelic — Centro Cultural General San Martín', category: 'formacion' },
-        { year: '1995–1998', title: 'Formación del Actor', detail: 'Escuela Integral de Teatro IFT', category: 'formacion' },
-        { year: '1996', title: 'Primer Campeonato Amateur de Match de Improvisación', detail: 'Dir. Fabio Mosquito Sancineto', category: 'actuacion' },
-        { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango y otros — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion' },
-        { year: '1999–2000', title: 'Entrenamiento actoral Tadashi Suzuki', detail: 'Marisa Salas — Teatro Templum', category: 'formacion' },
-        { year: '2001–2004', title: 'Licenciatura en Dirección Escénica', detail: 'UNA — hasta 3er año', category: 'formacion' },
-        { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion' },
-        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación — Compañía Boquitas Pintadas', category: 'actuacion' },
-        { year: '2012–2013', title: 'Profesora de teatro para adolescentes', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia' },
-        { year: '2012–2024', title: 'Coordinación del Programa Adolescencia', detail: 'Gobierno de la Ciudad de Buenos Aires', category: 'produccion' },
-        { year: '2014–2015', title: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', category: 'docencia' },
-        { year: '2015–2016', title: 'Teatro para adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', category: 'docencia' },
-        { year: '2015', title: 'Premio "Jóvenes Creadores"', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia' },
-        { year: '2015–2017', title: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas — actuación y gestión del subsidio Proteatro', category: 'actuacion' },
-        { year: '2017–2019', title: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia' },
-        { year: 'desde 2017', title: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', category: 'docencia' },
-        { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', category: 'produccion' },
-        { year: '2018–2019', title: 'Rapiña', detail: 'Elenco — Belisario Club de Cultura', category: 'actuacion' },
-        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producción — CELCIT', category: 'produccion' },
-        { year: '2018', title: 'Premio "Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', category: 'produccion' },
-        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Producción ejecutiva — texto: Carolina Guevara', category: 'produccion' },
-        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producción — Productora Demos', category: 'produccion' },
-        { year: '2020', title: 'Tecnicatura Superior en Pedagogía Social', detail: 'Orientación en Derechos Humanos — IFTS N.º 28', category: 'formacion' },
-        { year: '2020–2022', title: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', category: 'docencia' },
-        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — extra en pantalla, equipo de producción', category: 'produccion' },
-        { year: '2023', title: 'Mudanza a Dublín', detail: 'Irlanda', category: 'formacion' },
-        { year: '2023', title: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', category: 'produccion' },
-        { year: '2023–2026', title: 'Argentina Day', detail: 'Productora: La Clave Group', category: 'produccion' },
-        { year: 'en curso', title: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', category: 'produccion' },
-        { year: 'temporada 1', title: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte', category: 'produccion' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena y asistencia de producción', category: 'actuacion' },
-        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual', category: 'produccion' },
+        { year: '1990', title: 'Primeras clases de teatro', detail: 'Con Alicia Aller', category: 'formacion', decade: '1990s' },
+        { year: '1992–1993', title: 'Actuación I y II', detail: 'Eduardo Pávelic — Centro Cultural General San Martín', category: 'formacion', decade: '1990s' },
+        { year: '1995–1998', title: 'Formación del Actor', detail: 'Escuela Integral de Teatro IFT', category: 'formacion', decade: '1990s' },
+        { year: '1996', title: 'Primer Campeonato Amateur de Match de Improvisación', detail: 'Dir. Fabio Mosquito Sancineto', category: 'actuacion', decade: '1990s' },
+        { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango y otros — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
+        { year: '1999–2000', title: 'Entrenamiento actoral Tadashi Suzuki', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
+        { year: '2001–2004', title: 'Licenciatura en Dirección Escénica', detail: 'UNA — hasta 3er año', category: 'formacion', decade: '2000s' },
+        { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
+        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación — Compañía Boquitas Pintadas', category: 'actuacion', decade: '2010s' },
+        { year: '2012–2013', title: 'Profesora de teatro para adolescentes', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
+        { year: '2012–2024', title: 'Coordinación del Programa Adolescencia', detail: 'Gobierno de la Ciudad de Buenos Aires', category: 'produccion', decade: '2010s' },
+        { year: '2014–2015', title: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', category: 'docencia', decade: '2010s' },
+        { year: '2015–2016', title: 'Teatro para adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', category: 'docencia', decade: '2010s' },
+        { year: '2015', title: 'Premio "Jóvenes Creadores"', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
+        { year: '2015–2017', title: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas — actuación y gestión del subsidio Proteatro', category: 'actuacion', decade: '2010s' },
+        { year: '2017–2019', title: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
+        { year: 'desde 2017', title: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', category: 'docencia', decade: '2010s' },
+        { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Rapiña', detail: 'Elenco — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
+        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producción — CELCIT', category: 'produccion', decade: '2010s' },
+        { year: '2018', title: 'Premio "Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Producción ejecutiva — texto: Carolina Guevara', category: 'produccion', decade: '2010s' },
+        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producción — Productora Demos', category: 'produccion', decade: '2010s' },
+        { year: '2020', title: 'Tecnicatura Superior en Pedagogía Social', detail: 'Orientación en Derechos Humanos — IFTS N.º 28', category: 'formacion', decade: '2020s' },
+        { year: '2020–2022', title: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', category: 'docencia', decade: '2020s' },
+        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — extra en pantalla, equipo de producción', category: 'produccion', decade: '2020s' },
+        { year: '2023', title: 'Mudanza a Dublín', detail: 'Irlanda', category: 'formacion', decade: '2020s' },
+        { year: '2023', title: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', category: 'produccion', decade: '2020s' },
+        { year: '2023–2026', title: 'Argentina Day', detail: 'Productora: La Clave Group', category: 'produccion', decade: '2020s' },
+        { year: 'en curso', title: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
+        { year: 'temporada 1', title: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte', category: 'produccion', decade: '2020s' },
+        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena y asistencia de producción', category: 'actuacion', decade: '2020s' },
+        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual', category: 'produccion', decade: '2020s' },
       ],
     },
 
@@ -495,14 +539,23 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Disney, RAI and Telefé.',
       image: {
-        src: '/img/crear/rapina-tarantulas.jpg',
-        alt: 'Scene from "Como las tarántulas", part of Rapiña',
+        src: '/img/about/rapina-foto-5.jpg',
+        alt: 'Scene from "Bañera", part of Rapiña',
         credit: 'Marcela Russarabian',
-        caption: 'Rapiña · "Como las tarántulas" · 2017–2019',
+        caption: 'Rapiña · "Bañera" · 2017–2019',
       },
       stageTitle: 'Theatre',
       stageCredits: [
-        { work: 'Rapiña', detail: 'Ensemble cast · Belisario Club de Cultura, Buenos Aires', years: '2017–2019' },
+        {
+          work: 'Rapiña',
+          detail: 'Ensemble cast · Belisario Club de Cultura, Buenos Aires',
+          years: '2017–2019',
+          image: {
+            src: '/img/crear/rapina-tarantulas.jpg',
+            alt: 'Scene from "Como las tarántulas", part of Rapiña',
+            credit: 'Marcela Russarabian',
+          },
+        },
         { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
         { work: 'Chicha, Carmen y Angelita', detail: 'Writer and performer', years: '2010–2013' },
         { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
@@ -557,15 +610,33 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
       image: {
-        src: '/img/about/los-golpes-de-clara-afiche.jpg',
-        alt: 'Poster for Los golpes de Clara, a production Nora produced',
+        src: '/img/about/los-golpes-de-clara-foto-2.jpg',
+        alt: 'Scene from Los golpes de Clara, a production Nora produced',
         credit: 'Nicolás Finoli',
         caption: 'Los golpes de Clara · Executive producer · 2017–2025',
       },
       stageTitle: 'Theatre',
       stageCredits: [
-        { work: 'Los golpes de Clara', detail: 'Executive producer — text: Carolina Guevara', years: '2017–2025' },
-        { work: '¡Mujeres a la obra!', detail: 'Producer — theatre & feminism festival, CELCIT', years: '2018' },
+        {
+          work: 'Los golpes de Clara',
+          detail: 'Executive producer — text: Carolina Guevara',
+          years: '2017–2025',
+          image: {
+            src: '/img/about/los-golpes-de-clara-afiche.jpg',
+            alt: 'Poster for Los golpes de Clara, a production Nora produced',
+            credit: 'Nicolás Finoli',
+          },
+        },
+        {
+          work: '¡Mujeres a la obra!',
+          detail: 'Producer — theatre & feminism festival, CELCIT',
+          years: '2018',
+          image: {
+            src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+            alt: 'Poster for the ¡Mujeres a la obra! season',
+            credit: 'CELCIT',
+          },
+        },
         { work: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', years: '2018–2019' },
         { work: 'Improvisación Mosquito', detail: 'Producer — Productora Demos, Teatro Porteño', years: '2019' },
         { work: 'Que no quede huella', detail: 'Managed the Proteatro grant', years: '2015–2017' },
@@ -597,40 +668,40 @@ export const content: Record<Language, SiteContent> = {
       filterProducing: 'Producing',
       filterTraining: 'Training',
       items: [
-        { year: '1990', title: 'First theatre classes', detail: 'With Alicia Aller', category: 'formacion' },
-        { year: '1992–1993', title: 'Acting I & II', detail: 'Eduardo Pávelic — Centro Cultural General San Martín', category: 'formacion' },
-        { year: '1995–1998', title: 'Actor training', detail: 'Escuela Integral de Teatro IFT', category: 'formacion' },
-        { year: '1996', title: 'First Amateur Improv Championship', detail: 'Dir. Fabio Mosquito Sancineto', category: 'actuacion' },
-        { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango and others — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion' },
-        { year: '1999–2000', title: 'Tadashi Suzuki actor training', detail: 'Marisa Salas — Teatro Templum', category: 'formacion' },
-        { year: '2001–2004', title: 'Degree in Stage Direction', detail: 'UNA — three years completed', category: 'formacion' },
-        { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion' },
-        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Writer and performer — Boquitas Pintadas company', category: 'actuacion' },
-        { year: '2012–2013', title: 'Theatre teacher for teenagers', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia' },
-        { year: '2012–2024', title: 'Coordinator, Programa Adolescencia', detail: 'City of Buenos Aires', category: 'produccion' },
-        { year: '2014–2015', title: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', category: 'docencia' },
-        { year: '2015–2016', title: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', category: 'docencia' },
-        { year: '2015', title: '"Jóvenes Creadores" award', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia' },
-        { year: '2015–2017', title: 'Que no quede huella', detail: 'Boquitas Pintadas company — performer and managed the Proteatro grant', category: 'actuacion' },
-        { year: '2017–2019', title: 'Theatre for children and teenagers', detail: 'Escuela de Danzas Reina Reech', category: 'docencia' },
-        { year: 'since 2017', title: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', category: 'docencia' },
-        { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', category: 'produccion' },
-        { year: '2018–2019', title: 'Rapiña', detail: 'Ensemble cast — Belisario Club de Cultura', category: 'actuacion' },
-        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producer — CELCIT', category: 'produccion' },
-        { year: '2018', title: '"Opresión y Libertad" award', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', category: 'produccion' },
-        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Executive producer — text: Carolina Guevara', category: 'produccion' },
-        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producer — Productora Demos', category: 'produccion' },
-        { year: '2020', title: 'Further-education degree in Social Pedagogy', detail: 'Human Rights focus — IFTS Nº 28', category: 'formacion' },
-        { year: '2020–2022', title: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', category: 'docencia' },
-        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — on-screen extra, production team', category: 'produccion' },
-        { year: '2023', title: 'Moved to Dublin', detail: 'Ireland', category: 'formacion' },
-        { year: '2023', title: "St. Patrick's Festival", detail: 'Production runner (volunteer)', category: 'produccion' },
-        { year: '2023–2026', title: 'Argentina Day', detail: 'Producer: La Clave Group', category: 'produccion' },
-        { year: 'ongoing', title: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', category: 'produccion' },
-        { year: 'season 1', title: 'Planners', detail: 'Star+ / PEGSA Group — art director', category: 'produccion' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance and production assistance', category: 'actuacion' },
-        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner', category: 'produccion' },
+        { year: '1990', title: 'First theatre classes', detail: 'With Alicia Aller', category: 'formacion', decade: '1990s' },
+        { year: '1992–1993', title: 'Acting I & II', detail: 'Eduardo Pávelic — Centro Cultural General San Martín', category: 'formacion', decade: '1990s' },
+        { year: '1995–1998', title: 'Actor training', detail: 'Escuela Integral de Teatro IFT', category: 'formacion', decade: '1990s' },
+        { year: '1996', title: 'First Amateur Improv Championship', detail: 'Dir. Fabio Mosquito Sancineto', category: 'actuacion', decade: '1990s' },
+        { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango and others — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
+        { year: '1999–2000', title: 'Tadashi Suzuki actor training', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
+        { year: '2001–2004', title: 'Degree in Stage Direction', detail: 'UNA — three years completed', category: 'formacion', decade: '2000s' },
+        { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
+        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Writer and performer — Boquitas Pintadas company', category: 'actuacion', decade: '2010s' },
+        { year: '2012–2013', title: 'Theatre teacher for teenagers', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
+        { year: '2012–2024', title: 'Coordinator, Programa Adolescencia', detail: 'City of Buenos Aires', category: 'produccion', decade: '2010s' },
+        { year: '2014–2015', title: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', category: 'docencia', decade: '2010s' },
+        { year: '2015–2016', title: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', category: 'docencia', decade: '2010s' },
+        { year: '2015', title: '"Jóvenes Creadores" award', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
+        { year: '2015–2017', title: 'Que no quede huella', detail: 'Boquitas Pintadas company — performer and managed the Proteatro grant', category: 'actuacion', decade: '2010s' },
+        { year: '2017–2019', title: 'Theatre for children and teenagers', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
+        { year: 'since 2017', title: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', category: 'docencia', decade: '2010s' },
+        { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Rapiña', detail: 'Ensemble cast — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
+        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producer — CELCIT', category: 'produccion', decade: '2010s' },
+        { year: '2018', title: '"Opresión y Libertad" award', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Executive producer — text: Carolina Guevara', category: 'produccion', decade: '2010s' },
+        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producer — Productora Demos', category: 'produccion', decade: '2010s' },
+        { year: '2020', title: 'Further-education degree in Social Pedagogy', detail: 'Human Rights focus — IFTS Nº 28', category: 'formacion', decade: '2020s' },
+        { year: '2020–2022', title: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', category: 'docencia', decade: '2020s' },
+        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — on-screen extra, production team', category: 'produccion', decade: '2020s' },
+        { year: '2023', title: 'Moved to Dublin', detail: 'Ireland', category: 'formacion', decade: '2020s' },
+        { year: '2023', title: "St. Patrick's Festival", detail: 'Production runner (volunteer)', category: 'produccion', decade: '2020s' },
+        { year: '2023–2026', title: 'Argentina Day', detail: 'Producer: La Clave Group', category: 'produccion', decade: '2020s' },
+        { year: 'ongoing', title: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
+        { year: 'season 1', title: 'Planners', detail: 'Star+ / PEGSA Group — art director', category: 'produccion', decade: '2020s' },
+        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance and production assistance', category: 'actuacion', decade: '2020s' },
+        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner', category: 'produccion', decade: '2020s' },
       ],
     },
 

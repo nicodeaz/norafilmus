@@ -1,13 +1,11 @@
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import Act from './Act';
 import CreditList from './CreditList';
-import Picture from './Picture';
-import Reveal from './Reveal';
-import Section from './Section';
 
 /**
- * `#producir` — el pilar productora, último de los tres (SUPERPROMPT.md §6,
- * F4). Fuente: `CV/Historial Para CV de distintas areas.docx`, la más
- * detallada de las que hay (trae referencia y contacto por proyecto).
+ * Acto III — Producir, el pilar productora, último de los tres. Fuente:
+ * `CV/Historial Para CV de distintas areas.docx`, la más detallada de las
+ * que hay (trae referencia y contacto por proyecto).
  *
  * Dos correcciones que salieron de leer esta fuente con cuidado:
  * - `Improvisación Mosquito` estaba marcada como rol sin verificar en
@@ -18,24 +16,27 @@ import Section from './Section';
  * - `El amor después del amor` (Netflix) figura en la sección de actuación
  *   del mismo CV como "Extra", no como el crédito de producción que decía
  *   un borrador de CV anterior. Acá se cuenta como trabajo de equipo de
- *   producción (coherente con la lista general de productoras del CV:
- *   "asistente de producción/productora de arte... para Star+, Netflix,
- *   HBO"); el crédito de actriz para el mismo título ya vive en `Crear.tsx`.
- *   Las dos cosas pueden ser ciertas a la vez, no se contradicen.
+ *   producción; el crédito de actriz para el mismo título vive en el Acto I.
  *
- * Imagen: mismo afiche de `Los golpes de Clara` que usa el pilar en
- * `PillarMenu` — no se repite ninguna foto de `Crear`.
+ * Foto ancla: `los-golpes-de-clara-foto-2.jpg`, una toma de función distinta
+ * del afiche (`los-golpes-de-clara-afiche.jpg`) que ya usa el mosaico del
+ * Hero — ese afiche sigue vivo, pero adentro del acordeón de "Los golpes de
+ * Clara", no repetido acá arriba. `align="right"` para que el Acto III no
+ * sea un espejo idéntico del Acto I.
  */
 export default function Producir() {
   const { t } = useLanguage();
   const { producir } = t;
 
   return (
-    <Section
+    <Act
       id="producir"
+      numeral="III"
+      align="right"
       eyebrow={producir.eyebrow}
       titleLead={producir.titleLead}
       titleAccent={producir.titleAccent}
+      image={producir.image}
       body={
         <>
           <p>{producir.body1}</p>
@@ -43,28 +44,11 @@ export default function Producir() {
         </>
       }
     >
-      <div className="grid gap-10 md:grid-cols-2 md:gap-14">
-        <Reveal as="figure" delay={0.1}>
-          <Picture
-            src={producir.image.src}
-            alt={producir.image.alt}
-            sizes="(min-width: 768px) 50vw, 100vw"
-            loading="lazy"
-            decoding="async"
-            className="w-full rounded-lg object-cover"
-          />
-          <figcaption className="mt-3 font-label text-xs leading-snug text-cream/50">
-            <span className="block text-cream/70">{producir.image.caption}</span>
-            <span className="block text-cream/30">Foto: {producir.image.credit}</span>
-          </figcaption>
-        </Reveal>
-
-        <div className="flex flex-col gap-10">
-          <CreditList title={producir.stageTitle} items={producir.stageCredits} />
-          <CreditList title={producir.screenTitle} items={producir.screenCredits} />
-          <CreditList title={producir.irelandTitle} items={producir.irelandCredits} />
-        </div>
+      <div className="grid gap-10 md:grid-cols-3 md:gap-8">
+        <CreditList title={producir.stageTitle} items={producir.stageCredits} />
+        <CreditList title={producir.screenTitle} items={producir.screenCredits} />
+        <CreditList title={producir.irelandTitle} items={producir.irelandCredits} />
       </div>
-    </Section>
+    </Act>
   );
 }

@@ -29,12 +29,12 @@ export default function AboutMe() {
   return (
     <section id="sobre-mi" className="relative z-10 w-full overflow-hidden bg-ink py-24 sm:py-32">
       <div className="mx-auto flex max-w-4xl flex-col items-center px-6 text-center">
-        <Reveal
-          as="span"
-          y={10}
-          className="rounded-full border border-cream/20 px-4 py-1.5 font-label text-[11px] uppercase tracking-[0.2em] text-cream/70"
-        >
-          {about.eyebrow}
+        <Reveal as="div" y={10} className="flex items-center gap-3">
+          <span className="h-px w-8 bg-brand-red" aria-hidden />
+          <span className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">
+            {about.eyebrow}
+          </span>
+          <span className="h-px w-8 bg-brand-red" aria-hidden />
         </Reveal>
 
         <Reveal
