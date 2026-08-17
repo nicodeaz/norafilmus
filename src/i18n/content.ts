@@ -113,6 +113,21 @@ export interface SiteContent {
     teachTitle: string;
     teachCredits: Credit[];
   };
+  /** Sección #producir (F4) — el pilar productora. Fuente: `CV/Historial Para CV de distintas areas.docx` (la más detallada, con referencias/contactos por proyecto). */
+  producir: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body1: string;
+    body2: string;
+    image: { src: string; alt: string; credit: string; caption: string };
+    stageTitle: string;
+    stageCredits: Credit[];
+    screenTitle: string;
+    screenCredits: Credit[];
+    irelandTitle: string;
+    irelandCredits: Credit[];
+  };
   about: {
     eyebrow: string;
     titleLead: string;
@@ -244,10 +259,11 @@ export const content: Record<Language, SiteContent> = {
       ],
       screenTitle: 'Cine y televisión',
       screenCredits: [
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — extra', years: '2022' },
+        { work: 'ATAV2', detail: 'Polka — bolo', years: '2022' },
+        { work: 'Chocolate para 3', detail: 'Sánchez Cine — largometraje INCAA, extra', years: '2021' },
+        { work: 'TONY', detail: 'UN3TV — bolo', years: '2020' },
         { work: 'Viudas e hijos del Rock and Roll', detail: 'Telefé', years: '2014' },
-        { work: 'Publicidad Disney Channel', detail: 'Muppets — Donde reina el caos', years: '2011' },
-        { work: 'Un pugno e un bacio', detail: 'RAI, Italia', years: '2009' },
-        { work: 'High School Musical', detail: 'Versión México — Disney Latinoamérica', years: '2008' },
       ],
     },
 
@@ -274,6 +290,44 @@ export const content: Record<Language, SiteContent> = {
         { work: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
         { work: 'Teatro, adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', years: '2015–2016' },
         { work: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', years: '2014–2015' },
+      ],
+    },
+
+    producir: {
+      eyebrow: 'Producción',
+      titleLead: 'Detrás de escena,',
+      titleAccent: 'en teatro y en pantalla.',
+      body1:
+        'Produje teatro independiente —Los golpes de Clara, ¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo— y gestioné el subsidio de Proteatro para Que no quede huella. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
+      body2:
+        'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
+      image: {
+        src: '/img/about/los-golpes-de-clara-afiche.jpg',
+        alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
+        credit: 'Nicolás Finoli',
+        caption: 'Los golpes de Clara · Producción ejecutiva · 2017–2025',
+      },
+      stageTitle: 'Teatro',
+      stageCredits: [
+        { work: 'Los golpes de Clara', detail: 'Producción ejecutiva — texto: Carolina Guevara', years: '2017–2025' },
+        { work: '¡Mujeres a la obra!', detail: 'Producción — 1º ciclo de teatro y feminismos, CELCIT', years: '2018' },
+        { work: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', years: '2018–2019' },
+        { work: 'Improvisación Mosquito', detail: 'Producción — Productora Demos, Teatro Porteño', years: '2019' },
+        { work: 'Que no quede huella', detail: 'Gestión del subsidio Proteatro', years: '2015–2017' },
+      ],
+      screenTitle: 'Cine, TV y streaming',
+      screenCredits: [
+        { work: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', years: 'en curso' },
+        { work: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte, dir. Daniel Barone', years: 'temporada 1' },
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — equipo de producción', years: '2022' },
+        { work: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', years: '2017–2018' },
+      ],
+      irelandTitle: 'Irlanda',
+      irelandCredits: [
+        { work: 'Argentina Day', detail: 'Productora: La Clave Group', years: '2023–2026' },
+        { work: 'The Floor', detail: 'Programa de TV — Bigger Stage, runner de producción audiovisual', years: '2025' },
+        { work: 'Rathe Gather Festivalito', detail: 'Asistencia y runner de producción', years: '2024' },
+        { work: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', years: '2023' },
       ],
     },
 
@@ -304,7 +358,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/about/los-golpes-de-clara-afiche.jpg',
         alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
         credit: 'Nicolás Finoli',
-        href: null,
+        href: '#producir',
       },
     ],
 
@@ -385,10 +439,11 @@ export const content: Record<Language, SiteContent> = {
       ],
       screenTitle: 'Film & television',
       screenCredits: [
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — extra', years: '2022' },
+        { work: 'ATAV2', detail: 'Polka (Argentine TV) — walk-on', years: '2022' },
+        { work: 'Chocolate para 3', detail: 'Sánchez Cine — INCAA feature, extra', years: '2021' },
+        { work: 'TONY', detail: 'UN3TV — walk-on', years: '2020' },
         { work: 'Viudas e hijos del Rock and Roll', detail: 'Telefé (Argentine TV)', years: '2014' },
-        { work: 'Disney Channel commercial', detail: 'Muppets — Where Chaos Reigns', years: '2011' },
-        { work: 'Un pugno e un bacio', detail: 'RAI, Italy', years: '2009' },
-        { work: 'High School Musical', detail: 'Mexican version — Disney Latin America', years: '2008' },
       ],
     },
 
@@ -418,6 +473,44 @@ export const content: Record<Language, SiteContent> = {
       ],
     },
 
+    producir: {
+      eyebrow: 'Production',
+      titleLead: 'Behind the scenes,',
+      titleAccent: 'in theatre and on screen.',
+      body1:
+        'I produced independent theatre —Los golpes de Clara, ¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo— and managed the Proteatro grant for Que no quede huella. In film and television I worked on production teams for Star+, Netflix and HBO: I was art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
+      body2:
+        'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
+      image: {
+        src: '/img/about/los-golpes-de-clara-afiche.jpg',
+        alt: 'Poster for Los golpes de Clara, a production Nora produced',
+        credit: 'Nicolás Finoli',
+        caption: 'Los golpes de Clara · Executive producer · 2017–2025',
+      },
+      stageTitle: 'Theatre',
+      stageCredits: [
+        { work: 'Los golpes de Clara', detail: 'Executive producer — text: Carolina Guevara', years: '2017–2025' },
+        { work: '¡Mujeres a la obra!', detail: 'Producer — theatre & feminism festival, CELCIT', years: '2018' },
+        { work: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', years: '2018–2019' },
+        { work: 'Improvisación Mosquito', detail: 'Producer — Productora Demos, Teatro Porteño', years: '2019' },
+        { work: 'Que no quede huella', detail: 'Managed the Proteatro grant', years: '2015–2017' },
+      ],
+      screenTitle: 'Film, TV & streaming',
+      screenCredits: [
+        { work: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', years: 'ongoing' },
+        { work: 'Planners', detail: 'Star+ / PEGSA Group — art director, dir. Daniel Barone', years: 'season 1' },
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — production team', years: '2022' },
+        { work: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', years: '2017–2018' },
+      ],
+      irelandTitle: 'Ireland',
+      irelandCredits: [
+        { work: 'Argentina Day', detail: 'Producer: La Clave Group', years: '2023–2026' },
+        { work: 'The Floor', detail: 'TV show — Bigger Stage, production runner', years: '2025' },
+        { work: 'Rathe Gather Festivalito', detail: 'Production assistance and runner', years: '2024' },
+        { work: "St. Patrick's Festival", detail: 'Production runner (volunteer)', years: '2023' },
+      ],
+    },
+
     pillars: [
       {
         key: 'crear',
@@ -443,7 +536,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/about/los-golpes-de-clara-afiche.jpg',
         alt: 'Poster for Los golpes de Clara, a production Nora produced',
         credit: 'Nicolás Finoli',
-        href: null,
+        href: '#producir',
       },
     ],
 

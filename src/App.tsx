@@ -5,6 +5,7 @@ import AboutMe from './components/AboutMe';
 import Crear from './components/Crear';
 import Ensenar from './components/Ensenar';
 import Footer from './components/Footer';
+import Producir from './components/Producir';
 import Header from './components/Header';
 import NotFound from './components/NotFound';
 import Preloader from './components/Preloader';
@@ -25,6 +26,7 @@ function Home() {
       <AboutMe />
       <Crear />
       <Ensenar />
+      <Producir />
       <Footer />
     </>
   );
