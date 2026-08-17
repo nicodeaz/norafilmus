@@ -13,13 +13,15 @@ import LanguageToggle from './LanguageToggle';
  * que es el momento en que `AboutMe` ya tapó al Hero y hace falta un ancla
  * fija para volver arriba o navegar sin scrollear a mano.
  *
- * Nav mínima a propósito: hoy el sitio solo tiene `/` y `#sobre-mi`. Los 3
- * pilares (Crear/Enseñar/Producir) NO entran acá — cuando F2-F4 construyan
- * esas secciones, agregar sus anclas both acá y en `content.ts` pillars[].href.
+ * Nav: solo enlaza pilares cuya sección ya existe — se lee del propio
+ * `href` de `content.ts` pillars[] (no `null`) en vez de una lista manual
+ * acá, así no hay que recordar tocar dos archivos cuando F3/F4 agreguen
+ * Enseñar/Producir.
  */
 export default function Header() {
   const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
+  const linkedPillars = t.pillars.filter((p) => p.href);
 
   useEffect(() => {
     const threshold = () => window.innerHeight * 0.9;
@@ -63,6 +65,15 @@ export default function Header() {
           >
             {t.nav.about}
           </a>
+          {linkedPillars.map((p) => (
+            <a
+              key={p.key}
+              href={p.href!}
+              className="hidden font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red sm:inline"
+            >
+              {p.label}
+            </a>
+          ))}
           <LanguageToggle />
         </nav>
       </div>

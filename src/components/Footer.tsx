@@ -9,9 +9,14 @@ import Reveal from './Reveal';
  * wordmark + contacto del footer del Hero (mismos `LINKS`, mismos íconos)
  * pero como pieza permanente al pie de la página, no como el footer
  * transitorio que vive adentro del viewport del Hero.
+ *
+ * Nav: igual que `Header`, solo enlaza pilares con `href` no nulo en
+ * `content.ts` — no hay lista manual que desincronizar cuando F3/F4 agreguen
+ * Enseñar/Producir.
  */
 export default function Footer() {
   const { t } = useLanguage();
+  const linkedPillars = t.pillars.filter((p) => p.href);
 
   const socialLinks = [
     { label: t.social.instagram, href: LINKS.instagram, icon: Instagram, external: true },
@@ -50,6 +55,15 @@ export default function Footer() {
             >
               {t.nav.about}
             </a>
+            {linkedPillars.map((p) => (
+              <a
+                key={p.key}
+                href={p.href!}
+                className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
+              >
+                {p.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-4">

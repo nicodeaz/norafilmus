@@ -27,6 +27,9 @@ const SOURCE_EXT = /\.(jpe?g|png)$/i;
 // Un derivado se llama "<nombre>-480w.avif" — si el archivo fuente ya matchea
 // ese patrón, es un output de una corrida anterior: no reprocesar.
 const DERIVED = /-\d+w\.(avif|webp)$/i;
+// og-image.jpg lo genera scripts/generate-og-image.mjs y se sirve tal cual
+// (1200×630 fijo, no necesita variantes responsive) — no es una fuente de este pipeline.
+const SKIP_NAMES = new Set(['og-image.jpg']);
 
 async function findSources(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -35,7 +38,7 @@ async function findSources(dir) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await findSources(full)));
-    } else if (SOURCE_EXT.test(entry.name) && !DERIVED.test(entry.name)) {
+    } else if (SOURCE_EXT.test(entry.name) && !DERIVED.test(entry.name) && !SKIP_NAMES.has(entry.name)) {
       files.push(full);
     }
   }

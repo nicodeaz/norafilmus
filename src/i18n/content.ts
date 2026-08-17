@@ -55,6 +55,13 @@ export interface GalleryItem {
   credit?: string;
 }
 
+/** Una línea de una lista de créditos tipo CV de sala (F2 en adelante). */
+export interface Credit {
+  work: string;
+  detail: string;
+  years: string;
+}
+
 /** Forma completa del contenido de un idioma — si ES y EN se desalinean, rompe el build. */
 export interface SiteContent {
   htmlLang: string;
@@ -73,6 +80,19 @@ export interface SiteContent {
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
   nav: { home: string; about: string };
   pillars: Pillar[];
+  /** Sección #crear (F2) — el pilar actriz. Fuente: CV/cv cuasi completo_.docx + content/alternativa-teatral*. */
+  crear: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body1: string;
+    body2: string;
+    image: { src: string; alt: string; credit: string; caption: string };
+    stageTitle: string;
+    stageCredits: Credit[];
+    screenTitle: string;
+    screenCredits: Credit[];
+  };
   about: {
     eyebrow: string;
     titleLead: string;
@@ -176,6 +196,41 @@ export const content: Record<Language, SiteContent> = {
 
     nav: { home: 'Inicio', about: 'Sobre mí' },
 
+    crear: {
+      eyebrow: 'Actuación',
+      titleLead: 'Arriba del escenario',
+      titleAccent: 'desde 1990.',
+      body1:
+        'Empecé a estudiar teatro a los catorce años con Alicia Aller, y seguí formándome con Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas y Marcelo Subiotto, entre otros — cursé hasta tercer año la Licenciatura en Dirección Escénica en la UNA. Actué diez años con el grupo Los Ranz en salas como el Teatro Colón y el Centro Cultural Recoleta, y participé en La Comuna Orgón, dirigida por Marcelo Subiotto en Puerta Roja.',
+      body2:
+        'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones de Disney, RAI y Telefé.',
+      image: {
+        src: '/img/crear/rapina-tarantulas.jpg',
+        alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
+        credit: 'Marcela Russarabian',
+        caption: 'Rapiña · "Como las tarántulas" · 2017–2019',
+      },
+      stageTitle: 'Teatro',
+      stageCredits: [
+        { work: 'Rapiña', detail: 'Elenco · Belisario Club de Cultura', years: '2017–2019' },
+        { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
+        { work: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación', years: '2010–2013' },
+        { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
+        {
+          work: 'Los Ranz',
+          detail: 'Inténtalo otra vez, Animal Tango, Tanga Catanga y otros — Teatro Colón, Centro Cultural Recoleta',
+          years: '1998–2007',
+        },
+      ],
+      screenTitle: 'Cine y televisión',
+      screenCredits: [
+        { work: 'Viudas e hijos del Rock and Roll', detail: 'Telefé', years: '2014' },
+        { work: 'Publicidad Disney Channel', detail: 'Muppets — Donde reina el caos', years: '2011' },
+        { work: 'Un pugno e un bacio', detail: 'RAI, Italia', years: '2009' },
+        { work: 'High School Musical', detail: 'Versión México — Disney Latinoamérica', years: '2008' },
+      ],
+    },
+
     pillars: [
       {
         key: 'crear',
@@ -184,7 +239,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/menu/rapina.jpg',
         alt: 'Escena de Rapiña, obra en la que Nora integró el elenco',
         credit: 'Marcela Russarabian',
-        href: null,
+        href: '#crear',
       },
       {
         key: 'ensenar',
@@ -256,6 +311,41 @@ export const content: Record<Language, SiteContent> = {
 
     nav: { home: 'Home', about: 'About' },
 
+    crear: {
+      eyebrow: 'Acting',
+      titleLead: 'On stage',
+      titleAccent: 'since 1990.',
+      body1:
+        'I started studying theatre at fourteen with Alicia Aller, and went on training with Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas and Marcelo Subiotto, among others — I completed three years of a degree in Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years acting with the company Los Ranz, performing in venues including the Teatro Colón and the Centro Cultural Recoleta in Buenos Aires, and took part in La Comuna Orgón, directed by Marcelo Subiotto at Teatro Puerta Roja.',
+      body2:
+        'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Disney, RAI and Telefé.',
+      image: {
+        src: '/img/crear/rapina-tarantulas.jpg',
+        alt: 'Scene from "Como las tarántulas", part of Rapiña',
+        credit: 'Marcela Russarabian',
+        caption: 'Rapiña · "Como las tarántulas" · 2017–2019',
+      },
+      stageTitle: 'Theatre',
+      stageCredits: [
+        { work: 'Rapiña', detail: 'Ensemble cast · Belisario Club de Cultura, Buenos Aires', years: '2017–2019' },
+        { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
+        { work: 'Chicha, Carmen y Angelita', detail: 'Writer and performer', years: '2010–2013' },
+        { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
+        {
+          work: 'Los Ranz',
+          detail: 'Inténtalo otra vez, Animal Tango, Tanga Catanga and others — Teatro Colón, Centro Cultural Recoleta',
+          years: '1998–2007',
+        },
+      ],
+      screenTitle: 'Film & television',
+      screenCredits: [
+        { work: 'Viudas e hijos del Rock and Roll', detail: 'Telefé (Argentine TV)', years: '2014' },
+        { work: 'Disney Channel commercial', detail: 'Muppets — Where Chaos Reigns', years: '2011' },
+        { work: 'Un pugno e un bacio', detail: 'RAI, Italy', years: '2009' },
+        { work: 'High School Musical', detail: 'Mexican version — Disney Latin America', years: '2008' },
+      ],
+    },
+
     pillars: [
       {
         key: 'crear',
@@ -264,7 +354,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/menu/rapina.jpg',
         alt: 'Scene from Rapiña, a production Nora performed in',
         credit: 'Marcela Russarabian',
-        href: null,
+        href: '#crear',
       },
       {
         key: 'ensenar',
