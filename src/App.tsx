@@ -2,15 +2,26 @@ import { useCallback, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Hero from './components/Hero';
 import AboutMe from './components/AboutMe';
+import Footer from './components/Footer';
+import Header from './components/Header';
 import NotFound from './components/NotFound';
 import Preloader from './components/Preloader';
+import ScrollProgress from './components/ScrollProgress';
 import { useLanguage } from './i18n/LanguageContext';
 
+/**
+ * Header/ScrollProgress son overlays fixed y Footer cierra la página — los
+ * tres viven solo acá, no en `NotFound`: el 404 es una pantalla aislada a
+ * propósito (ver su propio docblock), sin chrome de sitio.
+ */
 function Home() {
   return (
     <>
+      <ScrollProgress />
+      <Header />
       <Hero />
       <AboutMe />
+      <Footer />
     </>
   );
 }

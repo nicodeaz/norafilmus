@@ -70,6 +70,8 @@ export interface SiteContent {
     location: string;
     portraitAlt: string;
   };
+  /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
+  nav: { home: string; about: string };
   pillars: Pillar[];
   about: {
     eyebrow: string;
@@ -84,6 +86,8 @@ export interface SiteContent {
   };
   notFound: { text: string; home: string };
   social: { instagram: string; linkedin: string; email: string };
+  /** Pie de sitio (F1) — LINKS (redes/mail) se reutiliza del Hero, esto es solo el texto que le falta. */
+  footer: { rights: string; backToTop: string };
 }
 
 const GALLERY_ES: GalleryItem[] = [
@@ -170,6 +174,8 @@ export const content: Record<Language, SiteContent> = {
       portraitAlt: 'Retrato de perfil de Nora Filmus',
     },
 
+    nav: { home: 'Inicio', about: 'Sobre mí' },
+
     pillars: [
       {
         key: 'crear',
@@ -226,6 +232,11 @@ export const content: Record<Language, SiteContent> = {
       linkedin: 'LinkedIn',
       email: 'Escribime por correo',
     },
+
+    footer: {
+      rights: 'Todos los derechos reservados.',
+      backToTop: 'Volver arriba',
+    },
   },
 
   en: {
@@ -242,6 +253,8 @@ export const content: Record<Language, SiteContent> = {
       location: 'Dublin, Ireland',
       portraitAlt: 'Profile portrait of Nora Filmus',
     },
+
+    nav: { home: 'Home', about: 'About' },
 
     pillars: [
       {
@@ -295,6 +308,11 @@ export const content: Record<Language, SiteContent> = {
       instagram: 'Instagram',
       linkedin: 'LinkedIn',
       email: 'Email me',
+    },
+
+    footer: {
+      rights: 'All rights reserved.',
+      backToTop: 'Back to top',
     },
   },
 };
