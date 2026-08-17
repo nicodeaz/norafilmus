@@ -64,6 +64,12 @@ export default function Footer() {
                 {p.label}
               </a>
             ))}
+            <a
+              href="#trayectoria"
+              className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
+            >
+              {t.nav.trayectoria}
+            </a>
           </nav>
 
           <div className="flex items-center gap-4">

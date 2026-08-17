@@ -6,6 +6,7 @@ import Crear from './components/Crear';
 import Ensenar from './components/Ensenar';
 import Footer from './components/Footer';
 import Producir from './components/Producir';
+import Trayectoria from './components/Trayectoria';
 import Header from './components/Header';
 import NotFound from './components/NotFound';
 import Preloader from './components/Preloader';
@@ -27,6 +28,7 @@ function Home() {
       <Crear />
       <Ensenar />
       <Producir />
+      <Trayectoria />
       <Footer />
     </>
   );

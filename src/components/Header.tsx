@@ -74,6 +74,12 @@ export default function Header() {
               {p.label}
             </a>
           ))}
+          <a
+            href="#trayectoria"
+            className="hidden font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red md:inline"
+          >
+            {t.nav.trayectoria}
+          </a>
           <LanguageToggle />
         </nav>
       </div>

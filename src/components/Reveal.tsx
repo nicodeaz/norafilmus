@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { EASE_REVEAL } from '@/lib/ease';
 
-type Tag = 'div' | 'section' | 'p' | 'span' | 'h2' | 'h3' | 'li' | 'article' | 'figure';
+type Tag = 'div' | 'section' | 'p' | 'span' | 'h2' | 'h3' | 'li' | 'ul' | 'article' | 'figure';
 
 interface RevealProps {
   children: ReactNode;
