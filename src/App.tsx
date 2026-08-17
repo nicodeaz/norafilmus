@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Hero from './components/Hero';
 import AboutMe from './components/AboutMe';
 import Crear from './components/Crear';
+import Ensenar from './components/Ensenar';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import NotFound from './components/NotFound';
@@ -23,6 +24,7 @@ function Home() {
       <Hero />
       <AboutMe />
       <Crear />
+      <Ensenar />
       <Footer />
     </>
   );

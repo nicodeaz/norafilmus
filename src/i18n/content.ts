@@ -93,6 +93,26 @@ export interface SiteContent {
     screenTitle: string;
     screenCredits: Credit[];
   };
+  /**
+   * Sección #ensenar (F3) — el pilar pedagoga. Sin `image` a propósito: el
+   * material de docencia disponible muestra adolescentes identificables del
+   * Programa Adolescencia (regla 4). El "material" de esta sección es
+   * `statNumber`/`statLabel`, no una foto. Fuente: `CV/NoraFilmus2023PedCoord.docx`
+   * + `CV/FilmusProgramaAdolescencia.docx`.
+   */
+  ensenar: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body1: string;
+    body2: string;
+    statNumber: string;
+    statLabel: string;
+    coordTitle: string;
+    coordCredits: Credit[];
+    teachTitle: string;
+    teachCredits: Credit[];
+  };
   about: {
     eyebrow: string;
     titleLead: string;
@@ -231,6 +251,32 @@ export const content: Record<Language, SiteContent> = {
       ],
     },
 
+    ensenar: {
+      eyebrow: 'Docencia',
+      titleLead: 'Doce años',
+      titleAccent: 'formando en las artes escénicas.',
+      body1:
+        'Desde 2012 coordino el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —un programa de promoción de derechos para chicas y chicos en situación de vulnerabilidad social— con base en tres organizaciones civiles: la Federación de Instituciones Comunitarias, el Espacio Cultural Oliverio Girondo y, desde 2019, la Asociación FACE. Diseño y coordino los proyectos artísticos anuales, formo las duplas de docentes y operadores sociales, y soy el nexo con la Secretaría de Niñez y Adolescencia.',
+      body2:
+        'También coordiné talleres de teatro en el Instituto de Menores San Martín, en escuelas medias de Marcos Paz y en el Comedor Comunitario Las Flores de Vicente López, y desde 2017 doy clases de teatro para la tercera edad (convenio PAMI). Cursé la Tecnicatura Superior en Pedagogía Social con Orientación en Derechos Humanos y fui asistente de cátedra de Pedagogía Social en el IFTS N.º 28. En 2015 y 2018 gané los concursos "Jóvenes Creadores" (SENAF / Asociación Argentina de Actores) y "Opresión y Libertad" (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
+      statNumber: '12',
+      statLabel: 'años coordinando el Programa Adolescencia — sin fotos publicables: el material muestra adolescentes en situación de vulnerabilidad.',
+      coordTitle: 'Coordinación',
+      coordCredits: [
+        { work: 'Programa Adolescencia', detail: 'Asociación FACE — Gobierno de la Ciudad de Buenos Aires', years: 'desde 2019' },
+        { work: 'Programa Adolescencia', detail: 'Espacio Cultural Oliverio Girondo — GCBA', years: '2015–2018' },
+        { work: 'Programa Adolescencia', detail: 'Federación de Instituciones Comunitarias — GCBA', years: '2012–2014' },
+      ],
+      teachTitle: 'Docencia',
+      teachCredits: [
+        { work: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', years: 'desde 2017' },
+        { work: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', years: '2020–2022' },
+        { work: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
+        { work: 'Teatro, adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', years: '2015–2016' },
+        { work: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', years: '2014–2015' },
+      ],
+    },
+
     pillars: [
       {
         key: 'crear',
@@ -249,7 +295,7 @@ export const content: Record<Language, SiteContent> = {
         // identificables del Programa Adolescencia. Ver regla 4 arriba.
         image: null,
         alt: 'Todavía sin imagen publicable para este pilar',
-        href: null,
+        href: '#ensenar',
       },
       {
         key: 'producir',
@@ -346,6 +392,32 @@ export const content: Record<Language, SiteContent> = {
       ],
     },
 
+    ensenar: {
+      eyebrow: 'Teaching',
+      titleLead: 'Twelve years',
+      titleAccent: 'training people in the performing arts.',
+      body1:
+        'Since 2012 I have coordinated Programa Adolescencia for the City of Buenos Aires — a rights programme for teenagers in vulnerable social contexts — delivered through three civil associations: the Federación de Instituciones Comunitarias, the Espacio Cultural Oliverio Girondo, and, since 2019, Asociación FACE. I design and coordinate the yearly artistic projects, put together the teaching pairs of artistic instructors and social workers, and act as the point of contact with the City\'s child and adolescent welfare office.',
+      body2:
+        'I also ran theatre workshops at the Instituto de Menores San Martín (a juvenile detention facility), at secondary schools in Marcos Paz, and at the Las Flores community canteen in Vicente López, and since 2017 I have taught theatre to older adults under PAMI, Argentina\'s public health programme for retirees. I completed a further-education degree in Social Pedagogy with a focus on Human Rights, and was a teaching assistant for Social Pedagogy at IFTS Nº 28. In 2015 and 2018 I won the "Jóvenes Creadores" award (SENAF / Asociación Argentina de Actores) and the "Opresión y Libertad" award (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
+      statNumber: '12',
+      statLabel: 'years coordinating Programa Adolescencia — no publishable photos: the material shows teenagers in vulnerable circumstances.',
+      coordTitle: 'Coordination',
+      coordCredits: [
+        { work: 'Programa Adolescencia', detail: 'Asociación FACE — City of Buenos Aires', years: 'since 2019' },
+        { work: 'Programa Adolescencia', detail: 'Espacio Cultural Oliverio Girondo — City of Buenos Aires', years: '2015–2018' },
+        { work: 'Programa Adolescencia', detail: 'Federación de Instituciones Comunitarias — City of Buenos Aires', years: '2012–2014' },
+      ],
+      teachTitle: 'Teaching',
+      teachCredits: [
+        { work: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', years: 'since 2017' },
+        { work: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', years: '2020–2022' },
+        { work: 'Theatre for children and teenagers', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
+        { work: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', years: '2015–2016' },
+        { work: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', years: '2014–2015' },
+      ],
+    },
+
     pillars: [
       {
         key: 'crear',
@@ -362,7 +434,7 @@ export const content: Record<Language, SiteContent> = {
         caption: 'Twelve years running theatre workshops for teenagers.',
         image: null,
         alt: 'No publishable image for this strand yet',
-        href: null,
+        href: '#ensenar',
       },
       {
         key: 'producir',
