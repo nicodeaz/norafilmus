@@ -17,10 +17,18 @@ import { useLanguage } from './i18n/LanguageContext';
  * Header/ScrollProgress son overlays fixed y Footer cierra la página — los
  * tres viven solo acá, no en `NotFound`: el 404 es una pantalla aislada a
  * propósito (ver su propio docblock), sin chrome de sitio.
+ *
+ * La obertura (`Preloader`) también vive acá y no en `App`: antes envolvía a
+ * todas las rutas y **le cobraba su tiempo también al 404** — una pantalla de
+ * error detrás de un telón (auditoría, hallazgo H14).
  */
 function Home() {
+  const [loading, setLoading] = useState(true);
+  const handleLoaded = useCallback(() => setLoading(false), []);
+
   return (
     <>
+      {loading && <Preloader onComplete={handleLoaded} />}
       <ScrollProgress />
       <Header />
       <Hero />
@@ -35,8 +43,6 @@ function Home() {
 }
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const handleLoaded = useCallback(() => setLoading(false), []);
   const { t } = useLanguage();
 
   return (
@@ -55,7 +61,6 @@ function App() {
       </a>
 
       <main id="main" tabIndex={-1} className="outline-none">
-        {loading && <Preloader onComplete={handleLoaded} />}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound />} />

@@ -1,156 +1,159 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
-/** Saludos que se encadenan. El último es el que queda al salir. */
-const WORDS = ['Hola', 'Hello', 'Dia dhuit', 'Ciao', 'Bonjour', 'Olá', 'Hallo', 'Nora Filmus'];
-
-/** Curva "in-out" fuerte, la misma del componente original. */
-const EASE = [0.76, 0, 0.24, 1] as const;
-
-/** Panzazo máximo (px) de la cortina: cuánto se hunde la curva de abajo. */
-const MAX_CURVE_HEIGHT = 300;
-
-const slideUp = {
-  initial: { y: 0 },
-  exit: { y: '-100%', transition: { duration: 0.8, ease: EASE, delay: 0.3 } },
-};
+/** Cuánto dura la cortina antes de salir sola, en ms. */
+const HOLD_MS = 900;
+/** Clave de sesión: la obertura corre una vez por pestaña, no en cada navegación. */
+const SEEN_KEY = 'nora-obertura-vista';
 
 interface PreloaderProps {
-  /** Se dispara cuando terminó de salir (no cuando terminan las palabras). */
+  /** Se dispara cuando terminó de salir (no cuando termina el hold). */
   onComplete?: () => void;
 }
 
 /**
- * Adaptado de "preloader" (21st.dev/@info-mdshakeeb — código fuente detrás
- * del paywall, reconstruido desde la descripción + la captura con los tokens
- * de Nora): cortina ink full-screen que encadena saludos en varios idiomas
- * (Buenos Aires → Dublín) y sale hacia arriba con el borde inferior curvo
- * que se aplana durante el barrido.
+ * **La obertura** — reemplaza al preloader anterior (2026-08-18).
+ *
+ * El anterior era una cortina que encadenaba saludos en seis idiomas y salía
+ * con un borde curvo. Se cambió por pedido del usuario ("completamente
+ * diferente") y porque la auditoría lo había medido (hallazgo H14): costaba
+ * **3,5 s en cada carga** (900 + 6×150 + 600 de palabras, +300 de delay +800
+ * de salida), no se podía saltar, no recordaba la visita previa y corría
+ * también sobre el 404. Con la prioridad puesta en "impresionar en 15
+ * segundos", esos 3,5 s eran el 23 % del presupuesto de atención gastado en
+ * una cortina.
+ *
+ * Ahora es una obertura de teatro, y cambia en las cuatro cosas que importan:
+ *
+ * 1. **Dura ~1,2 s** en vez de 3,5 (`HOLD_MS` + la salida).
+ * 2. **Se saltea con cualquier tecla, click o scroll** — nadie queda preso.
+ * 3. **Corre una vez por pestaña** (`sessionStorage`): quien vuelve al home
+ *    desde otra vista no vuelve a pagar el peaje.
+ * 4. **Sale desde el centro hacia los bordes**, como se abre un telón, en vez
+ *    de barrer hacia arriba: dos hojas que se separan y dejan ver el Hero.
+ *
+ * El contenido es la marca —el monograma NF y una regla roja que se
+ * extiende— y no una lista de saludos: el logo oficial pasó a ser el logo del
+ * sitio y esta es su primera aparición en pantalla.
+ *
+ * **Gotcha heredado, resuelto por diseño:** el `useReducedMotion` de
+ * `motion/react` rompía la cadena de `setTimeout` encadenados del preloader
+ * viejo. Acá no hay cadena — hay un solo `setTimeout` y una sola condición de
+ * salida, así que se puede usar `matchMedia` sin encadenar nada. Con
+ * `prefers-reduced-motion` la obertura directamente no aparece.
  */
 export default function Preloader({ onComplete }: PreloaderProps) {
-  const [index, setIndex] = useState(0);
-  const [width, setWidth] = useState(0);
   const [visible, setVisible] = useState(true);
-  // Lazy init, a propósito NO el `useReducedMotion` de 'motion/react' que usan
-  // Reveal/PillarMenu: se probó acá (F0.4) y con su valor reactivo la cadena
-  // de palabras se quedaba trabada en la última sin salir nunca — algo en
-  // cómo su listener interactúa con este `useEffect` en cadena (cada uno
-  // dispara el siguiente por `setTimeout`) lo rompe. Como acá alcanza con el
-  // valor del primer render (el loader ya terminó de decidir su camino antes
-  // de que el usuario pueda cambiar la preferencia del SO), un `matchMedia`
-  // leído una sola vez es más simple Y más confiable que la versión reactiva.
-  const [reducedMotion] = useState(
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
 
-  // El path del SVG se dibuja en px, así que necesita el ancho real (y
-  // seguirlo si la ventana cambia de tamaño mientras el loader está puesto).
-  useEffect(() => {
-    const update = () => setWidth(window.innerWidth);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
+  // Lectura única en el primer render: si el usuario pidió menos movimiento, o
+  // ya vio la obertura en esta pestaña, no se monta nada.
+  const [skip] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return reduced || sessionStorage.getItem(SEEN_KEY) === '1';
+  });
 
-  // Cadena de palabras: la primera respira, las demás pasan rápido.
-  useEffect(() => {
-    if (reducedMotion) return;
-    if (index === WORDS.length - 1) {
-      const timer = setTimeout(() => setVisible(false), 600);
-      return () => clearTimeout(timer);
-    }
-    const timer = setTimeout(() => setIndex(index + 1), index === 0 ? 900 : 150);
-    return () => clearTimeout(timer);
-  }, [index, reducedMotion]);
+  const cerrar = useCallback(() => setVisible(false), []);
 
-  // Sin scroll mientras la cortina tapa el sitio. Atado al montaje, no a
-  // `visible`: la salida sigue corriendo después de esconderla y el scrollbar
-  // reaparecía en el medio del barrido.
+  // Salida automática + escape por tecla, click o scroll. Un solo timeout, sin
+  // cadena (ver docblock).
   useEffect(() => {
-    if (reducedMotion) return;
+    if (skip) return;
+    const timer = setTimeout(cerrar, HOLD_MS);
+    window.addEventListener('keydown', cerrar);
+    window.addEventListener('pointerdown', cerrar);
+    window.addEventListener('wheel', cerrar, { passive: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', cerrar);
+      window.removeEventListener('pointerdown', cerrar);
+      window.removeEventListener('wheel', cerrar);
+    };
+  }, [skip, cerrar]);
+
+  // Si no corresponde mostrarla, se avisa enseguida y el Hero arranca solo.
+  useEffect(() => {
+    if (skip) onComplete?.();
+  }, [skip, onComplete]);
+
+  // Sin scroll mientras la obertura tapa el sitio.
+  useEffect(() => {
+    if (skip) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = previous;
     };
-  }, [reducedMotion]);
+  }, [skip]);
 
-  useEffect(() => {
-    if (reducedMotion) onComplete?.();
-  }, [reducedMotion, onComplete]);
+  const handleExitComplete = useCallback(() => {
+    sessionStorage.setItem(SEEN_KEY, '1');
+    onComplete?.();
+  }, [onComplete]);
 
-  const handleExitComplete = useCallback(() => onComplete?.(), [onComplete]);
-
-  // Cortina: panza hacia abajo en reposo, borde recto al salir. La panza es
-  // proporcional al ancho — 300px fijos en mobile daban una V, no una curva.
-  const depth = Math.min(MAX_CURVE_HEIGHT, width * 0.22);
-  const initialPath = `M0 0 L${width} 0 Q${width / 2} ${depth} 0 0 Z`;
-  const targetPath = `M0 0 L${width} 0 Q${width / 2} 0 0 0 Z`;
-
-  const curve = {
-    initial: { d: initialPath, transition: { duration: 0.7, ease: EASE } },
-    exit: { d: targetPath, transition: { duration: 0.7, ease: EASE, delay: 0.3 } },
-  };
-
-  // El sitio también es ink: una cortina negra sobre fondo negro no se ve
-  // salir. El filo rojo (la misma curva, sin relleno) es lo que dibuja el
-  // barrido. Se puede sacar sin tocar nada más.
-  const edge = {
-    initial: {
-      d: `M${width} 0 Q${width / 2} ${depth} 0 0`,
-      transition: { duration: 0.7, ease: EASE },
-    },
-    exit: {
-      d: `M${width} 0 Q${width / 2} 0 0 0`,
-      transition: { duration: 0.7, ease: EASE, delay: 0.3 },
-    },
-  };
+  if (skip) return null;
 
   return (
     <AnimatePresence onExitComplete={handleExitComplete}>
-      {visible && !reducedMotion && (
-        <motion.div
-          variants={slideUp}
-          initial="initial"
-          exit="exit"
-          className="fixed inset-x-0 top-0 z-[100] flex h-screen w-screen items-center justify-center bg-ink"
-        >
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="flex items-center font-display text-3xl uppercase leading-none text-cream sm:text-4xl md:text-5xl"
-          >
-            <span className="mr-4 inline-block h-2.5 w-2.5 rounded-full bg-brand-red" />
-            {WORDS[index]}
-          </motion.p>
+      {visible && (
+        <div className="fixed inset-0 z-[100]" role="status" aria-label="Nora Filmus">
+          {/* Dos hojas de telón: se separan desde el centro. Animan solo
+              `transform`, así que la salida no toca layout (§7.2 del
+              contrato de movimiento). */}
+          <motion.div
+            initial={{ x: 0 }}
+            exit={{ x: '-101%' }}
+            transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
+            className="absolute inset-y-0 left-0 w-1/2 bg-ink"
+          />
+          <motion.div
+            initial={{ x: 0 }}
+            exit={{ x: '101%' }}
+            transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
+            className="absolute inset-y-0 right-0 w-1/2 bg-ink"
+          />
 
-          {/* Vive por debajo del borde inferior (top-full): es la panza de la
-              cortina, no un fondo. Se mueve junto con el padre al salir. */}
-          {width > 0 && (
-            <svg
-              className="absolute left-0 top-full"
-              width={width}
-              height={depth}
-              aria-hidden="true"
+          {/* Filo rojo en la junta: es lo que hace visible la apertura sobre
+              un sitio que también es ink (mismo problema que resolvía el
+              stroke rojo del loader anterior). */}
+          <motion.div
+            aria-hidden
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-brand-red"
+          />
+
+          {/* Marca al centro: el lockup del logo — monograma + wordmark. Se usa
+              el monograma con alfa (`/img/nf-monograma.png`) y no el favicon:
+              ese trae el cuadro ink horneado y sobre la cortina se veía como
+              una placa redondeada. Sin regla horizontal a propósito: con la
+              junta vertical del telón formaba una cruz. */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
+            <motion.img
+              src="/img/nf-monograma.png"
+              alt=""
+              aria-hidden
+              width={360}
+              height={287}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="h-auto w-[7.5rem] md:w-[9.5rem]"
+            />
+            <motion.span
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+              className="font-label text-[11px] uppercase tracking-[0.42em] text-cream/70"
             >
-              <motion.path
-                variants={curve}
-                initial="initial"
-                exit="exit"
-                fill="var(--color-ink)"
-              />
-              <motion.path
-                variants={edge}
-                initial="initial"
-                exit="exit"
-                fill="none"
-                stroke="var(--color-brand-red)"
-                strokeWidth={2}
-              />
-            </svg>
-          )}
-        </motion.div>
+              Nora&nbsp;Filmus
+            </motion.span>
+          </div>
+        </div>
       )}
     </AnimatePresence>
   );
