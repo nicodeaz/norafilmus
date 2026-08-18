@@ -101,6 +101,15 @@ export interface SiteContent {
     cta: string;
     location: string;
     portraitAlt: string;
+    /**
+     * Tira de credenciales del Hero: nombres reconocibles, sin adjetivos.
+     * Es lo que hace que una productora entienda el nivel en 15 segundos.
+     * **Todos verificables** (regla 1): Netflix = El amor después del amor ·
+     * Star+ = Planners (directora de arte) · HBO = figura en el CV entre las
+     * productoras para las que trabajó · Teatro Colón = sala donde tocó Los
+     * Ranz · St. Patrick's Festival = 2023, Dublín.
+     */
+    credentials: string[];
   };
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
   nav: { home: string; about: string; trayectoria: string };
@@ -271,6 +280,7 @@ export const content: Record<Language, SiteContent> = {
       cta: 'Ver trayectoria',
       location: 'Dublín, Irlanda',
       portraitAlt: 'Nora Filmus en un retrato de estudio, girada de tres cuartos, sonriendo a cámara',
+      credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
     nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria' },
@@ -526,6 +536,7 @@ export const content: Record<Language, SiteContent> = {
       cta: 'See my work',
       location: 'Dublin, Ireland',
       portraitAlt: 'Nora Filmus in a studio portrait, turned three-quarters, smiling at the camera',
+      credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
     nav: { home: 'Home', about: 'About', trayectoria: 'Timeline' },

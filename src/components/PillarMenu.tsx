@@ -8,6 +8,16 @@ import { getImageSources } from './Picture';
 interface PillarMenuProps {
   items: Pillar[];
   className?: string;
+  /**
+   * `vertical` — lista apilada + mosaico al costado (el layout original).
+   * `inline` — banda horizontal, **sin mosaico**: es la que usa el Hero desde
+   * el rediseño de composición, para que los pilares ocupen el ancho del pie
+   * en vez de flotar chicos a la derecha. El mosaico se cae a propósito — en
+   * el Hero el protagonista es el retrato, y una segunda imagen chica ahí
+   * abajo se montaba sobre el torso y dejaba su pie ilegible sobre la remera
+   * blanca. En `vertical` (fuera del Hero) el mosaico sigue vivo.
+   */
+  orientation?: 'vertical' | 'inline';
 }
 
 /** El mosaico es una grilla de GRID x GRID pedazos de la misma foto. */
@@ -47,20 +57,24 @@ const TILE_STAGGER = 0.025;
  * va sin foto a propósito: el material de docencia disponible muestra
  * adolescentes identificables del Programa Adolescencia — ver `content.ts`.
  */
-export default function PillarMenu({ items, className }: PillarMenuProps) {
+export default function PillarMenu({ items, className, orientation = 'vertical' }: PillarMenuProps) {
   const [active, setActive] = useState(0);
   const reduced = useReducedMotion();
   const current = items[active];
+  const inline = orientation === 'inline';
 
   return (
     <div
       className={cn(
-        'flex w-full flex-col items-center gap-6 md:flex-row md:items-center md:gap-7',
+        'flex w-full gap-6',
+        inline
+          ? 'flex-row items-end justify-between gap-4 md:gap-8'
+          : 'flex-col items-center md:flex-row md:items-center md:gap-7',
         className
       )}
     >
       {/* Lista de pilares */}
-      <ul className="flex flex-col gap-1 md:gap-2">
+      <ul className={cn('flex', inline ? 'flex-row flex-wrap items-baseline gap-x-6 gap-y-1 md:gap-x-10' : 'flex-col gap-1 md:gap-2')}>
         {items.map(({ key, label, href }, index) => {
           const isActive = index === active;
           // Sin sección a la que ir, el ítem no es un link (ver docblock).
@@ -90,7 +104,8 @@ export default function PillarMenu({ items, className }: PillarMenuProps) {
                 </span>
                 <span
                   className={cn(
-                    'font-display text-4xl uppercase leading-[0.95] transition-colors duration-300 sm:text-5xl',
+                    'font-display uppercase leading-[0.95] transition-colors duration-300',
+                    inline ? 'text-xl sm:text-2xl md:text-3xl' : 'text-4xl sm:text-5xl',
                     isActive ? 'text-cream' : 'text-cream/25'
                   )}
                 >
@@ -102,8 +117,10 @@ export default function PillarMenu({ items, className }: PillarMenuProps) {
         })}
       </ul>
 
-      {/* Mosaico + pie del pilar activo */}
-      <div className="flex w-36 shrink-0 flex-col gap-2 sm:w-44">
+      {/* Mosaico + pie del pilar activo. En `inline` el mosaico es chico y va
+          al final de la banda: es la vista previa del pilar activo, no el
+          protagonista (en el Hero el protagonista es el retrato). */}
+      <div className={cn('shrink-0 flex-col gap-2', inline ? 'hidden' : 'flex w-36 sm:w-44')}>
         <div className="relative aspect-square w-full">
           <AnimatePresence mode="wait">
             <motion.div
