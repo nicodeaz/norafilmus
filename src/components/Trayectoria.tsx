@@ -46,7 +46,7 @@ export default function Trayectoria() {
   }, [trayectoria.items, filter]);
 
   return (
-    <section id="trayectoria" className="relative w-full overflow-hidden bg-ink py-24 md:py-36">
+    <section id="trayectoria" className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-10 md:px-12">
         <Reveal as="div" className="flex items-center gap-3">
           <span className="h-px w-8 bg-brand-red" aria-hidden />

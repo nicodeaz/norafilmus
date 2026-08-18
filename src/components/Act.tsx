@@ -66,8 +66,30 @@ export default function Act({
   const mirrored = align === 'right';
 
   return (
-    <section id={id} className="relative w-full overflow-hidden bg-ink py-24 md:py-36">
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-12">
+    // py bajó de 24/36 a 16/24: sumado al de la sección vecina daba 288px de
+    // negro muerto en cada borde. Lo que se recorta acá lo ocupa `<Seam>`,
+    // que ahora vive en esas costuras (E3 / H7).
+    <section id={id} className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
+      {/* Luz de escena: un óvalo de cream al 3 % detrás del numeral. Le da
+          profundidad al ink plano —que la auditoría marcó como el 100 % de la
+          superficie bajo el Hero (H13)— sin agregar un color a la paleta, y
+          de paso es coherente con el concepto: un acto tiene su luz. Sigue el
+          lado por el que sangra el numeral.
+
+          El óvalo se queda holgadamente adentro de la sección (45×38 % centrado
+          al 50 % de alto, apagándose al 70 %): con un radio más grande el
+          degradé todavía tenía valor al llegar al borde y se veía un escalón
+          tonal contra la sección vecina — un rectángulo más claro, que es peor
+          que el negro plano que venía a resolver. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `radial-gradient(45% 38% at ${mirrored ? '75%' : '25%'} 50%, rgba(245,239,230,0.03), transparent 70%)`,
+        }}
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-10 md:px-12">
         <div className="grid gap-12 md:grid-cols-12 md:gap-8">
           {/* Numeral + foto — columna angosta, sangra hacia el borde.
               `order` (no un truco de `direction: rtl`) alterna el lado: más

@@ -10,7 +10,9 @@ import Trayectoria from './components/Trayectoria';
 import Header from './components/Header';
 import NotFound from './components/NotFound';
 import Preloader from './components/Preloader';
+import Grain from './components/Grain';
 import ScrollProgress from './components/ScrollProgress';
+import Seam from './components/Seam';
 import { useLanguage } from './i18n/LanguageContext';
 
 /**
@@ -25,17 +27,27 @@ import { useLanguage } from './i18n/LanguageContext';
 function Home() {
   const [loading, setLoading] = useState(true);
   const handleLoaded = useCallback(() => setLoading(false), []);
+  const { t } = useLanguage();
 
   return (
     <>
       {loading && <Preloader onComplete={handleLoaded} />}
+      <Grain />
       <ScrollProgress />
       <Header />
       <Hero />
       <AboutMe />
+      {/* Las costuras anuncian lo que viene y ocupan los bordes que la
+          auditoría midió como los únicos tramos ≥300px sin tinta del sitio
+          (E3 / H7). El rótulo reusa el `eyebrow` de cada sección — no hay
+          copy nueva que traducir. */}
+      <Seam numeral="I" label={t.crear.eyebrow} />
       <Crear />
+      <Seam numeral="II" label={t.ensenar.eyebrow} />
       <Ensenar />
+      <Seam numeral="III" label={t.producir.eyebrow} />
       <Producir />
+      <Seam label={t.trayectoria.eyebrow} />
       <Trayectoria />
       <Footer />
     </>
