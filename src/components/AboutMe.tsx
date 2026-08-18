@@ -1,5 +1,6 @@
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Mail } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Picture from './Picture';
@@ -25,6 +26,7 @@ import Reveal from './Reveal';
 export default function AboutMe() {
   const { t } = useLanguage();
   const { about } = t;
+  const reduced = useReducedMotion();
 
   return (
     <section id="sobre-mi" className="relative z-10 w-full overflow-hidden bg-ink py-24 sm:py-32">
@@ -57,12 +59,12 @@ export default function AboutMe() {
         </Reveal>
 
         <motion.a
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: reduced ? 0 : 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: reduced ? 0 : 0.3, duration: reduced ? 0.2 : undefined }}
           href={LINKS.email}
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:bg-brand-red-deep"
+          className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:bg-brand-red-deep"
         >
           <Mail className="h-4 w-4" />
           {about.cta}
@@ -77,13 +79,24 @@ export default function AboutMe() {
         <p className="mt-2 font-label text-xs text-cream/40">{about.galleryNote}</p>
       </div>
 
-      <div className="relative mt-8 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+      {/* Con `prefers-reduced-motion` el marquee no corre y la fila pasa a ser
+          scrolleable a mano: era la ÚNICA animación infinita del sitio y la
+          única sin guarda — todo lo demás (BackgroundDots, PillarMenu,
+          Preloader, Reveal, CreditList, Trayectoria) ya la respetaba
+          (auditoría E1/H4). Sin `repeat: Infinity` no hace falta duplicar la
+          galería, así que en ese modo se renderiza una sola vez. */}
+      <div
+        className={cn(
+          'relative mt-8 w-full [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]',
+          reduced ? 'overflow-x-auto' : 'overflow-hidden'
+        )}
+      >
         <motion.div
           className="flex w-max gap-4"
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 34, ease: 'linear', repeat: Infinity }}
+          animate={reduced ? undefined : { x: ['0%', '-50%'] }}
+          transition={reduced ? undefined : { duration: 34, ease: 'linear', repeat: Infinity }}
         >
-          {[...about.gallery, ...about.gallery].map((item, i) => (
+          {(reduced ? about.gallery : [...about.gallery, ...about.gallery]).map((item, i) => (
             <figure key={i} className="w-36 flex-shrink-0 sm:w-48">
               <Picture
                 src={item.src}

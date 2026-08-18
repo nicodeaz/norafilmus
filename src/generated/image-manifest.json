@@ -94,11 +94,12 @@
       1440
     ]
   },
-  "/img/nora-portrait.png": {
-    "width": 362,
-    "height": 689,
+  "/img/nora-portrait.webp": {
+    "width": 1371,
+    "height": 3148,
     "widths": [
-      362
+      480,
+      960
     ]
   }
 }

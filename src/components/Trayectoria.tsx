@@ -75,7 +75,10 @@ export default function Trayectoria() {
               onClick={() => setFilter(key)}
               aria-pressed={filter === key}
               className={cn(
-                'border-b-2 pb-1 font-label text-xs uppercase tracking-[0.15em] transition-colors duration-300',
+                // min-h-11 + items-end: la caja táctil llega a 44px sin mover
+                // el subrayado ni cambiar el tamaño del texto (E1/H5 — los
+                // filtros medían 22px de alto).
+                'inline-flex min-h-11 items-end border-b-2 pb-1 font-label text-xs uppercase tracking-[0.15em] transition-colors duration-300',
                 filter === key
                   ? 'border-brand-red text-brand-red'
                   : 'border-transparent text-cream/50 hover:text-cream'
@@ -102,7 +105,7 @@ export default function Trayectoria() {
                   type="button"
                   onClick={() => setOpenDecade(isOpen ? null : decade)}
                   aria-expanded={isOpen}
-                  className="flex items-baseline gap-4 text-left"
+                  className="flex min-h-11 items-baseline gap-4 text-left"
                 >
                   <span className="font-display text-4xl uppercase leading-none text-cream sm:text-5xl">
                     {decade}

@@ -7,6 +7,16 @@ import Picture from './Picture';
 const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
 
 /**
+ * Identidad de un crédito. **No alcanza con `work`**: `ensenar.coordCredits`
+ * tiene tres entradas llamadas "Programa Adolescencia" (una por institución),
+ * así que usar el nombre como key hacía que React tirara `same key` en cada
+ * carga y que un click abriera los tres paneles a la vez (auditoría E1/H1).
+ * `work + years` sí es único y, a diferencia del índice, sobrevive a un
+ * reordenamiento de la lista en `content.ts`.
+ */
+const creditId = (c: Credit) => `${c.work}::${c.years}`;
+
+/**
  * Lista de créditos con formato de "cast list" de programa de teatro —
  * redirección de dirección artística post-F5 (ver informe en el chat).
  * La versión anterior (chevron + pill redondeada) leía como un acordeón de
@@ -19,21 +29,22 @@ const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
  * sección (eso repetía con el mosaico del Hero). Todo arranca cerrado.
  */
 export default function CreditList({ title, items }: { title: string; items: Credit[] }) {
-  const [openWork, setOpenWork] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
     <div>
       <h3 className="font-label text-label uppercase tracking-[0.2em] text-brand-red">{title}</h3>
       <ul className="mt-4 flex flex-col">
         {items.map((c, i) => {
-          const isOpen = openWork === c.work;
+          const id = creditId(c);
+          const isOpen = openId === id;
           return (
-            <li key={c.work} className="border-t border-cream/10 last:border-b">
+            <li key={id} className="border-t border-cream/10 last:border-b">
               <button
                 type="button"
-                onClick={() => setOpenWork(isOpen ? null : c.work)}
+                onClick={() => setOpenId(isOpen ? null : id)}
                 aria-expanded={isOpen}
-                className="flex w-full items-baseline gap-3 py-3 text-left"
+                className="flex min-h-11 w-full items-baseline gap-3 py-3 text-left"
               >
                 <span className="font-body italic text-cream/35">{ROMAN[i] ?? i + 1}.</span>
                 <span

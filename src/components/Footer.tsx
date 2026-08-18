@@ -14,6 +14,14 @@ import Reveal from './Reveal';
  * `content.ts` — no hay lista manual que desincronizar cuando F3/F4 agreguen
  * Enseñar/Producir.
  */
+/**
+ * Los links del nav llevan `min-h-11` (44px) para cumplir el mínimo táctil sin
+ * cambiar el tamaño del texto: crece la caja de impacto, no la tipografía
+ * (auditoría E1/H5 — 31 de 67 interactivos estaban por debajo del mínimo).
+ */
+const NAV_LINK =
+  'inline-flex min-h-11 items-center font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red';
+
 export default function Footer() {
   const { t } = useLanguage();
   const linkedPillars = t.pillars.filter((p) => p.href);
@@ -38,41 +46,37 @@ export default function Footer() {
             <span className="font-display text-2xl uppercase leading-none text-cream">Filmus</span>
           </div>
 
-          <nav className="flex items-center gap-6">
+          {/* `flex-wrap` + gap asimétrico: con 6 links y `nowrap` este nav medía
+              469px en ES contra un viewport de 390 y hacía scrollear el
+              documento entero de lado (auditoría E1/H2 — el caso peor era el
+              español, que es el idioma por defecto). */}
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-1">
             <a
               href="#"
               onClick={(e) => {
                 e.preventDefault();
                 scrollToTop();
               }}
-              className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
+              className={NAV_LINK}
             >
               {t.nav.home}
             </a>
-            <a
-              href="#sobre-mi"
-              className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
-            >
+            <a href="#sobre-mi" className={NAV_LINK}>
               {t.nav.about}
             </a>
             {linkedPillars.map((p) => (
-              <a
-                key={p.key}
-                href={p.href!}
-                className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
-              >
+              <a key={p.key} href={p.href!} className={NAV_LINK}>
                 {p.label}
               </a>
             ))}
-            <a
-              href="#trayectoria"
-              className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
-            >
+            <a href="#trayectoria" className={NAV_LINK}>
               {t.nav.trayectoria}
             </a>
           </nav>
 
-          <div className="flex items-center gap-4">
+          {/* -m-1.5 compensa el padding táctil para que la fila de íconos no
+              crezca visualmente: el ícono sigue midiendo 20px, la caja 44. */}
+          <div className="-m-1.5 flex items-center">
             {socialLinks.map(({ label, href, icon: Icon, external }) => (
               <a
                 key={label}
@@ -80,7 +84,7 @@ export default function Footer() {
                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 aria-label={label}
                 title={label}
-                className="text-cream/60 transition-colors duration-300 hover:text-brand-red"
+                className="inline-flex h-11 w-11 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red"
               >
                 <Icon className="h-5 w-5" />
               </a>
@@ -97,7 +101,7 @@ export default function Footer() {
             <button
               type="button"
               onClick={scrollToTop}
-              className="flex items-center gap-1.5 text-cream/40 transition-colors duration-300 hover:text-brand-red"
+              className="inline-flex min-h-11 items-center gap-1.5 text-cream/40 transition-colors duration-300 hover:text-brand-red"
             >
               {t.footer.backToTop}
               <ArrowUp className="h-3.5 w-3.5" />

@@ -270,7 +270,7 @@ export const content: Record<Language, SiteContent> = {
       bio: 'Treinta y seis años en artes escénicas, entre Buenos Aires y Dublín. Actúo, produzco teatro y audiovisual, y coordino programas de formación artística.',
       cta: 'Ver trayectoria',
       location: 'Dublín, Irlanda',
-      portraitAlt: 'Retrato de perfil de Nora Filmus',
+      portraitAlt: 'Nora Filmus en un retrato de estudio, girada de tres cuartos, sonriendo a cámara',
     },
 
     nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria' },
@@ -525,7 +525,7 @@ export const content: Record<Language, SiteContent> = {
       bio: 'Thirty-six years in the performing arts, between Buenos Aires and Dublin. I act, I produce for stage and screen, and I run arts education programmes.',
       cta: 'See my work',
       location: 'Dublin, Ireland',
-      portraitAlt: 'Profile portrait of Nora Filmus',
+      portraitAlt: 'Nora Filmus in a studio portrait, turned three-quarters, smiling at the camera',
     },
 
     nav: { home: 'Home', about: 'About', trayectoria: 'Timeline' },

@@ -18,6 +18,10 @@ import LanguageToggle from './LanguageToggle';
  * acá, así no hay que recordar tocar dos archivos cuando F3/F4 agreguen
  * Enseñar/Producir.
  */
+/** Mismo criterio que el nav del `Footer`: caja de impacto de 44px sin tocar el tamaño del texto (E1/H5). */
+const NAV_LINK =
+  'inline-flex min-h-11 items-center font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red';
+
 export default function Header() {
   const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
@@ -42,6 +46,13 @@ export default function Header() {
       initial={false}
       animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -12 }}
       transition={{ duration: 0.3 }}
+      // `inert` mientras está oculto: `opacity:0` + `pointer-events-none` NO
+      // saca del orden de tabulación (la caja sigue con `visibility: visible`),
+      // así que a scroll 0 estos 7 controles seguían siendo focusables y quien
+      // navegaba con Tab pasaba por 7 controles que no veía — el anillo de foco
+      // no aparecía en ningún lado (auditoría E1/H3). `inert` los saca del tab
+      // order Y del árbol de accesibilidad de una.
+      inert={!visible}
       className={cn(
         'fixed inset-x-0 top-0 z-40 border-b border-cream/10 bg-ink/90 backdrop-blur-md',
         !visible && 'pointer-events-none'
@@ -51,7 +62,7 @@ export default function Header() {
         <button
           type="button"
           onClick={scrollToTop}
-          className="flex items-baseline gap-2"
+          className="flex min-h-11 items-center gap-2"
           aria-label={t.nav.home}
         >
           <span className="font-signature text-2xl leading-none text-brand-red">Nora</span>
@@ -59,25 +70,15 @@ export default function Header() {
         </button>
 
         <nav className="flex items-center gap-6">
-          <a
-            href="#sobre-mi"
-            className="font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
-          >
+          <a href="#sobre-mi" className={NAV_LINK}>
             {t.nav.about}
           </a>
           {linkedPillars.map((p) => (
-            <a
-              key={p.key}
-              href={p.href!}
-              className="hidden font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red sm:inline"
-            >
+            <a key={p.key} href={p.href!} className={cn(NAV_LINK, 'hidden sm:inline-flex')}>
               {p.label}
             </a>
           ))}
-          <a
-            href="#trayectoria"
-            className="hidden font-label text-[11px] uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red md:inline"
-          >
+          <a href="#trayectoria" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.trayectoria}
           </a>
           <LanguageToggle />

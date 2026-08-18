@@ -78,7 +78,7 @@ export default function PillarMenu({ items, className }: PillarMenuProps) {
                 // siempre en la primera foto.
                 onTouchStart={() => setActive(index)}
                 aria-current={isActive ? 'true' : undefined}
-                className="flex cursor-pointer items-baseline gap-3 outline-none md:gap-4"
+                className="flex min-h-11 cursor-pointer items-baseline gap-3 outline-none md:gap-4"
               >
                 <span
                   className={cn(

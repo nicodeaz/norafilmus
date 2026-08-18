@@ -3,7 +3,7 @@
  * Genera `public/img/og-image.jpg` (1200×630, el tamaño estándar que
  * Facebook/LinkedIn/WhatsApp/Slack esperan para la tarjeta de un link) —
  * SUPERPROMPT.md §05. Antes `og:image` apuntaba directo a
- * `nora-portrait.png` (362×689, retrato vertical): la mayoría de los
+ * `nora-portrait.webp` (retrato vertical recortado): la mayoría de los
  * lectores de OG recortan cualquier imagen que no venga ~1200×630 desde el
  * centro, así que un retrato vertical quedaba cortado por la mitad de la
  * cara en la tarjeta.
@@ -27,7 +27,7 @@ import { stat } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const PORTRAIT = path.join(ROOT, 'public', 'img', 'nora-portrait.png');
+const PORTRAIT = path.join(ROOT, 'public', 'img', 'nora-portrait.webp');
 const OUT = path.join(ROOT, 'public', 'img', 'og-image.jpg');
 
 const WIDTH = 1200;
@@ -42,9 +42,13 @@ async function main() {
   const meta = await portrait.metadata();
   const portraitHeight = HEIGHT;
   const portraitWidth = Math.round((meta.width / meta.height) * portraitHeight);
+  // PNG y no JPEG a propósito: el retrato es un recorte con transparencia y
+  // JPEG no tiene canal alfa — sharp lo aplanaba contra negro puro, así que
+  // sobre el fondo ink (#0F0E0D) quedaba un rectángulo negro visible alrededor
+  // de la figura. En PNG el alfa llega intacto al composite.
   const portraitBuf = await portrait
     .resize({ height: portraitHeight })
-    .jpeg({ quality: 90 })
+    .png()
     .toBuffer();
   const portraitX = WIDTH - portraitWidth;
 

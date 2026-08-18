@@ -23,7 +23,13 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const IMG_DIR = path.join(ROOT, 'public', 'img');
 const MANIFEST_PATH = path.join(ROOT, 'src', 'generated', 'image-manifest.json');
 const WIDTHS = [480, 960, 1440];
-const SOURCE_EXT = /\.(jpe?g|png)$/i;
+// `.webp` entra como fuente desde 2026-08-17 (retrato del Hero): los recortes
+// con transparencia no pueden ir en JPEG, y en PNG pesan una barbaridad — el
+// recorte de Nora da 2.65 MB en PNG24 y 886 KB en PNG8 contra 202 KB en WebP.
+// El source se sirve solo como fallback del `<img>` (los `<source>` AVIF/WebP
+// tapan a todo navegador moderno), así que un fuente WebP no le quita nada a
+// nadie que hoy pueda ver el sitio.
+const SOURCE_EXT = /\.(jpe?g|png|webp)$/i;
 // Un derivado se llama "<nombre>-480w.avif" — si el archivo fuente ya matchea
 // ese patrón, es un output de una corrida anterior: no reprocesar.
 const DERIVED = /-\d+w\.(avif|webp)$/i;

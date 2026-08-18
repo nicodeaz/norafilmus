@@ -33,7 +33,7 @@
         "@type": "Person",
         "name": "Nora Filmus",
         "jobTitle": ["Actriz", "Productora", "Pedagoga teatral"],
-        "image": "/img/nora-portrait.png",
+        "image": "/img/nora-portrait.webp",
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Dublin",
@@ -49,6 +49,15 @@
         ]
       }
     </script>
+
+    <!-- Favicon: el monograma NF del logo oficial (2026-08-18) sobre ink, con
+         aire alrededor — a 32px el lockup completo con "NORA FILMUS" se
+         vuelve una mancha ilegible. Se generan desde
+         `external-assets/brand/nf-monograma.png` con
+         `scripts/generate-favicons.mjs`. Antes no había ninguno y el sitio
+         devolvía 404 en cada carga (auditoría E1/H6). -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

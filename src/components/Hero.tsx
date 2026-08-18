@@ -59,7 +59,20 @@ export default function Hero({ className }: HeroProps) {
           el wrapper (motion.div): un <picture> en display:contents no se puede
           animar (opacity/transform no aplican a cajas sin box), así que el
           wrapper es el que tiene el tamaño absoluto y el picture/img adentro
-          solo heredan alto al 100%. */}
+          solo heredan alto al 100%.
+
+          Foto (2026-08-17): recorte con transparencia de `DSC01503` (sesión de
+          book de estudio, la actual — es la primera imagen de la Nora de hoy
+          que publica el sitio; antes iba `content/perfil.png`, un recorte de
+          362×689 que se servía escalado hacia arriba). El original de 2560×3840
+          se recortó al bounding box real de la figura (`sharp.trim()`): sin eso
+          la imagen trae ~18% de alto transparente arriba, que acá se ve
+          exactamente como lo que es — un hueco negro sobre la cabeza.
+
+          `sizes` fijo en vez de `100vw` porque el ancho de esta imagen no lo
+          decide el viewport sino su alto (`h-full` + ratio 0.436): a 100vw el
+          navegador pedía siempre el derivado de 960w aunque estuviera pintando
+          470 CSS px. */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -67,8 +80,9 @@ export default function Hero({ className }: HeroProps) {
         className="absolute inset-y-0 left-1/2 z-10 h-full w-auto max-w-none -translate-x-1/2"
       >
         <Picture
-          src="/img/nora-portrait.png"
+          src="/img/nora-portrait.webp"
           alt={t.hero.portraitAlt}
+          sizes="(min-width: 768px) 480px, 90vw"
           fetchPriority="high"
           loading="eager"
           decoding="async"
@@ -76,6 +90,20 @@ export default function Hero({ className }: HeroProps) {
           className="h-full w-auto object-contain"
         />
       </motion.div>
+
+      {/* Velo de legibilidad — solo hasta `md`, y por eso va después del
+          retrato en el DOM (mismo z-10, gana el que viene después). En desktop
+          el texto vive a los costados del retrato y no hace falta ninguno; en
+          mobile el grid colapsa a una columna y el título, la bio, el CTA y el
+          menú de pilares quedan ENCIMA de la figura — sobre la remera blanca,
+          el cream es ilegible y "CREAR/ENSEÑAR/PRODUCIR" directamente
+          desaparece. Ink al 75% deja la silueta presente y sube el contraste
+          del cuerpo de texto a ~8:1. La composición del Hero en mobile es
+          igual un tema abierto: esto la hace legible, no la rediseña. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10 bg-ink/75 md:hidden"
+      />
 
       {/* Toggle de idioma, arriba a la derecha — el sitio vive en Dublín y una
           parte de su público (productoras, festivales, instituciones) lo lee
@@ -110,7 +138,9 @@ export default function Hero({ className }: HeroProps) {
             {t.hero.bio}
           </p>
 
-          <ButtonLink href="#sobre-mi" variant="secondary" size="sm" className="mt-6">
+          {/* size="md" (44px) y no "sm" (36px): es el único CTA del Hero y
+              estaba por debajo del mínimo táctil (auditoría E1/H5). */}
+          <ButtonLink href="#sobre-mi" variant="secondary" size="md" className="mt-6">
             {t.hero.cta}
           </ButtonLink>
         </motion.div>
@@ -134,7 +164,10 @@ export default function Hero({ className }: HeroProps) {
         transition={{ duration: 0.5, delay: 0.9 }}
         className="z-30 flex w-full max-w-7xl items-center justify-between pb-2"
       >
-        <div className="flex items-center space-x-4">
+        {/* -ml-2.5 compensa el padding táctil para que la fila arranque
+            alineada al borde: el ícono no cambia de tamaño, la caja llega a
+            44px (auditoría E1/H5). */}
+        <div className="-ml-2.5 flex items-center">
           {socialLinks.map(({ label, href, icon: Icon, external }) => (
             <a
               key={label}
@@ -142,7 +175,7 @@ export default function Hero({ className }: HeroProps) {
               {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               aria-label={label}
               title={label}
-              className="text-cream/60 transition-colors duration-300 hover:text-brand-red"
+              className="inline-flex h-11 w-11 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red"
             >
               <Icon className="h-7 w-7 md:h-8 md:w-8" />
             </a>
