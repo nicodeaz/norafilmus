@@ -47,7 +47,10 @@ export default function Trayectoria() {
 
   return (
     <section id="trayectoria" className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
-      <div className="mx-auto max-w-5xl px-6 sm:px-10 md:px-12">
+      {/* max-w-7xl y no 5xl: alinea la espina con la grilla de los Actos y del
+          Hero — con 5xl la sección quedaba angosta y descentrada respecto al
+          resto del sitio. */}
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 md:px-12">
         <Reveal as="div" className="flex items-center gap-3">
           <span className="h-px w-8 bg-brand-red" aria-hidden />
           <span className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">
@@ -101,19 +104,29 @@ export default function Trayectoria() {
                   aria-hidden
                   className="absolute -left-8 top-2 h-2 w-2 rounded-full bg-brand-red md:-left-14"
                 />
+                {/* La fila ocupa el ancho completo, con la cuenta y el signo
+                    empujados al borde derecho por una hairline: antes el botón
+                    medía solo lo que medía el texto y dejaba el 65 % derecho de
+                    la sección en negro — el peor tramo muerto del sitio una vez
+                    resueltos los actos. Mismo dispositivo que usan las costuras. */}
                 <button
                   type="button"
                   onClick={() => setOpenDecade(isOpen ? null : decade)}
                   aria-expanded={isOpen}
-                  className="flex min-h-11 items-baseline gap-4 text-left"
+                  className="flex min-h-11 w-full items-baseline gap-4 text-left"
                 >
                   <span className="font-display text-4xl uppercase leading-none text-cream sm:text-5xl">
                     {decade}
                   </span>
-                  <span className="font-label text-xs text-cream/40">
-                    {items.length}
-                  </span>
-                  <span className="font-label text-xs uppercase tracking-[0.1em] text-brand-red">
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'mb-2 h-px flex-grow transition-colors duration-300',
+                      isOpen ? 'bg-brand-red/50' : 'bg-cream/15'
+                    )}
+                  />
+                  <span className="shrink-0 font-label text-xs text-cream/40">{items.length}</span>
+                  <span className="w-3 shrink-0 text-right font-label text-xs uppercase tracking-[0.1em] text-brand-red">
                     {isOpen ? '−' : '+'}
                   </span>
                 </button>

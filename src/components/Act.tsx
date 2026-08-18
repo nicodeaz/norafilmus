@@ -29,6 +29,19 @@ interface ActProps {
   aside?: ReactNode;
   /** Créditos u otro material — va debajo de la columna de texto. */
   children?: ReactNode;
+  /**
+   * Los `children` se salen de la columna de texto y ocupan las 12 columnas.
+   * Resuelve el hueco medido en H10: bajo el numeral+foto la columna izquierda
+   * se vaciaba mientras la de texto seguía. Con esto el material llena ese
+   * ancho en vez de dejarlo en negro.
+   */
+  childrenFullWidth?: boolean;
+  /**
+   * Achica el numeral. Para actos que ya traen un número grande propio — hoy
+   * solo Enseñar, donde el "12" es el contenido y el "II" es solo el marcador
+   * del acto.
+   */
+  numeralDiscreto?: boolean;
   /** Alterna de qué lado bleedea el numeral/foto — da variedad entre actos consecutivos. */
   align?: 'left' | 'right';
 }
@@ -61,6 +74,8 @@ export default function Act({
   image,
   aside,
   children,
+  childrenFullWidth = false,
+  numeralDiscreto = false,
   align = 'left',
 }: ActProps) {
   const mirrored = align === 'right';
@@ -100,13 +115,27 @@ export default function Act({
               mirrored ? 'md:order-2' : 'md:order-1'
             )}
           >
+            {/* Numeral. En mobile pasa a **marca de agua**: a 390px el clamp
+                anterior daba 96px y el "I" se leía como un guioncito rojo
+                accidental —el dispositivo que sostiene todo el concepto
+                desaparecía justo donde más gente lo ve (auditoría H12)—. Ahora
+                crece a 38vw y baja a 20% de opacidad, así que ordena el bloque
+                sin pelear con el texto. De `md` para arriba vuelve a ser la
+                pieza sólida de siempre.
+
+                `numeralDiscreto` lo achica cuando el acto ya tiene un número
+                grande propio (el "12" de Enseñar): dos números rojos a la misma
+                escala se leían como un error de numeración (H9). */}
             <span
               aria-hidden
               className={cn(
-                'pointer-events-none absolute -top-6 select-none font-display leading-none text-brand-red md:-top-10',
+                'pointer-events-none absolute -top-6 select-none font-display leading-none md:-top-10',
+                'text-brand-red/20 md:text-brand-red',
+                numeralDiscreto
+                  ? 'text-[22vw] md:text-[5.5rem]'
+                  : 'text-[38vw] md:text-[min(22vw,13rem)]',
                 mirrored ? '-right-2 md:-right-4' : '-left-2 md:-left-4'
               )}
-              style={{ fontSize: 'clamp(6rem, 22vw, 13rem)' }}
             >
               {numeral}
             </span>
@@ -178,12 +207,21 @@ export default function Act({
               {body}
             </Reveal>
 
-            {children && (
+            {children && !childrenFullWidth && (
               <Reveal as="div" delay={0.3} className="mt-12">
                 {children}
               </Reveal>
             )}
           </div>
+
+          {/* Material a ancho completo: se sale de la columna de texto y ocupa
+              las 12, así llena el vacío que quedaba bajo el numeral+foto
+              (auditoría H10). Va al final del orden en desktop. */}
+          {children && childrenFullWidth && (
+            <Reveal as="div" delay={0.3} className="md:order-3 md:col-span-12 md:mt-4">
+              {children}
+            </Reveal>
+          )}
         </div>
       </div>
     </section>

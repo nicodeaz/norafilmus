@@ -117,3 +117,18 @@ Cierra los hallazgos **H7** y **H13**.
 - **Luz de escena en `Act.tsx`** — óvalo de cream al 3 % detrás del numeral, siguiendo el lado por el que sangra. Se queda holgadamente adentro de la sección (45×38 % al 50 % de alto): con un radio más grande el degradé llegaba con valor al borde y se veía un escalón tonal contra la sección vecina. Medido: levanta 1–3 unidades de luminancia en el centro, presente pero sin forma visible.
 
 **Medido, antes → después:** negro muerto **19,1 % → 11,2 %** de la altura de la página, y los **dos tramos de ≥300 px desaparecieron (2 → 0)**. Verificado a 1440 y 390, sin desborde horizontal, las 4 costuras dibujando en ambos.
+
+### Etapa E4 — Que los tres actos dejen de rimar (2026-08-18)
+
+Cierra los hallazgos **H9**, **H10** y **H12**, y de paso levanta a Trayectoria.
+
+- **H12 · el numeral en mobile.** `clamp(6rem,22vw,13rem)` daba **96 px** a 390 y el "I" se leía como un guioncito rojo accidental — el dispositivo que sostiene todo el concepto desaparecía justo donde más gente lo ve. Ahora en mobile es **marca de agua**: 38vw (≈148 px) al 20 % de opacidad, así ordena el bloque sin pelear con el texto. De `md` para arriba vuelve a ser la pieza sólida de siempre.
+- **H10 · la columna que se vaciaba.** Prop `childrenFullWidth` en `Act`: los créditos se salen de la columna de texto y ocupan las 12 columnas, llenando el ancho bajo el numeral+foto. Lo usan Crear y Producir.
+- **H9 · los actos rimaban.** Ahora cada uno tiene **estructura**, no un lado distinto: Acto I = foto + créditos en 2 columnas a ancho completo · Acto II = sin foto, el **"12" es el material** (escala de titular, sin caja) y el numeral "II" queda chico (`numeralDiscreto`) — antes los dos números rojos competían a la misma escala y en mobile se leían como un error de numeración · Acto III = créditos en **3 columnas** a ancho completo.
+- **Trayectoria, de yapa.** Era el peor tramo muerto una vez resueltos los actos: la espina ocupaba el 35 % izquierdo y **el 65 % derecho quedaba en negro** — vacío *horizontal*, no vertical. Cada década pasa a ocupar el ancho completo con una hairline que empuja la cuenta y el signo al borde derecho (mismo dispositivo que las costuras), y el contenedor pasó de `max-w-5xl` a `max-w-7xl` para alinear con la grilla de los Actos y del Hero.
+
+**Medido, densidad media por sección (auditoría → ahora):** Crear 36,8 → **94 %** · Enseñar 36,2 → **97 %** · Producir 37,9 → **99 %** · Trayectoria 27,3 → **40 %**. Negro muerto global **11,3 %** con **cero tramos ≥300 px**. Mobile a 390: sin desborde y ningún objetivo táctil bajo 40 px.
+
+**Ojo con la métrica global:** al medir E4 en el camino dio 15,1 % y parecía un retroceso. No lo era — los actos habían subido a 94-99 % y el negro se había *mudado* a Trayectoria y AboutMe. Medir solo el total esconde de qué sección viene el problema; conviene siempre mirar el desglose por sección.
+
+**Lo que queda flojo:** `AboutMe` es ahora la sección menos densa (31 %) y no se tocó en ninguna etapa — su composición sigue siendo la columna centrada original.

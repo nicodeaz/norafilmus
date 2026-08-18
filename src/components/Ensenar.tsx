@@ -35,15 +35,19 @@ export default function Ensenar() {
           <p className="mt-4">{ensenar.body2}</p>
         </>
       }
+      numeralDiscreto
       aside={
-        <div className="rounded-lg border border-cream/10 bg-cream/[0.03] p-6 md:p-8">
-          <span
-            className="block font-display leading-none text-brand-red"
-            style={{ fontSize: 'clamp(3.5rem, 12vw, 6.5rem)' }}
-          >
+        // Sin caja: el "12" ES el material de este acto, no una tarjeta al
+        // costado. Va a escala de titular y el numeral "II" queda chico
+        // arriba — antes los dos números rojos competían a la misma escala y
+        // en mobile se leían como un error de numeración (auditoría H9).
+        <div>
+          <span className="block font-display text-[clamp(5rem,20vw,11rem)] leading-[0.85] text-brand-red">
             {ensenar.statNumber}
           </span>
-          <p className="mt-4 font-label text-xs leading-relaxed text-cream/50">{ensenar.statLabel}</p>
+          <p className="mt-5 max-w-[26ch] border-t border-cream/10 pt-4 font-label text-xs leading-relaxed text-cream/50">
+            {ensenar.statLabel}
+          </p>
         </div>
       }
     >

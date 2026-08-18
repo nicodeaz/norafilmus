@@ -37,6 +37,7 @@ export default function Producir() {
       titleLead={producir.titleLead}
       titleAccent={producir.titleAccent}
       image={producir.image}
+      childrenFullWidth
       body={
         <>
           <p>{producir.body1}</p>
@@ -44,7 +45,11 @@ export default function Producir() {
         </>
       }
     >
-      <div className="grid gap-10 md:grid-cols-3 md:gap-8">
+      {/* Tres columnas a ancho completo — es lo que diferencia
+          estructuralmente al Acto III del Acto I (dos columnas): antes los dos
+          se leían como la misma página espejada (auditoría H9), y encima las
+          tres listas quedaban apretadas dentro de la columna de texto. */}
+      <div className="grid gap-10 md:grid-cols-3 md:gap-12">
         <CreditList title={producir.stageTitle} items={producir.stageCredits} />
         <CreditList title={producir.screenTitle} items={producir.screenCredits} />
         <CreditList title={producir.irelandTitle} items={producir.irelandCredits} />

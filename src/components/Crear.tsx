@@ -30,6 +30,7 @@ export default function Crear() {
       titleLead={crear.titleLead}
       titleAccent={crear.titleAccent}
       image={crear.image}
+      childrenFullWidth
       body={
         <>
           <p>{crear.body1}</p>
@@ -37,7 +38,7 @@ export default function Crear() {
         </>
       }
     >
-      <div className="grid gap-10 md:grid-cols-2 md:gap-12">
+      <div className="grid gap-10 md:grid-cols-2 md:gap-14">
         <CreditList title={crear.stageTitle} items={crear.stageCredits} />
         <CreditList title={crear.screenTitle} items={crear.screenCredits} />
       </div>
