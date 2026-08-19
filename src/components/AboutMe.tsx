@@ -22,6 +22,16 @@ import Reveal from './Reveal';
  *   ella produjo) debajo de un titular sobre su carrera de actriz: el lector
  *   infería que eran sus papeles. Ahora cada pieza lleva obra + rol real +
  *   crédito de la fotógrafa, y el texto del archivo lo dice explícito.
+ *
+ * **Costados llenos (2026-08-19).** Era la sección menos densa del sitio
+ * (31%, medida en E4) y la única que ninguna etapa había tocado: columna
+ * centrada en `max-w-4xl` dentro de un viewport de 1440px dejaba ~270px de
+ * negro a cada lado del texto. Dos rieles verticales flanquean el bloque
+ * —mismo dispositivo tipográfico que ya usan `Seam`/`Act` (regla + rótulo),
+ * girado 90°— con el "36" partido en dos mitades, una por costado, así el
+ * numeral llena el alto real de la sección en vez de vivir solo en el
+ * eyebrow. Las fichas del archivo también crecieron (`w-40`→`w-56`,
+ * `h-56`→`h-72`) para que la fila pese más por card, no por relleno.
  */
 export default function AboutMe() {
   const { t } = useLanguage();
@@ -30,7 +40,32 @@ export default function AboutMe() {
 
   return (
     <section id="sobre-mi" className="relative z-10 w-full overflow-hidden bg-ink py-20 sm:py-24">
-      <div className="mx-auto flex max-w-4xl flex-col items-center px-6 text-center">
+      <div className="relative mx-auto flex max-w-5xl flex-col items-center px-6 text-center">
+        {/* Rieles laterales: el "36" partido en dos, uno por costado, girado
+            90° — llena el alto de la sección en vez de vivir solo en el
+            eyebrow centrado. Oculto bajo `md` para no competir con el texto
+            en mobile. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-1/2 hidden -translate-y-1/2 -translate-x-1/2 flex-col items-center gap-4 md:flex lg:left-4"
+        >
+          <span className="h-24 w-px bg-cream/10" />
+          <span className="font-display text-3xl leading-none text-brand-red/25 [writing-mode:vertical-rl]">
+            36
+          </span>
+          <span className="h-24 w-px bg-cream/10" />
+        </span>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-1/2 hidden -translate-y-1/2 translate-x-1/2 flex-col items-center gap-4 md:flex lg:right-4"
+        >
+          <span className="h-24 w-px bg-cream/10" />
+          <span className="font-label text-[10px] uppercase tracking-[0.3em] text-cream/25 [writing-mode:vertical-rl]">
+            {about.eyebrow}
+          </span>
+          <span className="h-24 w-px bg-cream/10" />
+        </span>
+
         <Reveal as="div" y={10} className="flex items-center gap-3">
           <span className="h-px w-8 bg-brand-red" aria-hidden />
           <span className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">
@@ -97,15 +132,15 @@ export default function AboutMe() {
           transition={reduced ? undefined : { duration: 34, ease: 'linear', repeat: Infinity }}
         >
           {(reduced ? about.gallery : [...about.gallery, ...about.gallery]).map((item, i) => (
-            <figure key={i} className="w-36 flex-shrink-0 sm:w-48">
+            <figure key={i} className="w-40 flex-shrink-0 sm:w-56">
               <Picture
                 src={item.src}
                 alt={item.alt}
                 loading="lazy"
                 decoding="async"
-                sizes="(min-width: 640px) 192px, 144px"
+                sizes="(min-width: 640px) 224px, 160px"
                 pictureClassName="block"
-                className="h-48 w-full rounded-lg object-cover sm:h-64"
+                className="h-56 w-full rounded-lg object-cover sm:h-72"
               />
               <figcaption className="mt-2 font-label text-[10px] leading-snug text-cream/50">
                 <span className="block text-cream/70">{item.work}</span>

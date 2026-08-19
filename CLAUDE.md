@@ -132,3 +132,12 @@ Cierra los hallazgos **H9**, **H10** y **H12**, y de paso levanta a Trayectoria.
 **Ojo con la métrica global:** al medir E4 en el camino dio 15,1 % y parecía un retroceso. No lo era — los actos habían subido a 94-99 % y el negro se había *mudado* a Trayectoria y AboutMe. Medir solo el total esconde de qué sección viene el problema; conviene siempre mirar el desglose por sección.
 
 **Lo que queda flojo:** `AboutMe` es ahora la sección menos densa (31 %) y no se tocó en ninguna etapa — su composición sigue siendo la columna centrada original.
+
+### AboutMe — costados llenos (2026-08-19)
+
+Cerró la deuda que dejó E4: `AboutMe` era la sección menos densa del sitio (31 %) y la única que ninguna etapa había tocado — columna centrada en `max-w-4xl` dentro de un viewport de 1440px dejaba ~270px de negro a cada lado del texto.
+
+- **Rieles laterales**: dos columnas verticales flanquean el bloque de texto, cada una con una hairline arriba y abajo y el **"36" partido en dos mitades** (`writing-mode: vertical-rl`) — una lleva el número, la otra el `eyebrow` ("36 años en artes escénicas"). Mismo dispositivo tipográfico que ya usan `Seam`/`Act` (regla + rótulo), solo que girado 90°. Ocultos bajo `md` para no competir con el texto en mobile — a ese ancho no hay costados que llenar.
+- **Fichas del archivo más grandes**: `w-36/w-48` → `w-40/w-56`, `h-48/h-64` → `h-56/h-72`. Cada card pesa más en vez de que la fila dependa de relleno.
+
+**Medido:** densidad de `AboutMe` **31 % → 42,2 %**, negro muerto global **11,3 % → 10,0 %**, cero tramos ≥300px. Mobile a 390: sin desborde horizontal (los rieles no se renderizan bajo `md`).
