@@ -101,6 +101,8 @@ export interface SiteContent {
     cta: string;
     location: string;
     portraitAlt: string;
+    /** Crédito del retrato de estudio — regla 3 de este archivo. Confirmado por el usuario 2026-08-19: Paula. */
+    portraitCredit: string;
     /**
      * Tira de credenciales del Hero: nombres reconocibles, sin adjetivos.
      * Es lo que hace que una productora entienda el nivel en 15 segundos.
@@ -280,6 +282,7 @@ export const content: Record<Language, SiteContent> = {
       cta: 'Ver trayectoria',
       location: 'Dublín, Irlanda',
       portraitAlt: 'Nora Filmus en un retrato de estudio, girada de tres cuartos, sonriendo a cámara',
+      portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
@@ -536,6 +539,7 @@ export const content: Record<Language, SiteContent> = {
       cta: 'See my work',
       location: 'Dublin, Ireland',
       portraitAlt: 'Nora Filmus in a studio portrait, turned three-quarters, smiling at the camera',
+      portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 

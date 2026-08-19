@@ -84,6 +84,12 @@ export default function Hero({ className }: HeroProps) {
           pictureClassName="block h-full"
           className="h-full w-auto object-contain object-bottom"
         />
+        {/* Crédito del retrato — regla 3 de content.ts. Pegado al borde de la
+            figura, en vertical, para no competir con el nombre que pasa por
+            detrás ni con la banda de pie. */}
+        <span className="pointer-events-none absolute bottom-2 right-1 font-label text-[9px] uppercase tracking-[0.15em] text-cream/25 [writing-mode:vertical-rl]">
+          Foto: {t.hero.portraitCredit}
+        </span>
       </motion.div>
 
       {/* Velo sobre la figura en mobile: ahí el texto se apoya encima de la
