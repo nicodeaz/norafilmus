@@ -141,3 +141,21 @@ Cerró la deuda que dejó E4: `AboutMe` era la sección menos densa del sitio (3
 - **Fichas del archivo más grandes**: `w-36/w-48` → `w-40/w-56`, `h-48/h-64` → `h-56/h-72`. Cada card pesa más en vez de que la fila dependa de relleno.
 
 **Medido:** densidad de `AboutMe` **31 % → 42,2 %**, negro muerto global **11,3 % → 10,0 %**, cero tramos ≥300px. Mobile a 390: sin desborde horizontal (los rieles no se renderizan bajo `md`).
+
+### E5 — Presente (F6, 2026-08-19)
+
+Cierra el arco de "El Programa" con el material más reciente de Nora — después de Trayectoria (que termina en el presente pero solo en texto) y antes del Footer. Como Trayectoria, no es uno de los tres Actos: sin numeral, sin foto ancla única — acá la foto ES el contenido.
+
+**El bloqueo real antes de arrancar:** las ~111 fotos de `external-assets/polas`/`Rita Universos_`/`Norah_` (la sesión de estudio de Nora, ya usada para el retrato del Hero) no tenían fotógrafa declarada en ningún lado — revisé el XMP de los archivos originales (Lightroom, lente Sony FE 35mm F1.8, sesión del 2026-03-08) y no hay ningún campo `Creator`/`Artist`/`Rights`. Sin nombre no se podía publicar nada nuevo de ese lote (regla 3). Se lo pregunté al usuario: **Paula**. De paso completé el crédito que le faltaba al retrato del Hero desde el 17 (`hero.portraitCredit`, chico y vertical pegado al borde de la figura).
+
+**Selección**: 6 fotos, dos de cada registro — `polas` (book de estudio, blanco y negro), `Rita Universos_` (clown, confirmé que "Rita" es parte real del nombre de Nora vía su perfil de alternativateatral: "Nora Rita Filmus" — y que hay un crédito de clown verificado en el CV, Rathe Gather Festivalito 2024) y `Norah_` (editorial actual). Un solo crédito para las seis (`presente.credit`, "Fotos: Paula, marzo 2026") en vez de repetirlo por ítem — a diferencia del archivo de `AboutMe`, acá las seis comparten fotógrafa y fecha.
+
+**Peso**: los originales que copié eran crudos de cámara (8–14MB c/u, 57MB en total) — mucho más pesados que cualquier fuente que usa el sitio hasta ahora, y el `<img>` de fallback de `Picture` sirve el original tal cual a navegadores viejos. Los recorté a 2000px de lado largo antes de correr el pipeline (`scripts/optimize-images.mjs`): quedaron en 2,9MB totales con todos los derivados AVIF/WebP incluidos.
+
+**Layout**: grilla con offset vertical por columna (`i % 3`) en vez de filas parejas — pared de fotos tipo contact sheet, no un grid genérico de 3×2. Mismo criterio de asimetría que ya usan `Act` (numeral que sangra) y `Trayectoria` (espina de ancho completo): evita una cuarta sección centrada y simétrica seguida. Nav: `#presente` se agregó a `Header`/`Footer` como link fijo, mismo patrón que `#trayectoria`.
+
+**Medido**: densidad de `Presente` **67%** (la sección más pesada del sitio después de los Actos), negro muerto global se mantiene en **10,3%** pese a sumar ~1200px de página nueva, cero tramos ≥300px. Mobile a 390: sin desborde, la grilla pasa a 2 columnas sin offset (el stagger es `sm:` en adelante).
+
+**Ojo de proceso:** al hacer `git add -A` para commitear, aparecieron cambios de otra sesión concurrente sin relación con este trabajo — un archivo borrado en `content/` (nunca se toca) y un rename de `apple-touch-icon.png`, con fechas de mtime anteriores a este turno. Se dejaron sin stagear; el commit de E5 solo incluye los archivos tocados acá. Confirma la nota de `sesiones-concurrentes`: chequear qué trae `git add -A` antes de commitear, no asumir que todo lo no-committeado es propio.
+
+**Efecto colateral (bueno) de correr el pipeline compartido:** `scripts/optimize-images.mjs` procesa todo `public/img/`, no solo lo nuevo — de paso regeneró los derivados de `nora-logo.png` (el manifest tenía dimensiones viejas, 1535×564, que ya no correspondían al archivo actual de 1408×1117 — quedó desalineado en algún momento sin que se volviera a correr el pipeline) y generó los que le faltaban a `nf-monograma.png` (nunca se habían commiteado). Ambos quedaron corregidos en este commit.

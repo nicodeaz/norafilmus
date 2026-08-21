@@ -72,6 +72,9 @@ export default function Footer() {
             <a href="#trayectoria" className={NAV_LINK}>
               {t.nav.trayectoria}
             </a>
+            <a href="#presente" className={NAV_LINK}>
+              {t.nav.presente}
+            </a>
           </nav>
 
           {/* -m-1.5 compensa el padding táctil para que la fila de íconos no

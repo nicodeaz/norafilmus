@@ -6,6 +6,7 @@ import Crear from './components/Crear';
 import Ensenar from './components/Ensenar';
 import Footer from './components/Footer';
 import Producir from './components/Producir';
+import Presente from './components/Presente';
 import Trayectoria from './components/Trayectoria';
 import Header from './components/Header';
 import NotFound from './components/NotFound';
@@ -49,6 +50,8 @@ function Home() {
       <Producir />
       <Seam label={t.trayectoria.eyebrow} />
       <Trayectoria />
+      <Seam label={t.presente.eyebrow} />
+      <Presente />
       <Footer />
     </>
   );

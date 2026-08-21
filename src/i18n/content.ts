@@ -55,6 +55,20 @@ export interface GalleryItem {
   credit?: string;
 }
 
+/**
+ * Una foto de la sección Presente (F6). No es material de archivo de una
+ * obra —es la sesión personal actual (book de estudio, clown, editorial)—
+ * así que no lleva `work`/`role` como `GalleryItem`: en vez de eso, `label`
+ * dice de qué registro es cada foto. El crédito va una sola vez para toda
+ * la sección (`presente.credit` en `SiteContent`), no por ítem, porque las
+ * seis son de la misma fotógrafa y la misma sesión.
+ */
+export interface PresenteItem {
+  src: string;
+  alt: string;
+  label: string;
+}
+
 /** Una línea de una lista de créditos tipo CV de sala (F2 en adelante). */
 export interface Credit {
   work: string;
@@ -114,7 +128,7 @@ export interface SiteContent {
     credentials: string[];
   };
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
-  nav: { home: string; about: string; trayectoria: string };
+  nav: { home: string; about: string; trayectoria: string; presente: string };
   pillars: Pillar[];
   /** Sección #crear (F2) — el pilar actriz. Fuente: CV/cv cuasi completo_.docx + content/alternativa-teatral*. */
   crear: {
@@ -194,6 +208,21 @@ export interface SiteContent {
     galleryNote: string;
     gallery: GalleryItem[];
   };
+  /**
+   * Presente (F6, 2026-08-19) — cierra el arco del "Programa" mostrando el
+   * work más reciente, después de Trayectoria y antes del Footer. Fuente:
+   * sesión de Paula del 2026-03-08 (`external-assets/polas`/`Rita
+   * Universos_`/`Norah_`), la misma del retrato del Hero — ver `hero.portraitCredit`.
+   */
+  presente: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body: string;
+    /** Crédito único para las seis fotos — misma fotógrafa, misma sesión. */
+    credit: string;
+    items: PresenteItem[];
+  };
   notFound: { text: string; home: string };
   social: { instagram: string; linkedin: string; email: string };
   /** Pie de sitio (F1) — LINKS (redes/mail) se reutiliza del Hero, esto es solo el texto que le falta. */
@@ -251,6 +280,53 @@ const GALLERY_ES: GalleryItem[] = [
   },
 ];
 
+const PRESENTE_ES: PresenteItem[] = [
+  {
+    src: '/img/presente/estudio-1.jpg',
+    alt: 'Nora Filmus haciendo una mueca a cámara, en blanco y negro, book de estudio',
+    label: 'Book de estudio',
+  },
+  {
+    src: '/img/presente/estudio-2.jpg',
+    alt: 'Nora Filmus sonriendo a cámara, book de estudio',
+    label: 'Book de estudio',
+  },
+  {
+    src: '/img/presente/clown-1.jpg',
+    alt: 'Nora Filmus caracterizada de payasa, con nariz roja y peluca, caminando hacia cámara',
+    label: 'Clown',
+  },
+  {
+    src: '/img/presente/clown-2.jpg',
+    alt: 'Nora Filmus caracterizada de payasa, leyendo un cuento ilustrado',
+    label: 'Clown',
+  },
+  {
+    src: '/img/presente/editorial-1.jpg',
+    alt: 'Nora Filmus con campera roja, retrato en una terraza',
+    label: 'Book actual',
+  },
+  {
+    src: '/img/presente/editorial-2.jpg',
+    alt: 'Detalle de zapatos y maquillaje sobre una alfombra',
+    label: 'Book actual',
+  },
+];
+
+/** Mismas fotos — solo cambia el `label` traducido. */
+const PRESENTE_EN: PresenteItem[] = PRESENTE_ES.map((item, i) => ({
+  ...item,
+  alt: [
+    'Nora Filmus pulling a face at the camera, black and white, studio book',
+    'Nora Filmus smiling at the camera, studio book',
+    'Nora Filmus in clown character, red nose and wig, walking toward camera',
+    'Nora Filmus in clown character, reading an illustrated storybook',
+    'Nora Filmus in a red jacket, portrait on a rooftop',
+    'Detail of shoes and makeup on a carpet',
+  ][i],
+  label: ['Studio book', 'Studio book', 'Clown', 'Clown', 'Current book', 'Current book'][i],
+}));
+
 /** Mismas imágenes, mismos créditos — solo cambian obra/rol traducidos. */
 const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
   ...item,
@@ -286,7 +362,7 @@ export const content: Record<Language, SiteContent> = {
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria' },
+    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', presente: 'Presente' },
 
     crear: {
       eyebrow: 'Actuación',
@@ -509,6 +585,15 @@ export const content: Record<Language, SiteContent> = {
       gallery: GALLERY_ES,
     },
 
+    presente: {
+      eyebrow: 'Presente',
+      titleLead: 'Así se ve',
+      titleAccent: 'hoy.',
+      body: 'Estas seis fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown y un registro editorial — el material más reciente que tengo.',
+      credit: 'Fotos: Paula, marzo 2026',
+      items: PRESENTE_ES,
+    },
+
     notFound: {
       text: 'La página que buscás no existe o fue movida.',
       home: 'Volver al inicio',
@@ -543,7 +628,7 @@ export const content: Record<Language, SiteContent> = {
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline' },
+    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', presente: 'Present' },
 
     crear: {
       eyebrow: 'Acting',
@@ -761,6 +846,15 @@ export const content: Record<Language, SiteContent> = {
       galleryTitle: 'From the archive',
       galleryNote: 'Each piece states the role I held in that production.',
       gallery: GALLERY_EN,
+    },
+
+    presente: {
+      eyebrow: 'Present',
+      titleLead: 'This is',
+      titleAccent: 'now.',
+      body: "These six photos are from the same session, March 2026: a studio book, my clown work and an editorial shoot — the most recent material I have.",
+      credit: 'Photos: Paula, March 2026',
+      items: PRESENTE_EN,
     },
 
     notFound: {

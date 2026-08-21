@@ -81,6 +81,9 @@ export default function Header() {
           <a href="#trayectoria" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.trayectoria}
           </a>
+          <a href="#presente" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+            {t.nav.presente}
+          </a>
           <LanguageToggle />
         </nav>
       </div>

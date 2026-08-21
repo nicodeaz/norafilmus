@@ -85,18 +85,73 @@
       480
     ]
   },
+  "/img/nf-monograma.png": {
+    "width": 360,
+    "height": 287,
+    "widths": [
+      360
+    ]
+  },
   "/img/nora-logo.png": {
-    "width": 1535,
-    "height": 564,
+    "width": 1408,
+    "height": 1117,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/nora-portrait.webp": {
+    "width": 1371,
+    "height": 3148,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/clown-1.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/clown-2.jpg": {
+    "width": 2000,
+    "height": 1333,
     "widths": [
       480,
       960,
       1440
     ]
   },
-  "/img/nora-portrait.webp": {
-    "width": 1371,
-    "height": 3148,
+  "/img/presente/editorial-1.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/editorial-2.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/estudio-1.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/estudio-2.jpg": {
+    "width": 1333,
+    "height": 2000,
     "widths": [
       480,
       960
