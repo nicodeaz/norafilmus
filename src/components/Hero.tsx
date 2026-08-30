@@ -119,16 +119,14 @@ export default function Hero({ className }: HeroProps) {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE_REVEAL, delay: 0.55 }}
-          className="pointer-events-none relative z-10 leading-[0.82]"
+          className="pointer-events-none relative z-10"
         >
-          <span className="block font-signature text-[clamp(3.5rem,11vw,9rem)] leading-[0.9] text-brand-red">
-            {t.hero.firstName}
-          </span>
-          {/* -mt-* muerde el espacio que deja la firma; el clamp lo lleva
-              hasta escala de afiche y es lo que llena la franja central. */}
-          <span className="-mt-2 block font-display text-[clamp(3.25rem,16vw,16rem)] uppercase leading-[0.8] tracking-[-0.01em] text-cream md:-mt-6">
-            {t.hero.lastName}
-          </span>
+          <Picture
+            src="/img/nora-firma-roja.png"
+            alt="Nora Filmus"
+            className="w-[clamp(220px,52vw,680px)]"
+            sizes="680px"
+          />
         </motion.h1>
 
         <motion.div
@@ -151,7 +149,10 @@ export default function Hero({ className }: HeroProps) {
             <p className="max-w-xs font-label text-sm leading-relaxed text-cream/80">
               {t.hero.bio}
             </p>
-            <ButtonLink href="#sobre-mi" variant="secondary" size="md" className="shrink-0">
+            {/* Fase 2 (2026-08-28): antes apuntaba a `#sobre-mi` pese a decir
+                "Ver trayectoria" — un desvío que sobrevivió porque `/trayectoria`
+                no existía como página propia hasta la Fase 1. Ya existe. */}
+            <ButtonLink to="/trayectoria" variant="secondary" size="md" className="shrink-0">
               {t.hero.cta}
             </ButtonLink>
           </div>

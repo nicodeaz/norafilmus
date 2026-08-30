@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
-/** Cuánto dura la cortina antes de salir sola, en ms. */
-const HOLD_MS = 900;
+/** Tope de seguridad si el video no dispara `onEnded` (falla de red, etc). */
+const FALLBACK_MS = 3600;
 /** Clave de sesión: la obertura corre una vez por pestaña, no en cada navegación. */
 const SEEN_KEY = 'nora-obertura-vista';
 
@@ -12,35 +12,44 @@ interface PreloaderProps {
 }
 
 /**
- * **La obertura** — reemplaza al preloader anterior (2026-08-18).
+ * **La obertura** — versión con video (2026-08-30), reemplaza a la cortina
+ * CSS/motion que había desde el 18/8.
  *
- * El anterior era una cortina que encadenaba saludos en seis idiomas y salía
- * con un borde curvo. Se cambió por pedido del usuario ("completamente
- * diferente") y porque la auditoría lo había medido (hallazgo H14): costaba
- * **3,5 s en cada carga** (900 + 6×150 + 600 de palabras, +300 de delay +800
- * de salida), no se podía saltar, no recordaba la visita previa y corría
- * también sobre el 404. Con la prioridad puesta en "impresionar en 15
- * segundos", esos 3,5 s eran el 23 % del presupuesto de atención gastado en
- * una cortina.
+ * El usuario adjuntó un video generado con IA (`gemini_generated_video_...`,
+ * 10 s, 1280×720): un pincel dibujando a mano el monograma NF — la misma
+ * marca de `nf-monograma.png`, con el mismo destello que ya usa el resto del
+ * sitio. Curado antes de publicarlo (no se usó tal cual):
  *
- * Ahora es una obertura de teatro, y cambia en las cuatro cosas que importan:
+ * - **Recortado a los primeros 6 s del original.** El trazo real (incluido
+ *   el punto de la "F", lo último en dibujarse) termina entre 4,9 y 5,2 s;
+ *   de 6 s en adelante el pincel ya salió de cuadro y el resto (hasta 10 s)
+ *   es el logo quieto — tiempo muerto para un loader.
+ * - **Acelerado 2×** → 3,08 s de video final. Se verificó frame a frame
+ *   (`ffprobe`/`ffmpeg` desde CLI, este entorno no tiene reproductor de
+ *   video con inspección de frames) que el punto de la F sigue completo al
+ *   doble de velocidad, no se pierde ningún trazo.
+ * - **Sin audio** (`-an`): un preloader que autoplayea con sonido no
+ *   arranca en ningún navegador, y no aportaba nada al trazo.
+ * - Reescalado a 960×540 y reencodeado (h264, crf 22) → 160 KB, contra los
+ *   2,5 MB del original.
  *
- * 1. **Dura ~1,2 s** en vez de 3,5 (`HOLD_MS` + la salida).
- * 2. **Se saltea con cualquier tecla, click o scroll** — nadie queda preso.
- * 3. **Corre una vez por pestaña** (`sessionStorage`): quien vuelve al home
- *    desde otra vista no vuelve a pagar el peaje.
- * 4. **Sale desde el centro hacia los bordes**, como se abre un telón, en vez
- *    de barrer hacia arriba: dos hojas que se separan y dejan ver el Hero.
+ * Sale de `public/video/nf-draw.mp4`; el original curado queda en
+ * `content/gemini_generated_video_199E0FF9.mp4` (fuente, no se toca).
  *
- * El contenido es la marca —el monograma NF y una regla roja que se
- * extiende— y no una lista de saludos: el logo oficial pasó a ser el logo del
- * sitio y esta es su primera aparición en pantalla.
+ * El video reemplaza tanto el logo estático como la cortina de dos hojas que
+ * había antes — ya no hace falta un "telón" separado que se abra: el propio
+ * trazo del pincel es la revelación, y al terminar la obertura entera se
+ * desvanece (un solo `opacity`) para dejar ver el Hero.
  *
- * **Gotcha heredado, resuelto por diseño:** el `useReducedMotion` de
- * `motion/react` rompía la cadena de `setTimeout` encadenados del preloader
- * viejo. Acá no hay cadena — hay un solo `setTimeout` y una sola condición de
- * salida, así que se puede usar `matchMedia` sin encadenar nada. Con
- * `prefers-reduced-motion` la obertura directamente no aparece.
+ * Se mantiene todo lo demás igual que la versión anterior:
+ *
+ * 1. **Se saltea con cualquier tecla, click o scroll** — nadie queda preso.
+ * 2. **Corre una vez por pestaña** (`sessionStorage`).
+ * 3. **Con `prefers-reduced-motion` no aparece** — nunca se autoplayea un
+ *    video con movimiento a quien pidió menos movimiento.
+ * 4. Sin cadena de `setTimeout` (gotcha del preloader original, ver
+ *    historial) — acá el cierre lo dispara el evento `onEnded` del propio
+ *    `<video>`, con `FALLBACK_MS` como red de seguridad si el video no carga.
  */
 export default function Preloader({ onComplete }: PreloaderProps) {
   const [visible, setVisible] = useState(true);
@@ -54,12 +63,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   });
 
   const cerrar = useCallback(() => setVisible(false), []);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Salida automática + escape por tecla, click o scroll. Un solo timeout, sin
-  // cadena (ver docblock).
+  // Salida por fin del video + escape por tecla, click o scroll, + red de
+  // seguridad si el video no dispara `onEnded` (ver docblock).
   useEffect(() => {
     if (skip) return;
-    const timer = setTimeout(cerrar, HOLD_MS);
+    videoRef.current?.play().catch(cerrar);
+    const timer = setTimeout(cerrar, FALLBACK_MS);
     window.addEventListener('keydown', cerrar);
     window.addEventListener('pointerdown', cerrar);
     window.addEventListener('wheel', cerrar, { passive: true });
@@ -96,64 +107,23 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   return (
     <AnimatePresence onExitComplete={handleExitComplete}>
       {visible && (
-        <div className="fixed inset-0 z-[100]" role="status" aria-label="Nora Filmus">
-          {/* Dos hojas de telón: se separan desde el centro. Animan solo
-              `transform`, así que la salida no toca layout (§7.2 del
-              contrato de movimiento). */}
-          <motion.div
-            initial={{ x: 0 }}
-            exit={{ x: '-101%' }}
-            transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
-            className="absolute inset-y-0 left-0 w-1/2 bg-ink"
+        <motion.div
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink"
+          role="status"
+          aria-label="Nora Filmus"
+        >
+          <video
+            ref={videoRef}
+            src="/video/nf-draw.mp4"
+            muted
+            playsInline
+            onEnded={cerrar}
+            className="w-[min(80vw,420px)] md:w-[min(60vw,520px)]"
           />
-          <motion.div
-            initial={{ x: 0 }}
-            exit={{ x: '101%' }}
-            transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
-            className="absolute inset-y-0 right-0 w-1/2 bg-ink"
-          />
-
-          {/* Filo rojo en la junta: es lo que hace visible la apertura sobre
-              un sitio que también es ink (mismo problema que resolvía el
-              stroke rojo del loader anterior). */}
-          <motion.div
-            aria-hidden
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-brand-red"
-          />
-
-          {/* Marca al centro: el lockup del logo — monograma + wordmark. Se usa
-              el monograma con alfa (`/img/nf-monograma.png`) y no el favicon:
-              ese trae el cuadro ink horneado y sobre la cortina se veía como
-              una placa redondeada. Sin regla horizontal a propósito: con la
-              junta vertical del telón formaba una cruz. */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-            <motion.img
-              src="/img/nf-monograma.png"
-              alt=""
-              aria-hidden
-              width={360}
-              height={287}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="h-auto w-[7.5rem] md:w-[9.5rem]"
-            />
-            <motion.span
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-              className="font-label text-[11px] uppercase tracking-[0.42em] text-cream/70"
-            >
-              Nora&nbsp;Filmus
-            </motion.span>
-          </div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
