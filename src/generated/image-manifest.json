@@ -1,4 +1,12 @@
 {
+  "/img/about/chicha-carmen-y-angelita-foto-1.jpg": {
+    "width": 960,
+    "height": 717,
+    "widths": [
+      480,
+      960
+    ]
+  },
   "/img/about/los-golpes-de-clara-afiche.jpg": {
     "width": 540,
     "height": 360,
@@ -22,9 +30,23 @@
       960
     ]
   },
+  "/img/about/los-golpes-de-clara-foto-3.jpg": {
+    "width": 243,
+    "height": 360,
+    "widths": [
+      243
+    ]
+  },
   "/img/about/los-golpes-de-clara-foto-4.jpg": {
     "width": 544,
     "height": 360,
+    "widths": [
+      480
+    ]
+  },
+  "/img/about/maldichas-foto-1.png": {
+    "width": 864,
+    "height": 867,
     "widths": [
       480
     ]
@@ -70,12 +92,115 @@
       1440
     ]
   },
+  "/img/archivo/los-golpes-de-clara-foto-4.jpg": {
+    "width": 544,
+    "height": 360,
+    "widths": [
+      480
+    ]
+  },
+  "/img/archivo/marcos-paz-blur.jpg": {
+    "width": 972,
+    "height": 726,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/archivo/mujeres-a-la-obra-foto-2.jpg": {
+    "width": 1000,
+    "height": 667,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/archivo/mujeres-a-la-obra-foto-3.jpg": {
+    "width": 1000,
+    "height": 667,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/archivo/mujeres-a-la-obra-foto-4.jpg": {
+    "width": 640,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/archivo/rapina-banera.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/archivo/rapina-fotos-pieza.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/archivo/rapina-funcion.jpg": {
+    "width": 1417,
+    "height": 1063,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/archivo/rapina-sur.jpg": {
+    "width": 2717,
+    "height": 2244,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/archivo/rapina-tarantulas-2.jpg": {
+    "width": 960,
+    "height": 681,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/archivo/rapina-tarantulas-3.jpg": {
+    "width": 960,
+    "height": 681,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/pizarnikett-flyer.jpg": {
+    "width": 600,
+    "height": 450,
+    "widths": [
+      480
+    ]
+  },
   "/img/crear/rapina-tarantulas.jpg": {
     "width": 960,
     "height": 681,
     "widths": [
       480,
       960
+    ]
+  },
+  "/img/menu/improvisacion-mosquito-afiche.jpg": {
+    "width": 288,
+    "height": 360,
+    "widths": [
+      288
     ]
   },
   "/img/menu/rapina.jpg": {
@@ -90,6 +215,22 @@
     "height": 287,
     "widths": [
       360
+    ]
+  },
+  "/img/nora-firma-roja.png": {
+    "width": 1133,
+    "height": 636,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/nora-firma.png": {
+    "width": 1191,
+    "height": 666,
+    "widths": [
+      480,
+      960
     ]
   },
   "/img/nora-logo.png": {
@@ -125,6 +266,22 @@
       1440
     ]
   },
+  "/img/presente/clown-3.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/clown-4.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
   "/img/presente/editorial-1.jpg": {
     "width": 1333,
     "height": 2000,
@@ -141,6 +298,22 @@
       960
     ]
   },
+  "/img/presente/editorial-3.jpg": {
+    "width": 1334,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/editorial-4.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
   "/img/presente/estudio-1.jpg": {
     "width": 1333,
     "height": 2000,
@@ -150,6 +323,22 @@
     ]
   },
   "/img/presente/estudio-2.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/estudio-3.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/presente/estudio-4.jpg": {
     "width": 1333,
     "height": 2000,
     "widths": [

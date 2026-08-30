@@ -39,8 +39,10 @@ export interface Pillar {
   /** Crédito de la fotógrafa, obligatorio cuando hay `image`. */
   credit?: string;
   /**
-   * Ancla de la sección correspondiente. `null` mientras la sección no exista:
-   * el ítem se renderiza sin link en vez de apuntar a un `#` inexistente.
+   * Ruta de la página correspondiente (`/crear`, `/ensenar`, `/producir` —
+   * antes eran anchors `#crear` etc., ver Fase 1 de arquitectura de rutas en
+   * CLAUDE.md). `null` mientras la sección no exista: el ítem se renderiza
+   * sin link en vez de apuntar a una ruta inexistente.
    */
   href: string | null;
 }
@@ -88,6 +90,24 @@ export type TimelineCategory = 'actuacion' | 'docencia' | 'produccion' | 'formac
 export type Decade = '1990s' | '2000s' | '2010s' | '2020s';
 
 /**
+ * Una pieza del archivo curado (F8, en preparación — no hay componente/ruta
+ * `/archivo` todavía, esto es solo la data). `pillar` la separa por Crear,
+ * Enseñar o Producir para el filtro que pide el plan; `role` nunca se omite
+ * (regla 2) y `credit` es obligatorio salvo casos ya documentados como
+ * excepción explícita en el código que arma `ARCHIVO_ES`/`ARCHIVO_EN`.
+ */
+export interface ArchiveItem {
+  src: string;
+  alt: string;
+  work: string;
+  role: string;
+  years: string;
+  pillar: 'crear' | 'ensenar' | 'producir';
+  decade: Decade;
+  credit: string;
+}
+
+/**
  * Un hito de la línea de tiempo de #trayectoria (F5). `decade` es dato de
  * autor, no se calcula parseando `year` en runtime — varios años vienen como
  * "en curso" o "temporada 1", que no tienen un año numérico limpio para
@@ -128,8 +148,16 @@ export interface SiteContent {
     credentials: string[];
   };
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
-  nav: { home: string; about: string; trayectoria: string; presente: string };
+  nav: { home: string; about: string; trayectoria: string; presente: string; archivo: string; contacto: string };
   pillars: Pillar[];
+  /**
+   * Índice de programa en Home (Fase 2 del rediseño de fondo, 2026-08-28) —
+   * la lista de las 5 páginas del sitio (los 3 pilares + Trayectoria +
+   * Presente) como su propio momento de navegación, no solo enlaces chicos
+   * en el Header/Footer. Los ítems salen de `pillars` + `nav.trayectoria` +
+   * `nav.presente`, esto solo agrega el eyebrow del bloque.
+   */
+  programIndex: { eyebrow: string };
   /** Sección #crear (F2) — el pilar actriz. Fuente: CV/cv cuasi completo_.docx + content/alternativa-teatral*. */
   crear: {
     eyebrow: string;
@@ -163,6 +191,8 @@ export interface SiteContent {
     coordCredits: Credit[];
     teachTitle: string;
     teachCredits: Credit[];
+    recognitionTitle: string;
+    recognitionCredits: Credit[];
   };
   /** Sección #producir (F4) — el pilar productora. Fuente: `CV/Historial Para CV de distintas areas.docx` (la más detallada, con referencias/contactos por proyecto). */
   producir: {
@@ -197,6 +227,37 @@ export interface SiteContent {
     filterTraining: string;
     items: TimelineEntry[];
   };
+  /**
+   * Archivo (F8, en preparación) — todavía sin ruta `/archivo` ni
+   * componente: esto es la data curada, lista para cuando se construya la
+   * galería. `items` no repite ninguna foto que ya use otra sección del
+   * sitio (mismo criterio que ya siguen Crear/Producir entre sí). `ensenar`
+   * queda vacío a propósito — ver `emptyEnsenar` y la regla 4.
+   */
+  archivo: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body: string;
+    filterAll: string;
+    filterCrear: string;
+    filterEnsenar: string;
+    filterProducir: string;
+    emptyEnsenar: string;
+    items: ArchiveItem[];
+  };
+  /**
+   * Contacto (F7, en preparación) — cierre del sitio. `LINKS`/`social` ya
+   * existen y se reusan tal cual (mismo mail/redes que Footer); esto solo
+   * agrega el copy propio de la página.
+   */
+  contacto: {
+    eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
+    body: string;
+    emailLabel: string;
+  };
   about: {
     eyebrow: string;
     titleLead: string;
@@ -204,6 +265,7 @@ export interface SiteContent {
     body1: string;
     body2: string;
     cta: string;
+    cvLabel: string;
     galleryTitle: string;
     galleryNote: string;
     gallery: GalleryItem[];
@@ -222,11 +284,27 @@ export interface SiteContent {
     /** Crédito único para las seis fotos — misma fotógrafa, misma sesión. */
     credit: string;
     items: PresenteItem[];
+    /** Labels del lightbox (Fase 5) — controles solo-ícono, necesitan aria-label. */
+    close: string;
+    previous: string;
+    next: string;
+    /** Microinteracción (Fase 6) — aparece en hover/focus sobre cada foto de la grilla. */
+    view: string;
   };
   notFound: { text: string; home: string };
   social: { instagram: string; linkedin: string; email: string };
   /** Pie de sitio (F1) — LINKS (redes/mail) se reutiliza del Hero, esto es solo el texto que le falta. */
-  footer: { rights: string; backToTop: string };
+  /**
+   * `colophon` (Fase 5, 2026-08-28): la última "costura" del Programa — reusa
+   * `Seam.tsx`, huérfano desde la Fase 1 (ya no anuncia el próximo Acto entre
+   * secciones porque cada una es su propia página), ahora como cierre real en
+   * vez de "lo que viene". `photoCredits` agrega los fotógrafos reales que
+   * ya se acreditan a lo largo del sitio (Crear/Enseñar/Producir/Presente) en
+   * una sola línea de colofón — ninguno inventado, la lista sale de grepear
+   * los `credit:` de personas (no de instituciones como CELCIT) en este mismo
+   * archivo.
+   */
+  footer: { rights: string; backToTop: string; colophon: string; photoCredits: string };
 }
 
 const GALLERY_ES: GalleryItem[] = [
@@ -294,12 +372,12 @@ const PRESENTE_ES: PresenteItem[] = [
   {
     src: '/img/presente/clown-1.jpg',
     alt: 'Nora Filmus caracterizada de payasa, con nariz roja y peluca, caminando hacia cámara',
-    label: 'Clown',
+    label: 'Rita Universos',
   },
   {
     src: '/img/presente/clown-2.jpg',
     alt: 'Nora Filmus caracterizada de payasa, leyendo un cuento ilustrado',
-    label: 'Clown',
+    label: 'Rita Universos',
   },
   {
     src: '/img/presente/editorial-1.jpg',
@@ -309,6 +387,36 @@ const PRESENTE_ES: PresenteItem[] = [
   {
     src: '/img/presente/editorial-2.jpg',
     alt: 'Detalle de zapatos y maquillaje sobre una alfombra',
+    label: 'Book actual',
+  },
+  {
+    src: '/img/presente/estudio-3.jpg',
+    alt: 'Nora Filmus riendo a carcajadas con una mano en la cadera, en blanco y negro, book de estudio',
+    label: 'Book de estudio',
+  },
+  {
+    src: '/img/presente/estudio-4.jpg',
+    alt: 'Nora Filmus de perfil, con las manos juntas, en blanco y negro, book de estudio',
+    label: 'Book de estudio',
+  },
+  {
+    src: '/img/presente/clown-3.jpg',
+    alt: 'Nora Filmus caracterizada de payasa, con los brazos abiertos en una terraza',
+    label: 'Rita Universos',
+  },
+  {
+    src: '/img/presente/clown-4.jpg',
+    alt: 'Detalle de un muñeco tejido, parte del vestuario de Rita Universos',
+    label: 'Rita Universos',
+  },
+  {
+    src: '/img/presente/editorial-3.jpg',
+    alt: 'Nora Filmus con sweater negro, retrato sentada',
+    label: 'Book actual',
+  },
+  {
+    src: '/img/presente/editorial-4.jpg',
+    alt: 'Nora Filmus con sweater rojo y brazos abiertos, en una terraza',
     label: 'Book actual',
   },
 ];
@@ -323,8 +431,240 @@ const PRESENTE_EN: PresenteItem[] = PRESENTE_ES.map((item, i) => ({
     'Nora Filmus in clown character, reading an illustrated storybook',
     'Nora Filmus in a red jacket, portrait on a rooftop',
     'Detail of shoes and makeup on a carpet',
+    'Nora Filmus laughing out loud with a hand on her hip, black and white, studio book',
+    'Nora Filmus in profile with hands clasped, black and white, studio book',
+    'Nora Filmus in clown character, arms open on a rooftop',
+    'Detail of a knitted doll, part of the Rita Universos costume',
+    'Nora Filmus in a black sweater, seated portrait',
+    'Nora Filmus in a red sweater with arms open, on a rooftop',
   ][i],
-  label: ['Studio book', 'Studio book', 'Clown', 'Clown', 'Current book', 'Current book'][i],
+  label: [
+    'Studio book',
+    'Studio book',
+    'Rita Universos',
+    'Rita Universos',
+    'Current book',
+    'Current book',
+    'Studio book',
+    'Studio book',
+    'Rita Universos',
+    'Rita Universos',
+    'Current book',
+    'Current book',
+  ][i],
+}));
+
+/**
+ * Primera curaduría del Archivo (F8), 2026-08-28 — ninguna foto repetida de
+ * las que ya usan Hero/AboutMe/Crear/Producir. Se descartaron a propósito
+ * varios candidatos: la foto de la muestra de Marcos Paz (cientos de
+ * adolescentes con la cara visible, regla 4), una foto de la varieté de
+ * clown en Casa Semilla (sin fotógrafo acreditado, regla 3), y una foto de
+ * backstage de Maldichas en el Teatro Solís (misma razón — solo se sabe que
+ * la resubió la cuenta del teatro, no quién la sacó). `ensenar` queda vacío:
+ * no se encontró ninguna foto de docencia con adultos únicamente y crédito
+ * confirmado — ver `emptyEnsenar`.
+ */
+const ARCHIVO_ES: ArchiveItem[] = [
+  {
+    src: '/img/archivo/rapina-sur.jpg',
+    alt: 'Escena de la pieza "Sur", de Rapiña',
+    work: 'Rapiña · "Sur"',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/archivo/rapina-tarantulas-2.jpg',
+    alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
+    work: 'Rapiña · "Como las tarántulas"',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/archivo/rapina-funcion.jpg',
+    alt: 'Escena de función de Rapiña',
+    work: 'Rapiña',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+    alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+    work: 'Chicha, Carmen y Angelita',
+    role: 'Dramaturgia y actuación',
+    years: '2010–2013',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Colo Gens',
+  },
+  {
+    src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg',
+    alt: 'Escena del ciclo ¡Mujeres a la obra!',
+    work: '¡Mujeres a la obra!',
+    role: 'Producción',
+    years: '2018',
+    pillar: 'producir',
+    decade: '2010s',
+    credit: 'CELCIT',
+  },
+  {
+    src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
+    alt: 'Escena del ciclo ¡Mujeres a la obra!',
+    work: '¡Mujeres a la obra!',
+    role: 'Producción',
+    years: '2018',
+    pillar: 'producir',
+    decade: '2010s',
+    credit: 'CELCIT',
+  },
+  {
+    src: '/img/about/los-golpes-de-clara-foto-3.jpg',
+    alt: 'Carolina Guevara en Los golpes de Clara',
+    work: 'Los golpes de Clara',
+    role: 'Producción (una función)',
+    years: '2020',
+    pillar: 'producir',
+    decade: '2020s',
+    credit: 'Nicolás Finoli',
+  },
+  {
+    src: '/img/archivo/los-golpes-de-clara-foto-4.jpg',
+    alt: 'Carolina Guevara en Los golpes de Clara',
+    work: 'Los golpes de Clara',
+    role: 'Producción (una función)',
+    years: '2020',
+    pillar: 'producir',
+    decade: '2020s',
+    credit: 'Nicolás Finoli',
+  },
+  {
+    src: '/img/menu/improvisacion-mosquito-afiche.jpg',
+    alt: 'Afiche de Improvisación Mosquito',
+    work: 'Improvisación Mosquito',
+    role: 'Producción',
+    years: '2019',
+    pillar: 'producir',
+    decade: '2010s',
+    credit: 'Productora Demos',
+  },
+  {
+    // Única pieza de Enseñar en esta primera curaduría — ver la nota junto
+    // al mismo crédito en `ensenar.teachCredits` sobre el blur.
+    src: '/img/archivo/marcos-paz-blur.jpg',
+    alt: 'Público en la muestra de fin de taller en Marcos Paz, caras desenfocadas',
+    work: 'Teatro para adolescentes · Marcos Paz',
+    role: 'Docencia — grupo "Los Galponeros"',
+    years: '2015–2016',
+    pillar: 'ensenar',
+    decade: '2010s',
+    credit: 'Archivo personal de Nora',
+  },
+  // Segunda pasada de curaduría (2026-08-30), a pedido del usuario de sumar
+  // más material visible — mismas 3 reglas, mismo fotógrafo/crédito verificado
+  // que las piezas de Rapiña/¡Mujeres a la obra! ya publicadas arriba.
+  {
+    src: '/img/archivo/rapina-banera.jpg',
+    alt: 'Escena de la pieza "Bañera", de Rapiña',
+    work: 'Rapiña · "Bañera"',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/archivo/rapina-fotos-pieza.jpg',
+    alt: 'Escena de la pieza "Fotos", de Rapiña',
+    work: 'Rapiña · "Fotos"',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/archivo/rapina-tarantulas-3.jpg',
+    alt: 'Escena de la pieza "Como las tarántulas", de Rapiña, otro ángulo',
+    work: 'Rapiña · "Como las tarántulas"',
+    role: 'Actriz',
+    years: '2017–2019',
+    pillar: 'crear',
+    decade: '2010s',
+    credit: 'Marcela Russarabian',
+  },
+  {
+    src: '/img/archivo/mujeres-a-la-obra-foto-3.jpg',
+    alt: 'Escena del ciclo ¡Mujeres a la obra!',
+    work: '¡Mujeres a la obra!',
+    role: 'Producción',
+    years: '2018',
+    pillar: 'producir',
+    decade: '2010s',
+    credit: 'CELCIT',
+  },
+];
+
+/** Mismas fotos — solo cambian obra/rol/alt traducidos. */
+const ARCHIVO_EN: ArchiveItem[] = ARCHIVO_ES.map((item, i) => ({
+  ...item,
+  alt: [
+    'Scene from "Sur", part of Rapiña',
+    'Scene from "Como las tarántulas", part of Rapiña',
+    'Scene from a Rapiña performance',
+    'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+    'Scene from the ¡Mujeres a la obra! season',
+    'Scene from the ¡Mujeres a la obra! season',
+    'Carolina Guevara in Los golpes de Clara',
+    'Carolina Guevara in Los golpes de Clara',
+    'Poster for Improvisación Mosquito',
+    'Audience at the end-of-workshop show in Marcos Paz, faces blurred',
+    'Scene from "Bañera", part of Rapiña',
+    'Scene from "Fotos", part of Rapiña',
+    'Scene from "Como las tarántulas", part of Rapiña, another angle',
+    'Scene from the ¡Mujeres a la obra! season',
+  ][i],
+  work: [
+    'Rapiña · "Sur"',
+    'Rapiña · "Como las tarántulas"',
+    'Rapiña',
+    'Chicha, Carmen y Angelita',
+    '¡Mujeres a la obra!',
+    '¡Mujeres a la obra!',
+    'Los golpes de Clara',
+    'Los golpes de Clara',
+    'Improvisación Mosquito',
+    'Theatre for teenagers · Marcos Paz',
+    'Rapiña · "Bañera"',
+    'Rapiña · "Fotos"',
+    'Rapiña · "Como las tarántulas"',
+    '¡Mujeres a la obra!',
+  ][i],
+  role: [
+    'Actor',
+    'Actor',
+    'Actor',
+    'Writer and performer',
+    'Producer',
+    'Producer',
+    'Producer (one night)',
+    'Producer (one night)',
+    'Producer',
+    'Teaching — "Los Galponeros" group',
+    'Actor',
+    'Actor',
+    'Actor',
+    'Producer',
+  ][i],
+  credit: i === 9 ? "Nora's personal archive" : item.credit,
 }));
 
 /** Mismas imágenes, mismos créditos — solo cambian obra/rol traducidos. */
@@ -362,7 +702,7 @@ export const content: Record<Language, SiteContent> = {
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', presente: 'Presente' },
+    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', presente: 'Presente', archivo: 'Archivo', contacto: 'Contacto' },
 
     crear: {
       eyebrow: 'Actuación',
@@ -391,8 +731,31 @@ export const content: Record<Language, SiteContent> = {
           },
         },
         { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
-        { work: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación', years: '2010–2013' },
+        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA', years: '2022–2023' },
+        { work: 'Betina Quiere', detail: 'Ignacio Torres, dir. Marianela Pensado — Microteatro BA', years: '2023' },
+        { work: 'Solo llamé para decirte que te amo', detail: 'Nelson Valente — asistencia de dirección, CC25 de Mayo', years: '2023' },
+        { work: 'Exagrama', detail: 'Florencia Aroldi, dir. Marianella Pensado — asistencia de dirección, Microteatro', years: '2023' },
+        {
+          work: 'Chicha, Carmen y Angelita',
+          detail: 'Dramaturgia y actuación',
+          years: '2010–2013',
+          image: {
+            src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+            alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+            credit: 'Colo Gens',
+          },
+        },
         { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
+        {
+          work: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)',
+          detail: 'Actuación, caracterización y maquillaje — texto: Alejandra Pizarnik, dir. Gladys Huertos',
+          years: '2009–2010',
+          image: {
+            src: '/img/crear/pizarnikett-flyer.jpg',
+            alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio',
+            credit: 'Teatro El Refugio',
+          },
+        },
         {
           work: 'Los Ranz',
           detail: 'Inténtalo otra vez, Animal Tango, Tanga Catanga y otros — Teatro Colón, Centro Cultural Recoleta',
@@ -414,14 +777,14 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Doce años',
       titleAccent: 'formando en las artes escénicas.',
       body1:
-        'Desde 2012 coordino el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —un programa de promoción de derechos para chicas y chicos en situación de vulnerabilidad social— con base en tres organizaciones civiles: la Federación de Instituciones Comunitarias, el Espacio Cultural Oliverio Girondo y, desde 2019, la Asociación FACE. Diseño y coordino los proyectos artísticos anuales, formo las duplas de docentes y operadores sociales, y soy el nexo con la Secretaría de Niñez y Adolescencia.',
+        'Desde 2012 coordino el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —un programa de promoción de derechos para chicas y chicos en situación de vulnerabilidad social— con base en tres organizaciones civiles: la Federación de Instituciones Comunitarias, el Espacio Cultural Oliverio Girondo y, desde 2019, la Asociación F.A.C.E. (Formación de Artistas Contemporáneos para la Escena). Diseño y coordino los proyectos artísticos anuales, formo las duplas de docentes y operadores sociales, y soy el nexo con la Secretaría de Niñez y Adolescencia.',
       body2:
         'También coordiné talleres de teatro en el Instituto de Menores San Martín, en escuelas medias de Marcos Paz y en el Comedor Comunitario Las Flores de Vicente López, y desde 2017 doy clases de teatro para la tercera edad (convenio PAMI). Cursé la Tecnicatura Superior en Pedagogía Social con Orientación en Derechos Humanos y fui asistente de cátedra de Pedagogía Social en el IFTS N.º 28. En 2015 y 2018 gané los concursos "Jóvenes Creadores" (SENAF / Asociación Argentina de Actores) y "Opresión y Libertad" (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
       statNumber: '12',
       statLabel: 'años coordinando el Programa Adolescencia — sin fotos publicables: el material muestra adolescentes en situación de vulnerabilidad.',
       coordTitle: 'Coordinación',
       coordCredits: [
-        { work: 'Programa Adolescencia', detail: 'Asociación FACE — Gobierno de la Ciudad de Buenos Aires', years: 'desde 2019' },
+        { work: 'Programa Adolescencia', detail: 'Asociación F.A.C.E. — Gobierno de la Ciudad de Buenos Aires', years: 'desde 2019' },
         { work: 'Programa Adolescencia', detail: 'Espacio Cultural Oliverio Girondo — GCBA', years: '2015–2018' },
         { work: 'Programa Adolescencia', detail: 'Federación de Instituciones Comunitarias — GCBA', years: '2012–2014' },
       ],
@@ -429,9 +792,30 @@ export const content: Record<Language, SiteContent> = {
       teachCredits: [
         { work: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', years: 'desde 2017' },
         { work: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', years: '2020–2022' },
-        { work: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
+        { work: 'Teatro para niños y pre-adolescentes', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
         { work: 'Teatro, adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', years: '2015–2016' },
+        {
+          work: 'Teatro para adolescentes',
+          detail: 'Escuelas medias 1 y 2 de Marcos Paz — grupo "Los Galponeros"',
+          years: '2015–2016',
+          image: {
+            // Foto de la muestra final del grupo, con las caras de los
+            // alumnos desenfocadas a propósito (regla 4: son adolescentes
+            // identificables, sin consentimiento escrito) — la franja de
+            // luces queda nítida, es arquitectura sin gente. Ver
+            // external-assets/marcos-paz-blur/blur.mjs para el proceso.
+            src: '/img/archivo/marcos-paz-blur.jpg',
+            alt: 'Público en la muestra de fin de taller en Marcos Paz, caras desenfocadas',
+            credit: 'Archivo personal de Nora',
+          },
+        },
         { work: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', years: '2014–2015' },
+      ],
+      recognitionTitle: 'Reconocimientos',
+      recognitionCredits: [
+        { work: '"Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias — proyecto para el Programa Adolescencia', years: '2018' },
+        { work: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (GCBA) y Fundación Santander — proyecto para el Programa Adolescencia', years: '2022' },
+        { work: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (GCBA) y Fundación Santander — a nombre de la Asociación Civil F.A.C.E.', years: '2023' },
       ],
     },
 
@@ -440,27 +824,17 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Detrás de escena,',
       titleAccent: 'en teatro y en pantalla.',
       body1:
-        'Produje teatro independiente —Los golpes de Clara, ¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo— y gestioné el subsidio de Proteatro para Que no quede huella. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
+        'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
       body2:
         'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
       image: {
-        src: '/img/about/los-golpes-de-clara-foto-2.jpg',
-        alt: 'Escena de Los golpes de Clara, obra que Nora produjo',
-        credit: 'Nicolás Finoli',
-        caption: 'Los golpes de Clara · Producción ejecutiva · 2017–2025',
+        src: '/img/about/maldichas-foto-1.png',
+        alt: 'Escena de Maldichas, trío que Nora produjo',
+        credit: 'Ariel Ugolino',
+        caption: 'Maldichas · Gestora cultural y productora ejecutiva · 2018–2019',
       },
       stageTitle: 'Teatro',
       stageCredits: [
-        {
-          work: 'Los golpes de Clara',
-          detail: 'Producción ejecutiva — texto: Carolina Guevara',
-          years: '2017–2025',
-          image: {
-            src: '/img/about/los-golpes-de-clara-afiche.jpg',
-            alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
-            credit: 'Nicolás Finoli',
-          },
-        },
         {
           work: '¡Mujeres a la obra!',
           detail: 'Producción — 1º ciclo de teatro y feminismos, CELCIT',
@@ -471,9 +845,44 @@ export const content: Record<Language, SiteContent> = {
             credit: 'CELCIT',
           },
         },
-        { work: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', years: '2018–2019' },
-        { work: 'Improvisación Mosquito', detail: 'Producción — Productora Demos, Teatro Porteño', years: '2019' },
+        {
+          work: 'Maldichas',
+          detail: 'Gestora cultural y productora ejecutiva — Teatro Solís (Montevideo), Teatro Roma de Avellaneda, Teatro Celcit',
+          years: '2018–2019',
+          image: {
+            src: '/img/about/maldichas-foto-1.png',
+            alt: 'Integrante de Maldichas en escena',
+            credit: 'Ariel Ugolino',
+          },
+        },
+        {
+          work: 'Improvisación Mosquito',
+          detail: 'Producción — Productora Demos, Teatro Porteño',
+          years: '2019',
+          image: {
+            src: '/img/menu/improvisacion-mosquito-afiche.jpg',
+            alt: 'Afiche de Improvisación Mosquito',
+            credit: 'Productora Demos',
+          },
+        },
+        { work: 'Pizarn-i-kett Más?', detail: 'Gestión del subsidio del Instituto Nacional del Teatro', years: '2009–2010' },
         { work: 'Que no quede huella', detail: 'Gestión del subsidio Proteatro', years: '2015–2017' },
+        {
+          // Año inferido, no confirmado por Nora: la ficha de alternativateatral
+          // lista temporadas de la obra en CELCIT en 2018 y 2020 — 2018 coincide
+          // con su aparición dentro del ciclo ¡Mujeres a la obra! (crédito
+          // aparte, arriba), así que la función que Nora produjo por su cuenta
+          // "antes de la pandemia" es más probable que haya sido la de 2020
+          // (el ASPO en Argentina arrancó el 20/3/2020). CHEQUEAR con Nora.
+          work: 'Los golpes de Clara',
+          detail: 'Produjo la única función, antes de la pandemia — texto: Carolina Guevara, que siguió la obra sola después',
+          years: '2020',
+          image: {
+            src: '/img/about/los-golpes-de-clara-afiche.jpg',
+            alt: 'Afiche de Los golpes de Clara',
+            credit: 'Nicolás Finoli',
+          },
+        },
       ],
       screenTitle: 'Cine, TV y streaming',
       screenCredits: [
@@ -486,7 +895,11 @@ export const content: Record<Language, SiteContent> = {
       irelandCredits: [
         { work: 'Argentina Day', detail: 'Productora: La Clave Group', years: '2023–2026' },
         { work: 'The Floor', detail: 'Programa de TV — Bigger Stage, runner de producción audiovisual', years: '2025' },
+        { work: 'The Sugar Club', detail: 'Asistente de producción — presentación del disco solista de Gustavo Ecclesia', years: '2025' },
+        { work: 'International Literature Festival Dublin', detail: 'Voluntaria, runner de producción', years: '2025' },
+        { work: 'Christmas Market Latinoamericano', detail: 'Coordinación de producción — La Clave Group, Dtwo', years: '2025' },
         { work: 'Rathe Gather Festivalito', detail: 'Asistencia y runner de producción', years: '2024' },
+        { work: 'La Peña Argentina en Dublín', detail: 'Producción — La Clave Group', years: '2024–2025' },
         { work: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', years: '2023' },
       ],
     },
@@ -509,6 +922,7 @@ export const content: Record<Language, SiteContent> = {
         { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango y otros — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
         { year: '1999–2000', title: 'Entrenamiento actoral Tadashi Suzuki', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
         { year: '2001–2004', title: 'Licenciatura en Dirección Escénica', detail: 'UNA — hasta 3er año', category: 'formacion', decade: '2000s' },
+        { year: '2009–2010', title: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)', detail: 'Actuación, caracterización y maquillaje, y gestión del subsidio del INT — dir. Gladys Huertos', category: 'actuacion', decade: '2000s' },
         { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
         { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación — Compañía Boquitas Pintadas', category: 'actuacion', decade: '2010s' },
         { year: '2012–2013', title: 'Profesora de teatro para adolescentes', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
@@ -517,25 +931,31 @@ export const content: Record<Language, SiteContent> = {
         { year: '2015–2016', title: 'Teatro para adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', category: 'docencia', decade: '2010s' },
         { year: '2015', title: 'Premio "Jóvenes Creadores"', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
         { year: '2015–2017', title: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas — actuación y gestión del subsidio Proteatro', category: 'actuacion', decade: '2010s' },
-        { year: '2017–2019', title: 'Teatro para niños y adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
+        { year: '2017–2019', title: 'Teatro para niños y pre-adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'desde 2017', title: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', category: 'produccion', decade: '2010s' },
         { year: '2018–2019', title: 'Rapiña', detail: 'Elenco — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
         { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producción — CELCIT', category: 'produccion', decade: '2010s' },
         { year: '2018', title: 'Premio "Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Producción independiente — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
-        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Producción ejecutiva — texto: Carolina Guevara', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Maldichas', detail: 'Gestora cultural y productora ejecutiva — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        // Año inferido — ver nota en producir.stageCredits más abajo. CHEQUEAR con Nora.
+        { year: '2020', title: 'Los golpes de Clara', detail: 'Produjo la única función — texto: Carolina Guevara, que siguió la obra sola después', category: 'produccion', decade: '2020s' },
         { year: '2019', title: 'Improvisación Mosquito', detail: 'Producción — Productora Demos', category: 'produccion', decade: '2010s' },
         { year: '2020', title: 'Tecnicatura Superior en Pedagogía Social', detail: 'Orientación en Derechos Humanos — IFTS N.º 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', category: 'docencia', decade: '2020s' },
         { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — extra en pantalla, equipo de producción', category: 'produccion', decade: '2020s' },
+        { year: '2022', title: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (GCBA) y Fundación Santander — Programa Adolescencia', category: 'produccion', decade: '2020s' },
+        { year: '2023', title: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (GCBA) y Fundación Santander', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Mudanza a Dublín', detail: 'Irlanda', category: 'formacion', decade: '2020s' },
         { year: '2023', title: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', category: 'produccion', decade: '2020s' },
         { year: '2023–2026', title: 'Argentina Day', detail: 'Productora: La Clave Group', category: 'produccion', decade: '2020s' },
         { year: 'en curso', title: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
         { year: 'temporada 1', title: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte', category: 'produccion', decade: '2020s' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena y asistencia de producción', category: 'actuacion', decade: '2020s' },
+        { year: '2024', title: 'Festival Internacional de Teatro Shakespeare', detail: '"Maten a Hamlet" (Los Macoco) — asistente de producción voluntaria, Craiova, Rumania', category: 'produccion', decade: '2020s' },
+        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena, como Rita Universos, y asistencia de producción', category: 'actuacion', decade: '2020s' },
         { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual', category: 'produccion', decade: '2020s' },
+        { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Irlanda', category: 'formacion', decade: '2020s' },
+        { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Irlanda', category: 'formacion', decade: '2020s' },
       ],
     },
 
@@ -547,7 +967,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/menu/rapina.jpg',
         alt: 'Escena de Rapiña, obra en la que Nora integró el elenco',
         credit: 'Marcela Russarabian',
-        href: '#crear',
+        href: '/crear',
       },
       {
         key: 'ensenar',
@@ -557,18 +977,41 @@ export const content: Record<Language, SiteContent> = {
         // identificables del Programa Adolescencia. Ver regla 4 arriba.
         image: null,
         alt: 'Todavía sin imagen publicable para este pilar',
-        href: '#ensenar',
+        href: '/ensenar',
       },
       {
         key: 'producir',
         label: 'Producir',
         caption: 'Producción ejecutiva en teatro independiente, festivales y rodajes.',
-        image: '/img/about/los-golpes-de-clara-afiche.jpg',
-        alt: 'Afiche de Los golpes de Clara, obra que Nora produjo',
-        credit: 'Nicolás Finoli',
-        href: '#producir',
+        image: '/img/about/maldichas-foto-1.png',
+        alt: 'Integrante de Maldichas en escena, trío que Nora produjo',
+        credit: 'Ariel Ugolino',
+        href: '/producir',
       },
     ],
+
+    programIndex: { eyebrow: 'El Programa' },
+
+    archivo: {
+      eyebrow: 'Archivo',
+      titleLead: 'Todo el material,',
+      titleAccent: 'en un solo lugar.',
+      body: 'Una primera selección curada del archivo completo — cada pieza indica la obra, el año y el rol real que tuve en ella.',
+      filterAll: 'Todo',
+      filterCrear: 'Crear',
+      filterEnsenar: 'Enseñar',
+      filterProducir: 'Producir',
+      emptyEnsenar: 'Todavía no hay fotos publicables de docencia: el material disponible muestra adolescentes del Programa Adolescencia, sin consentimiento escrito para publicar su cara.',
+      items: ARCHIVO_ES,
+    },
+
+    contacto: {
+      eyebrow: 'Contacto',
+      titleLead: '¿Un proyecto',
+      titleAccent: 'en mente?',
+      body: 'Actúo, produzco y coordino formación artística entre Buenos Aires y Dublín. Si hay un proyecto en el que pueda sumar, escribime — respondo por correo o por Instagram.',
+      emailLabel: 'Escribime',
+    },
 
     about: {
       eyebrow: '36 años en artes escénicas',
@@ -579,6 +1022,7 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ y Disney. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
       cta: 'Escribime',
+      cvLabel: 'Descargar CV',
       galleryTitle: 'Del archivo',
       /** Aclaración fija al pie del archivo — refuerza la regla 2 en pantalla. */
       galleryNote: 'Cada pieza indica el rol que ocupé en esa producción.',
@@ -589,9 +1033,13 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Presente',
       titleLead: 'Así se ve',
       titleAccent: 'hoy.',
-      body: 'Estas seis fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown y un registro editorial — el material más reciente que tengo.',
+      body: 'Estas seis fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown como Rita Universos —mi personaje para las infancias, con vestuario propio, que armé en pandemia— y un registro editorial: el material más reciente que tengo.',
       credit: 'Fotos: Paula, marzo 2026',
       items: PRESENTE_ES,
+      close: 'Cerrar',
+      previous: 'Anterior',
+      next: 'Siguiente',
+      view: 'Ver',
     },
 
     notFound: {
@@ -608,6 +1056,9 @@ export const content: Record<Language, SiteContent> = {
     footer: {
       rights: 'Todos los derechos reservados.',
       backToTop: 'Volver arriba',
+      colophon: 'Fin del programa',
+      photoCredits:
+        'Fotografías: Marcela Russarabian, Nicolás Finoli, Ariel Ugolino, Colo Gens, Paula.',
     },
   },
 
@@ -628,7 +1079,7 @@ export const content: Record<Language, SiteContent> = {
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', presente: 'Present' },
+    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', presente: 'Present', archivo: 'Archive', contacto: 'Contact' },
 
     crear: {
       eyebrow: 'Acting',
@@ -657,8 +1108,31 @@ export const content: Record<Language, SiteContent> = {
           },
         },
         { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
-        { work: 'Chicha, Carmen y Angelita', detail: 'Writer and performer', years: '2010–2013' },
+        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA', years: '2022–2023' },
+        { work: 'Betina Quiere', detail: 'Ignacio Torres, dir. Marianela Pensado — Microteatro BA', years: '2023' },
+        { work: 'Solo llamé para decirte que te amo', detail: 'Nelson Valente — assistant director, CC25 de Mayo', years: '2023' },
+        { work: 'Exagrama', detail: 'Florencia Aroldi, dir. Marianella Pensado — assistant director, Microteatro', years: '2023' },
+        {
+          work: 'Chicha, Carmen y Angelita',
+          detail: 'Writer and performer',
+          years: '2010–2013',
+          image: {
+            src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+            alt: 'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+            credit: 'Colo Gens',
+          },
+        },
         { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
+        {
+          work: 'Pizarn-i-kett Más? (A Forced Hybrid)',
+          detail: 'Performer, hair & makeup — text: Alejandra Pizarnik, dir. Gladys Huertos',
+          years: '2009–2010',
+          image: {
+            src: '/img/crear/pizarnikett-flyer.jpg',
+            alt: 'Flyer for Pizarn-i-kett Más?, Teatro El Refugio',
+            credit: 'Teatro El Refugio',
+          },
+        },
         {
           work: 'Los Ranz',
           detail: 'Inténtalo otra vez, Animal Tango, Tanga Catanga and others — Teatro Colón, Centro Cultural Recoleta',
@@ -680,14 +1154,14 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Twelve years',
       titleAccent: 'training people in the performing arts.',
       body1:
-        'Since 2012 I have coordinated Programa Adolescencia for the City of Buenos Aires — a rights programme for teenagers in vulnerable social contexts — delivered through three civil associations: the Federación de Instituciones Comunitarias, the Espacio Cultural Oliverio Girondo, and, since 2019, Asociación FACE. I design and coordinate the yearly artistic projects, put together the teaching pairs of artistic instructors and social workers, and act as the point of contact with the City\'s child and adolescent welfare office.',
+        'Since 2012 I have coordinated Programa Adolescencia for the City of Buenos Aires — a rights programme for teenagers in vulnerable social contexts — delivered through three civil associations: the Federación de Instituciones Comunitarias, the Espacio Cultural Oliverio Girondo, and, since 2019, Asociación F.A.C.E. (Formación de Artistas Contemporáneos para la Escena). I design and coordinate the yearly artistic projects, put together the teaching pairs of artistic instructors and social workers, and act as the point of contact with the City\'s child and adolescent welfare office.',
       body2:
         'I also ran theatre workshops at the Instituto de Menores San Martín (a juvenile detention facility), at secondary schools in Marcos Paz, and at the Las Flores community canteen in Vicente López, and since 2017 I have taught theatre to older adults under PAMI, Argentina\'s public health programme for retirees. I completed a further-education degree in Social Pedagogy with a focus on Human Rights, and was a teaching assistant for Social Pedagogy at IFTS Nº 28. In 2015 and 2018 I won the "Jóvenes Creadores" award (SENAF / Asociación Argentina de Actores) and the "Opresión y Libertad" award (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
       statNumber: '12',
       statLabel: 'years coordinating Programa Adolescencia — no publishable photos: the material shows teenagers in vulnerable circumstances.',
       coordTitle: 'Coordination',
       coordCredits: [
-        { work: 'Programa Adolescencia', detail: 'Asociación FACE — City of Buenos Aires', years: 'since 2019' },
+        { work: 'Programa Adolescencia', detail: 'Asociación F.A.C.E. — City of Buenos Aires', years: 'since 2019' },
         { work: 'Programa Adolescencia', detail: 'Espacio Cultural Oliverio Girondo — City of Buenos Aires', years: '2015–2018' },
         { work: 'Programa Adolescencia', detail: 'Federación de Instituciones Comunitarias — City of Buenos Aires', years: '2012–2014' },
       ],
@@ -695,9 +1169,25 @@ export const content: Record<Language, SiteContent> = {
       teachCredits: [
         { work: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', years: 'since 2017' },
         { work: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', years: '2020–2022' },
-        { work: 'Theatre for children and teenagers', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
+        { work: 'Theatre for children and pre-teens', detail: 'Escuela de Danzas Reina Reech', years: '2017–2019' },
         { work: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', years: '2015–2016' },
+        {
+          work: 'Theatre for teenagers',
+          detail: 'Secondary schools 1 & 2, Marcos Paz — "Los Galponeros" group',
+          years: '2015–2016',
+          image: {
+            src: '/img/archivo/marcos-paz-blur.jpg',
+            alt: 'Audience at the end-of-workshop show in Marcos Paz, faces blurred',
+            credit: "Nora's personal archive",
+          },
+        },
         { work: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', years: '2014–2015' },
+      ],
+      recognitionTitle: 'Recognition',
+      recognitionCredits: [
+        { work: '"Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias — project for Programa Adolescencia', years: '2018' },
+        { work: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander — project for Programa Adolescencia', years: '2022' },
+        { work: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander — under Asociación Civil F.A.C.E.', years: '2023' },
       ],
     },
 
@@ -706,27 +1196,17 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Behind the scenes,',
       titleAccent: 'in theatre and on screen.',
       body1:
-        'I produced independent theatre —Los golpes de Clara, ¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo— and managed the Proteatro grant for Que no quede huella. In film and television I worked on production teams for Star+, Netflix and HBO: I was art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
+        'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
       body2:
         'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
       image: {
-        src: '/img/about/los-golpes-de-clara-foto-2.jpg',
-        alt: 'Scene from Los golpes de Clara, a production Nora produced',
-        credit: 'Nicolás Finoli',
-        caption: 'Los golpes de Clara · Executive producer · 2017–2025',
+        src: '/img/about/maldichas-foto-1.png',
+        alt: 'Scene from Maldichas, the trio Nora produced',
+        credit: 'Ariel Ugolino',
+        caption: 'Maldichas · Cultural manager and executive producer · 2018–2019',
       },
       stageTitle: 'Theatre',
       stageCredits: [
-        {
-          work: 'Los golpes de Clara',
-          detail: 'Executive producer — text: Carolina Guevara',
-          years: '2017–2025',
-          image: {
-            src: '/img/about/los-golpes-de-clara-afiche.jpg',
-            alt: 'Poster for Los golpes de Clara, a production Nora produced',
-            credit: 'Nicolás Finoli',
-          },
-        },
         {
           work: '¡Mujeres a la obra!',
           detail: 'Producer — theatre & feminism festival, CELCIT',
@@ -737,9 +1217,41 @@ export const content: Record<Language, SiteContent> = {
             credit: 'CELCIT',
           },
         },
-        { work: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', years: '2018–2019' },
-        { work: 'Improvisación Mosquito', detail: 'Producer — Productora Demos, Teatro Porteño', years: '2019' },
+        {
+          work: 'Maldichas',
+          detail: 'Cultural manager and executive producer — Teatro Solís (Montevideo), Teatro Roma de Avellaneda, Teatro Celcit',
+          years: '2018–2019',
+          image: {
+            src: '/img/about/maldichas-foto-1.png',
+            alt: 'A Maldichas performer on stage',
+            credit: 'Ariel Ugolino',
+          },
+        },
+        {
+          work: 'Improvisación Mosquito',
+          detail: 'Producer — Productora Demos, Teatro Porteño',
+          years: '2019',
+          image: {
+            src: '/img/menu/improvisacion-mosquito-afiche.jpg',
+            alt: 'Poster for Improvisación Mosquito',
+            credit: 'Productora Demos',
+          },
+        },
+        { work: 'Pizarn-i-kett Más?', detail: 'Managed the grant from Argentina\'s National Theatre Institute', years: '2009–2010' },
         { work: 'Que no quede huella', detail: 'Managed the Proteatro grant', years: '2015–2017' },
+        {
+          // Inferred year, not confirmed by Nora — see the ES entry for the
+          // reasoning (CELCIT seasons in 2018/2020, ASPO lockdown 20/3/2020).
+          // CHECK with Nora.
+          work: 'Los golpes de Clara',
+          detail: 'Produced the only night, right before the pandemic — text: Carolina Guevara, who went on with the show alone afterwards',
+          years: '2020',
+          image: {
+            src: '/img/about/los-golpes-de-clara-afiche.jpg',
+            alt: 'Poster for Los golpes de Clara',
+            credit: 'Nicolás Finoli',
+          },
+        },
       ],
       screenTitle: 'Film, TV & streaming',
       screenCredits: [
@@ -752,7 +1264,11 @@ export const content: Record<Language, SiteContent> = {
       irelandCredits: [
         { work: 'Argentina Day', detail: 'Producer: La Clave Group', years: '2023–2026' },
         { work: 'The Floor', detail: 'TV show — Bigger Stage, production runner', years: '2025' },
+        { work: 'The Sugar Club', detail: 'Production assistant — Gustavo Ecclesia\'s solo album launch', years: '2025' },
+        { work: 'International Literature Festival Dublin', detail: 'Volunteer production runner', years: '2025' },
+        { work: 'Christmas Market Latinoamericano', detail: 'Production coordination — La Clave Group, Dtwo', years: '2025' },
         { work: 'Rathe Gather Festivalito', detail: 'Production assistance and runner', years: '2024' },
+        { work: 'La Peña Argentina en Dublín', detail: 'Production — La Clave Group', years: '2024–2025' },
         { work: "St. Patrick's Festival", detail: 'Production runner (volunteer)', years: '2023' },
       ],
     },
@@ -775,6 +1291,7 @@ export const content: Record<Language, SiteContent> = {
         { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango and others — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
         { year: '1999–2000', title: 'Tadashi Suzuki actor training', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
         { year: '2001–2004', title: 'Degree in Stage Direction', detail: 'UNA — three years completed', category: 'formacion', decade: '2000s' },
+        { year: '2009–2010', title: 'Pizarn-i-kett Más? (A Forced Hybrid)', detail: 'Performer, hair & makeup, and managed the INT grant — dir. Gladys Huertos', category: 'actuacion', decade: '2000s' },
         { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
         { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Writer and performer — Boquitas Pintadas company', category: 'actuacion', decade: '2010s' },
         { year: '2012–2013', title: 'Theatre teacher for teenagers', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
@@ -783,25 +1300,31 @@ export const content: Record<Language, SiteContent> = {
         { year: '2015–2016', title: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', category: 'docencia', decade: '2010s' },
         { year: '2015', title: '"Jóvenes Creadores" award', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
         { year: '2015–2017', title: 'Que no quede huella', detail: 'Boquitas Pintadas company — performer and managed the Proteatro grant', category: 'actuacion', decade: '2010s' },
-        { year: '2017–2019', title: 'Theatre for children and teenagers', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
+        { year: '2017–2019', title: 'Theatre for children and pre-teens', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'since 2017', title: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', category: 'produccion', decade: '2010s' },
         { year: '2018–2019', title: 'Rapiña', detail: 'Ensemble cast — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
         { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producer — CELCIT', category: 'produccion', decade: '2010s' },
         { year: '2018', title: '"Opresión y Libertad" award', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Independent production — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
-        { year: '2017–2025', title: 'Los golpes de Clara', detail: 'Executive producer — text: Carolina Guevara', category: 'produccion', decade: '2010s' },
+        { year: '2018–2019', title: 'Maldichas', detail: 'Cultural manager and executive producer — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        // Inferred year — see the note in producir.stageCredits above. CHECK with Nora.
+        { year: '2020', title: 'Los golpes de Clara', detail: 'Produced the only night — text: Carolina Guevara, who went on with the show alone afterwards', category: 'produccion', decade: '2020s' },
         { year: '2019', title: 'Improvisación Mosquito', detail: 'Producer — Productora Demos', category: 'produccion', decade: '2010s' },
         { year: '2020', title: 'Further-education degree in Social Pedagogy', detail: 'Human Rights focus — IFTS Nº 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', category: 'docencia', decade: '2020s' },
         { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — on-screen extra, production team', category: 'produccion', decade: '2020s' },
+        { year: '2022', title: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander — Programa Adolescencia', category: 'produccion', decade: '2020s' },
+        { year: '2023', title: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Moved to Dublin', detail: 'Ireland', category: 'formacion', decade: '2020s' },
         { year: '2023', title: "St. Patrick's Festival", detail: 'Production runner (volunteer)', category: 'produccion', decade: '2020s' },
         { year: '2023–2026', title: 'Argentina Day', detail: 'Producer: La Clave Group', category: 'produccion', decade: '2020s' },
         { year: 'ongoing', title: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
         { year: 'season 1', title: 'Planners', detail: 'Star+ / PEGSA Group — art director', category: 'produccion', decade: '2020s' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance and production assistance', category: 'actuacion', decade: '2020s' },
+        { year: '2024', title: 'Shakespeare International Theatre Festival', detail: '"Maten a Hamlet" (Los Macoco) — volunteer production assistant, Craiova, Romania', category: 'produccion', decade: '2020s' },
+        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance as Rita Universos, and production assistance', category: 'actuacion', decade: '2020s' },
         { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner', category: 'produccion', decade: '2020s' },
+        { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Ireland', category: 'formacion', decade: '2020s' },
+        { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Ireland', category: 'formacion', decade: '2020s' },
       ],
     },
 
@@ -813,7 +1336,7 @@ export const content: Record<Language, SiteContent> = {
         image: '/img/menu/rapina.jpg',
         alt: 'Scene from Rapiña, a production Nora performed in',
         credit: 'Marcela Russarabian',
-        href: '#crear',
+        href: '/crear',
       },
       {
         key: 'ensenar',
@@ -821,18 +1344,41 @@ export const content: Record<Language, SiteContent> = {
         caption: 'Twelve years running theatre workshops for teenagers.',
         image: null,
         alt: 'No publishable image for this strand yet',
-        href: '#ensenar',
+        href: '/ensenar',
       },
       {
         key: 'producir',
         label: 'Produce',
         caption: 'Executive production across independent theatre, festivals and film sets.',
-        image: '/img/about/los-golpes-de-clara-afiche.jpg',
-        alt: 'Poster for Los golpes de Clara, a production Nora produced',
-        credit: 'Nicolás Finoli',
-        href: '#producir',
+        image: '/img/about/maldichas-foto-1.png',
+        alt: 'A Maldichas performer on stage, the trio Nora produced',
+        credit: 'Ariel Ugolino',
+        href: '/producir',
       },
     ],
+
+    programIndex: { eyebrow: 'The Programme' },
+
+    archivo: {
+      eyebrow: 'Archive',
+      titleLead: 'Everything,',
+      titleAccent: 'in one place.',
+      body: 'A first curated selection from the full archive — each piece states the production, the year, and the role I actually held in it.',
+      filterAll: 'All',
+      filterCrear: 'Create',
+      filterEnsenar: 'Teach',
+      filterProducir: 'Produce',
+      emptyEnsenar: "No publishable teaching photos yet: the available material shows teenagers from Programa Adolescencia, without written consent to publish their faces.",
+      items: ARCHIVO_EN,
+    },
+
+    contacto: {
+      eyebrow: 'Contact',
+      titleLead: 'Got a project',
+      titleAccent: 'in mind?',
+      body: "I act, produce and run arts education programmes between Buenos Aires and Dublin. If there's a project I could be part of, get in touch — I reply by email or Instagram.",
+      emailLabel: 'Get in touch',
+    },
 
     about: {
       eyebrow: '36 years in the performing arts',
@@ -843,6 +1389,7 @@ export const content: Record<Language, SiteContent> = {
       body2:
         'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and Disney. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the Rathe Gather Festival.',
       cta: 'Get in touch',
+      cvLabel: 'Download CV',
       galleryTitle: 'From the archive',
       galleryNote: 'Each piece states the role I held in that production.',
       gallery: GALLERY_EN,
@@ -852,9 +1399,13 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Present',
       titleLead: 'This is',
       titleAccent: 'now.',
-      body: "These six photos are from the same session, March 2026: a studio book, my clown work and an editorial shoot — the most recent material I have.",
+      body: "These six photos are from the same session, March 2026: a studio book, my clown work as Rita Universos —my character for children, with her own costume, that I put together during the pandemic— and an editorial shoot: the most recent material I have.",
       credit: 'Photos: Paula, March 2026',
       items: PRESENTE_EN,
+      close: 'Close',
+      previous: 'Previous',
+      next: 'Next',
+      view: 'View',
     },
 
     notFound: {
@@ -871,6 +1422,9 @@ export const content: Record<Language, SiteContent> = {
     footer: {
       rights: 'All rights reserved.',
       backToTop: 'Back to top',
+      colophon: 'End of programme',
+      photoCredits:
+        'Photography: Marcela Russarabian, Nicolás Finoli, Ariel Ugolino, Colo Gens, Paula.',
     },
   },
 };
@@ -880,4 +1434,5 @@ export const LINKS = {
   instagram: 'https://www.instagram.com/noraritafilmus/',
   linkedin: 'https://www.linkedin.com/in/nora-filmus-ab353013/',
   email: 'mailto:norafilmus@gmail.com',
+  cv: '/cv/nora-filmus-cv.pdf',
 } as const;
