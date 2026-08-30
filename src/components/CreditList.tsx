@@ -6,6 +6,40 @@ import Picture from './Picture';
 /** i, ii, iii... — alcanza con lo que mide una lista de créditos real (nunca más de ~6). */
 const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
 
+export type CreditListVariant = 'cast' | 'notebook' | 'dossier';
+
+/**
+ * Marcador de índice por variante — Fase 3 (2026-08-28), diferenciación
+ * visual real entre Actos. Sin fuentes nuevas ni cambios de paleta: cada
+ * variante reusa un token tipográfico que el sitio ya carga.
+ *
+ * - `cast` (Crear, default): números romanos en itálica — el "programa de
+ *   sala" original, sin cambios.
+ * - `notebook` (Enseñar): el mismo índice pero en `font-signature`
+ *   (manuscrita) — lee como una anotación a mano, coherente con el "cuaderno
+ *   de trabajo" que es el Acto II.
+ * - `dossier` (Producir): número arábigo con cero a la izquierda entre
+ *   corchetes, en `font-mono` (la stack monoespacio del sistema, no una
+ *   fuente nueva) — lee como planilla/expediente de producción.
+ */
+function IndexMarker({ index, variant }: { index: number; variant: CreditListVariant }) {
+  if (variant === 'dossier') {
+    return (
+      <span className="font-mono text-[11px] tabular-nums tracking-tight text-cream/35">
+        [{String(index + 1).padStart(2, '0')}]
+      </span>
+    );
+  }
+  if (variant === 'notebook') {
+    return (
+      <span className="font-signature text-lg leading-none text-cream/45">
+        {ROMAN[index] ?? index + 1}.
+      </span>
+    );
+  }
+  return <span className="font-body italic text-cream/35">{ROMAN[index] ?? index + 1}.</span>;
+}
+
 /**
  * Identidad de un crédito. **No alcanza con `work`**: `ensenar.coordCredits`
  * tiene tres entradas llamadas "Programa Adolescencia" (una por institución),
@@ -28,7 +62,15 @@ const creditId = (c: Credit) => `${c.work}::${c.years}`;
  * puntual tiene `image`, su propia foto — nunca una imagen fija de toda la
  * sección (eso repetía con el mosaico del Hero). Todo arranca cerrado.
  */
-export default function CreditList({ title, items }: { title: string; items: Credit[] }) {
+export default function CreditList({
+  title,
+  items,
+  variant = 'cast',
+}: {
+  title: string;
+  items: Credit[];
+  variant?: CreditListVariant;
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
@@ -46,7 +88,7 @@ export default function CreditList({ title, items }: { title: string; items: Cre
                 aria-expanded={isOpen}
                 className="flex min-h-11 w-full items-baseline gap-3 py-3 text-left"
               >
-                <span className="font-body italic text-cream/35">{ROMAN[i] ?? i + 1}.</span>
+                <IndexMarker index={i} variant={variant} />
                 <span
                   className={cn(
                     'font-body transition-colors duration-300',

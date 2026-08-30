@@ -10,7 +10,16 @@ import {
   motion,
   useReducedMotion,
 } from 'motion/react';
-import { forwardRef, type PointerEvent, type ReactNode, useCallback, useRef, useState } from 'react';
+import {
+  forwardRef,
+  type ComponentPropsWithoutRef,
+  type PointerEvent,
+  type ReactNode,
+  useCallback,
+  useRef,
+  useState,
+} from 'react';
+import { Link } from 'react-router-dom';
 import { EASE_OUT, SPRING_PRESS } from '@/lib/ease';
 import { useHoverCapable } from '@/lib/hooks/use-hover-capable';
 import { cn } from '@/lib/utils';
@@ -32,6 +41,8 @@ export interface ButtonLinkProps extends Omit<HTMLMotionProps<'a'>, 'children'> 
   size?: ButtonSize;
   pressScale?: number;
   children?: ReactNode;
+  /** Ruta interna — si se pasa, navega con `react-router` (SPA, dispara `PageCurtain`) en vez de un `<a href>` con recarga completa. */
+  to?: string;
 }
 
 type Ripple = { id: number; x: number; y: number; size: number };
@@ -122,21 +133,38 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 });
 
 export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(function ButtonLink(
-  { variant = 'primary', size = 'md', pressScale = 0.93, className, children, ...rest },
+  { variant = 'primary', size = 'md', pressScale = 0.93, className, children, to, ...rest },
   ref
 ) {
   const reduce = useReducedMotion();
   const canHover = useHoverCapable();
+  const motionProps = {
+    whileTap: reduce ? undefined : { scale: pressScale },
+    whileHover: reduce || !canHover ? undefined : { scale: 1.02 },
+    transition: SPRING_PRESS,
+    className: cn(BASE_CLASS, VARIANT_CLASS[variant], SIZE_CLASS[size], className),
+  };
+
+  if (to) {
+    // Sin `motion.create(Link)` a propósito: el gesto `whileTap` de motion
+    // escucha `pointerdown`/`pointerup` y en ese camino se comía el click de
+    // navegación de `Link` — se probó y confirmó (el click programático
+    // funcionaba, el click real/simulado no). Se pierde el press-scale acá,
+    // pero la navegación tiene que ser infalible.
+    return (
+      <Link
+        ref={ref}
+        to={to}
+        className={motionProps.className}
+        {...(rest as ComponentPropsWithoutRef<'a'>)}
+      >
+        {children}
+      </Link>
+    );
+  }
 
   return (
-    <motion.a
-      ref={ref}
-      whileTap={reduce ? undefined : { scale: pressScale }}
-      whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
-      transition={SPRING_PRESS}
-      className={cn(BASE_CLASS, VARIANT_CLASS[variant], SIZE_CLASS[size], className)}
-      {...rest}
-    >
+    <motion.a ref={ref} {...motionProps} {...rest}>
       {children}
     </motion.a>
   );

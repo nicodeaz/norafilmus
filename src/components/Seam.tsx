@@ -27,6 +27,14 @@ interface SeamProps {
  * Anima solo `transform` y `opacity` (§7.2 del contrato de movimiento), y con
  * `prefers-reduced-motion` la regla aparece entera sin dibujarse.
  *
+ * **Sin uso desde Fase 1 (arquitectura de rutas, 2026-08-28):** Crear/
+ * Enseñar/Producir/Trayectoria/Presente pasaron a ser páginas propias
+ * (`src/pages/*Page.tsx`) en vez de secciones consecutivas en el scroll de
+ * `Home` — el problema que este componente resolvía (negro muerto entre dos
+ * secciones que vivían una atrás de la otra) no existe en esos bordes. No se
+ * borró: puede volver como dispositivo dentro de una página en una fase
+ * posterior, pero no asumas que sigue montado en ningún lado.
+ *
  * **Por qué el `whileInView` va en el contenedor y no en la regla:** una regla
  * que arranca en `scaleX(0)` tiene ancho renderizado cero, y un elemento sin
  * área **nunca dispara `IntersectionObserver`** — así que nunca entra "en

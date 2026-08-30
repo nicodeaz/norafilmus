@@ -44,6 +44,13 @@ interface ActProps {
   numeralDiscreto?: boolean;
   /** Alterna de qué lado bleedea el numeral/foto — da variedad entre actos consecutivos. */
   align?: 'left' | 'right';
+  /**
+   * Ícono junto al eyebrow — Fase 3 (2026-08-28): un marcador chico y legible
+   * por Acto (Crear/Enseñar/Producir), más barato y confiable que diferenciar
+   * por color o textura de fondo. Ver docblock de cada `*.tsx` de Acto para
+   * el ícono elegido.
+   */
+  icon?: ReactNode;
 }
 
 /**
@@ -77,6 +84,7 @@ export default function Act({
   childrenFullWidth = false,
   numeralDiscreto = false,
   align = 'left',
+  icon,
 }: ActProps) {
   const mirrored = align === 'right';
 
@@ -185,6 +193,11 @@ export default function Act({
           <div className={cn('md:col-span-7 md:pt-10', mirrored ? 'md:order-1' : 'md:order-2')}>
             <Reveal as="div" delay={0.1} className="flex items-center gap-3">
               <span className="h-px w-8 bg-brand-red" aria-hidden />
+              {icon && (
+                <span className="text-brand-red" aria-hidden>
+                  {icon}
+                </span>
+              )}
               <span className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">
                 {eyebrow}
               </span>

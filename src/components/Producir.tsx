@@ -1,3 +1,4 @@
+import { ClipboardList } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Act from './Act';
 import CreditList from './CreditList';
@@ -23,6 +24,12 @@ import CreditList from './CreditList';
  * Hero — ese afiche sigue vivo, pero adentro del acordeón de "Los golpes de
  * Clara", no repetido acá arriba. `align="right"` para que el Acto III no
  * sea un espejo idéntico del Acto I.
+ *
+ * Fase 3 (2026-08-28) — diferenciación visual real: ícono `ClipboardList`
+ * junto al eyebrow (planilla de producción, no máscaras de teatro) y las
+ * tres `CreditList` en variante `dossier` (índice `[01]` en monoespacio en
+ * vez del romano en itálica de Crear) — lee como expediente/planilla, no
+ * como programa de sala.
  */
 export default function Producir() {
   const { t } = useLanguage();
@@ -33,6 +40,7 @@ export default function Producir() {
       id="producir"
       numeral="III"
       align="right"
+      icon={<ClipboardList className="h-4 w-4" />}
       eyebrow={producir.eyebrow}
       titleLead={producir.titleLead}
       titleAccent={producir.titleAccent}
@@ -50,9 +58,9 @@ export default function Producir() {
           se leían como la misma página espejada (auditoría H9), y encima las
           tres listas quedaban apretadas dentro de la columna de texto. */}
       <div className="grid gap-10 md:grid-cols-3 md:gap-12">
-        <CreditList title={producir.stageTitle} items={producir.stageCredits} />
-        <CreditList title={producir.screenTitle} items={producir.screenCredits} />
-        <CreditList title={producir.irelandTitle} items={producir.irelandCredits} />
+        <CreditList title={producir.stageTitle} items={producir.stageCredits} variant="dossier" />
+        <CreditList title={producir.screenTitle} items={producir.screenCredits} variant="dossier" />
+        <CreditList title={producir.irelandTitle} items={producir.irelandCredits} variant="dossier" />
       </div>
     </Act>
   );

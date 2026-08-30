@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Picture from './Picture';
 import Reveal from './Reveal';
@@ -21,10 +24,41 @@ import Reveal from './Reveal';
  * 3×2. Mismo criterio de asimetría que ya usan `Act` (numeral que sangra) y
  * `Trayectoria` (espina de ancho completo) — evita la cuarta sección
  * centrada y simétrica seguida.
+ *
+ * Fase 5 (2026-08-28) — lightbox al clickear una foto: en la grilla se ven
+ * recortadas a `aspect-[3/4] object-cover`, sin forma de verlas enteras. Es
+ * la pieza que las tres IAs pidieron para que Presente se sienta menos
+ * "galería" y más "mirá esto de cerca" — con navegación ←/→ entre las seis,
+ * no solo abrir/cerrar una por una.
  */
 export default function Presente() {
   const { t } = useLanguage();
   const { presente } = t;
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const reduced = useReducedMotion();
+  const isOpen = openIndex !== null;
+  const current = isOpen ? presente.items[openIndex] : null;
+
+  const close = () => setOpenIndex(null);
+  const step = (delta: number) =>
+    setOpenIndex((i) => (i === null ? i : (i + delta + presente.items.length) % presente.items.length));
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   return (
     <section id="presente" className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
@@ -61,15 +95,34 @@ export default function Presente() {
               delay={0.05 * i}
               className={i % 3 === 1 ? 'sm:-mt-10' : i % 3 === 2 ? 'sm:mt-10' : undefined}
             >
-              <Picture
-                src={item.src}
-                alt={item.alt}
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 640px) 30vw, 45vw"
-                pictureClassName="block"
-                className="aspect-[3/4] w-full rounded-lg object-cover"
-              />
+              {/* `group` para el overlay de abajo — mismo dispositivo que
+                  pedían las tres IAs consultadas ("hover: VIEW") pero sin
+                  cursor custom: un overlay fijo es más robusto (funciona
+                  igual en touch/focus-visible, sin trackear mouse). */}
+              <button
+                type="button"
+                onClick={() => setOpenIndex(i)}
+                className="group relative block w-full overflow-hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+              >
+                <Picture
+                  src={item.src}
+                  alt={item.alt}
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 640px) 30vw, 45vw"
+                  pictureClassName="block"
+                  className="aspect-[3/4] w-full object-cover transition-transform duration-500 group-hover:scale-105 group-focus-visible:scale-105"
+                />
+                <span
+                  aria-hidden
+                  className="absolute inset-0 flex items-center justify-center bg-ink/50 opacity-0 backdrop-blur-[1px] transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+                >
+                  <span className="flex items-center gap-2 rounded-full border border-cream/30 bg-ink/60 px-4 py-2 font-label text-[10px] uppercase tracking-[0.2em] text-cream">
+                    <Eye className="h-3.5 w-3.5" />
+                    {presente.view}
+                  </span>
+                </span>
+              </button>
               <figcaption className="mt-2 font-label text-[10px] uppercase tracking-[0.15em] text-cream/40">
                 {item.label}
               </figcaption>
@@ -77,6 +130,78 @@ export default function Presente() {
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {isOpen && current && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={current.label}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0.15 : 0.25 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-ink/95 p-6 backdrop-blur-sm"
+            onClick={close}
+          >
+            <button
+              type="button"
+              onClick={close}
+              aria-label={presente.close}
+              className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red sm:right-8 sm:top-8"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            {presente.items.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    step(-1);
+                  }}
+                  aria-label={presente.previous}
+                  className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red sm:left-6"
+                >
+                  <ChevronLeft className="h-7 w-7" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    step(1);
+                  }}
+                  aria-label={presente.next}
+                  className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red sm:right-6"
+                >
+                  <ChevronRight className="h-7 w-7" />
+                </button>
+              </>
+            )}
+
+            <motion.figure
+              key={current.src}
+              initial={reduced ? undefined : { opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduced ? 0.15 : 0.3 }}
+              onClick={(e) => e.stopPropagation()}
+              className="flex max-h-full max-w-full flex-col items-center"
+            >
+              <Picture
+                src={current.src}
+                alt={current.alt}
+                sizes="90vw"
+                pictureClassName="block max-h-[80vh]"
+                className="max-h-[80vh] w-auto max-w-[90vw] rounded object-contain"
+              />
+              <figcaption className="mt-4 font-label text-xs uppercase tracking-[0.2em] text-cream/50">
+                {current.label}
+              </figcaption>
+            </motion.figure>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

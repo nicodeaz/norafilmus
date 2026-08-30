@@ -1,3 +1,4 @@
+import { Drama } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Act from './Act';
 import CreditList from './CreditList';
@@ -16,6 +17,11 @@ import CreditList from './CreditList';
  * usa el mosaico del Hero para este pilar (`rapina.jpg`) y del que ya vive
  * adentro del acordeón de Rapiña (`rapina-tarantulas.jpg`, "Tarántulas").
  * Tres fotos reales de la misma obra, ninguna repetida.
+ *
+ * Ícono `Drama` junto al eyebrow (Fase 3, 2026-08-28) — las máscaras de
+ * teatro son el marcador más directo para "Actuación". Los créditos se
+ * quedan en la variante `cast` (default) de `CreditList`: es el Acto que
+ * define ese tratamiento, los otros dos se diferencian de este.
  */
 export default function Crear() {
   const { t } = useLanguage();
@@ -26,6 +32,7 @@ export default function Crear() {
       id="crear"
       numeral="I"
       align="left"
+      icon={<Drama className="h-4 w-4" />}
       eyebrow={crear.eyebrow}
       titleLead={crear.titleLead}
       titleAccent={crear.titleAccent}

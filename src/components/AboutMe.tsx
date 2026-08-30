@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { Mail } from 'lucide-react';
+import { Mail, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -93,17 +93,29 @@ export default function AboutMe() {
           <p>{about.body2}</p>
         </Reveal>
 
-        <motion.a
+        <motion.div
           initial={{ opacity: 0, y: reduced ? 0 : 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: reduced ? 0 : 0.3, duration: reduced ? 0.2 : undefined }}
-          href={LINKS.email}
-          className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:bg-brand-red-deep"
+          className="mt-8 flex flex-wrap items-center justify-center gap-4"
         >
-          <Mail className="h-4 w-4" />
-          {about.cta}
-        </motion.a>
+          <a
+            href={LINKS.email}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:bg-brand-red-deep"
+          >
+            <Mail className="h-4 w-4" />
+            {about.cta}
+          </a>
+          <a
+            href={LINKS.cv}
+            download
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-cream/20 px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream/80 transition-colors duration-300 hover:border-cream/40 hover:text-cream"
+          >
+            <Download className="h-4 w-4" />
+            {about.cvLabel}
+          </a>
+        </motion.div>
       </div>
 
       {/* Archivo */}

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import Picture from './Picture';
 
 /**
  * Chrome global del sitio — SUPERPROMPT.md §6 (F1). El Hero ya trae su propio
@@ -17,6 +19,14 @@ import LanguageToggle from './LanguageToggle';
  * `href` de `content.ts` pillars[] (no `null`) en vez de una lista manual
  * acá, así no hay que recordar tocar dos archivos cuando F3/F4 agreguen
  * Enseñar/Producir.
+ *
+ * Fase 1 (arquitectura de rutas, 2026-08-28): el "aparece recién pasado el
+ * Hero" es un comportamiento que solo tiene sentido en `/` — ahí el Hero ya
+ * trae su propio wordmark+toggle adentro del viewport, así que el Header
+ * duplicaría eso si apareciera desde scroll 0. En cualquier otra ruta
+ * (`/crear`, `/trayectoria`, etc.) no hay Hero debajo: el Header tiene que
+ * estar visible desde arriba o esas páginas cargan sin nav. `isHome` decide
+ * cuál de los dos comportamientos aplica.
  */
 /** Mismo criterio que el nav del `Footer`: caja de impacto de 44px sin tocar el tamaño del texto (E1/H5). */
 const NAV_LINK =
@@ -24,10 +34,16 @@ const NAV_LINK =
 
 export default function Header() {
   const { t } = useLanguage();
-  const [visible, setVisible] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+  const [visible, setVisible] = useState(!isHome);
   const linkedPillars = t.pillars.filter((p) => p.href);
 
   useEffect(() => {
+    if (!isHome) {
+      setVisible(true);
+      return;
+    }
     const threshold = () => window.innerHeight * 0.9;
     const onScroll = () => setVisible(window.scrollY > threshold());
     onScroll();
@@ -37,9 +53,7 @@ export default function Header() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, []);
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isHome]);
 
   return (
     <motion.header
@@ -59,31 +73,36 @@ export default function Header() {
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 sm:px-10 md:px-12">
-        <button
-          type="button"
-          onClick={scrollToTop}
-          className="flex min-h-11 items-center gap-2"
-          aria-label={t.nav.home}
-        >
-          <span className="font-signature text-2xl leading-none text-brand-red">Nora</span>
-          <span className="font-display text-base uppercase leading-none text-cream">Filmus</span>
-        </button>
+        <Link to="/" className="flex min-h-11 items-center" aria-label={t.nav.home}>
+          <Picture
+            src="/img/nora-firma-roja.png"
+            alt="Nora Filmus"
+            className="h-9 w-auto"
+            sizes="120px"
+          />
+        </Link>
 
         <nav className="flex items-center gap-6">
-          <a href="#sobre-mi" className={NAV_LINK}>
+          <Link to="/#sobre-mi" className={NAV_LINK}>
             {t.nav.about}
-          </a>
+          </Link>
           {linkedPillars.map((p) => (
-            <a key={p.key} href={p.href!} className={cn(NAV_LINK, 'hidden sm:inline-flex')}>
+            <Link key={p.key} to={p.href!} className={cn(NAV_LINK, 'hidden sm:inline-flex')}>
               {p.label}
-            </a>
+            </Link>
           ))}
-          <a href="#trayectoria" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+          <Link to="/trayectoria" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.trayectoria}
-          </a>
-          <a href="#presente" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+          </Link>
+          <Link to="/presente" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.presente}
-          </a>
+          </Link>
+          <Link to="/archivo" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+            {t.nav.archivo}
+          </Link>
+          <Link to="/contacto" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+            {t.nav.contacto}
+          </Link>
           <LanguageToggle />
         </nav>
       </div>

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { motion, useReducedMotion, useScroll } from 'motion/react';
 import type { Decade, TimelineCategory } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -22,12 +23,38 @@ const DECADES: Decade[] = ['1990s', '2000s', '2010s', '2020s'];
  * Los filtros de categoría dejaron de ser pills redondeadas (ese patrón se
  * repetía demasiado en el sitio) y pasaron a ser texto subrayado, más cerca
  * de una tabla de contenidos que de un control de formulario.
+ *
+ * Fase 4 (2026-08-28) — la pieza "frame por frame" que las tres IAs
+ * consultadas en la auditoría de Fase 1 señalaron como la mayor oportunidad
+ * del sitio. Sin canvas image-sequence (no hay 20-60 fotos de una misma
+ * escena para animar cuadro a cuadro — inventar esa secuencia habría violado
+ * la regla 1 de `content.ts`, "todo dato es verificable"): en cambio, la
+ * espina y el encabezado de década responden de verdad al scroll con datos
+ * reales, con la misma técnica ya validada en `ScrollProgress.tsx`
+ * (`useScroll` → `MotionValue`, animado en el compositor, sin re-render de
+ * React por tick de scroll).
+ *
+ * 1. **La espina se llena.** Una segunda línea roja, con `scaleY` atado a
+ *    `scrollYProgress` del contenedor de décadas, se dibuja encima de la
+ *    línea de fondo a medida que se scrollea la sección — el "avance
+ *    mecánico por el tiempo" que pedían las tres auditorías, sin inventar
+ *    material fotográfico.
+ * 2. **El encabezado de década que está abierto queda `sticky`.** Como
+ *    `openDecade` es de a una (accordion, no multi-expand), esto alcanza
+ *    para dar el efecto "el año cambia mientras scrolleás" sin un segundo
+ *    mecanismo de tracking: la década pinneada en pantalla ES la actual.
  */
 export default function Trayectoria() {
   const { t } = useLanguage();
   const { trayectoria } = t;
   const [filter, setFilter] = useState<FilterKey>('todos');
   const [openDecade, setOpenDecade] = useState<Decade | null>(null);
+  const spineRef = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const { scrollYProgress: spineProgress } = useScroll({
+    target: spineRef,
+    offset: ['start 0.75', 'end 0.25'],
+  });
 
   const filters: { key: FilterKey; label: string }[] = [
     { key: 'todos', label: trayectoria.filterAll },
@@ -46,7 +73,14 @@ export default function Trayectoria() {
   }, [trayectoria.items, filter]);
 
   return (
-    <section id="trayectoria" className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
+    // Sin `overflow-hidden` a propósito (Fase 4): a diferencia de `Act.tsx`
+    // (que lo usa para recortar el óvalo de luz que sangra fuera de la
+    // sección), acá nada bleedea — y `overflow` != `visible` en cualquier
+    // ancestro rompe `position: sticky` de sus descendientes en Chrome (se
+    // confirmó con getComputedStyle: el botón medía `position: sticky` pero
+    // su rect seguía scrolleando normal, sin pinnearse). Con esto puesto el
+    // encabezado de década no se quedaba nunca arriba.
+    <section id="trayectoria" className="relative w-full bg-ink py-16 md:py-24">
       {/* max-w-7xl y no 5xl: alinea la espina con la grilla de los Actos y del
           Hero — con 5xl la sección quedaba angosta y descentrada respecto al
           resto del sitio. */}
@@ -92,11 +126,26 @@ export default function Trayectoria() {
           ))}
         </Reveal>
 
-        {/* La espina: una línea vertical continua que atraviesa las décadas */}
-        <Reveal as="div" delay={0.25} className="relative mt-16 pl-8 md:pl-14">
-          <div className="absolute inset-y-0 left-0 w-px bg-cream/15 md:left-1" aria-hidden />
+        {/* La espina: una línea vertical continua que atraviesa las décadas.
+            Sin `Reveal` acá a propósito (Fase 4): `Reveal` es un `motion.div`
+            que deja un `transform` inline puesto incluso en reposo, y
+            `transform` en cualquier ancestro rompe `position: sticky` de sus
+            descendientes (el encabezado de década dejaba de pinnearse — se
+            probó con `Reveal` puesto y el sticky no hacía nada). El resto de
+            la sección (eyebrow/título/filtros arriba) sigue con `Reveal`, acá
+            no hay más entradas individuales que animar de todos modos. */}
+        <div className="relative mt-16 pl-8 md:pl-14">
+          <div ref={spineRef} className="relative">
+            <div className="absolute inset-y-0 left-0 w-px bg-cream/15 md:left-1" aria-hidden />
+            {!reduced && (
+              <motion.div
+                aria-hidden
+                style={{ scaleY: spineProgress }}
+                className="absolute inset-y-0 left-0 w-px origin-top bg-brand-red md:left-1"
+              />
+            )}
 
-          {groups.map(({ decade, items }, gi) => {
+            {groups.map(({ decade, items }, gi) => {
             const isOpen = openDecade === decade;
             return (
               <div key={decade} className={cn('relative', gi !== 0 && 'mt-14')}>
@@ -108,12 +157,18 @@ export default function Trayectoria() {
                     empujados al borde derecho por una hairline: antes el botón
                     medía solo lo que medía el texto y dejaba el 65 % derecho de
                     la sección en negro — el peor tramo muerto del sitio una vez
-                    resueltos los actos. Mismo dispositivo que usan las costuras. */}
+                    resueltos los actos. Mismo dispositivo que usan las costuras.
+
+                    `sticky top-16 bg-ink` (Fase 4): mientras se scrollea una
+                    década abierta (2010s/2020s tienen 16 ítems cada una), su
+                    encabezado queda pinneado bajo el Header en vez de
+                    desaparecer arriba del viewport — es la "década actual"
+                    sin un segundo mecanismo de tracking por scroll. */}
                 <button
                   type="button"
                   onClick={() => setOpenDecade(isOpen ? null : decade)}
                   aria-expanded={isOpen}
-                  className="flex min-h-11 w-full items-baseline gap-4 text-left"
+                  className="sticky top-16 z-10 flex min-h-11 w-full items-baseline gap-4 bg-ink text-left"
                 >
                   <span className="font-display text-4xl uppercase leading-none text-cream sm:text-5xl">
                     {decade}
@@ -159,8 +214,9 @@ export default function Trayectoria() {
                 </div>
               </div>
             );
-          })}
-        </Reveal>
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -1,58 +1,56 @@
-import { useCallback, useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import AboutMe from './components/AboutMe';
-import Crear from './components/Crear';
-import Ensenar from './components/Ensenar';
-import Footer from './components/Footer';
-import Producir from './components/Producir';
-import Presente from './components/Presente';
-import Trayectoria from './components/Trayectoria';
-import Header from './components/Header';
+import ProgramIndex from './components/ProgramIndex';
 import NotFound from './components/NotFound';
-import Preloader from './components/Preloader';
-import Grain from './components/Grain';
-import ScrollProgress from './components/ScrollProgress';
-import Seam from './components/Seam';
+import SiteLayout from './components/SiteLayout';
+import CrearPage from './pages/CrearPage';
+import EnsenarPage from './pages/EnsenarPage';
+import ProducirPage from './pages/ProducirPage';
+import TrayectoriaPage from './pages/TrayectoriaPage';
+import PresentePage from './pages/PresentePage';
+import ArchivoPage from './pages/ArchivoPage';
+import ContactoPage from './pages/ContactoPage';
 import { useLanguage } from './i18n/LanguageContext';
 
 /**
- * Header/ScrollProgress son overlays fixed y Footer cierra la página — los
- * tres viven solo acá, no en `NotFound`: el 404 es una pantalla aislada a
- * propósito (ver su propio docblock), sin chrome de sitio.
+ * Home — Fase 1 (arquitectura de rutas, 2026-08-28). Antes concatenaba el
+ * sitio entero (Hero → About → Crear → Enseñar → Producir → Trayectoria →
+ * Presente → Footer): el usuario pidió que la home sirva para NAVEGAR hacia
+ * el resto del contenido, no para contenerlo todo. Cada Acto/pieza de
+ * archivo pasó a su propia ruta (`src/pages/*Page.tsx`) — Home queda en
+ * Hero (portada) + AboutMe ("quién es"), que es lo que corresponde a un
+ * hub de navegación, no un resumen comprimido del sitio entero.
  *
- * La obertura (`Preloader`) también vive acá y no en `App`: antes envolvía a
- * todas las rutas y **le cobraba su tiempo también al 404** — una pantalla de
- * error detrás de un telón (auditoría, hallazgo H14).
+ * `Preloader`/`Grain`/`ScrollProgress`/`Header`/`Footer` se movieron a
+ * `SiteLayout` (chrome compartido por todas las rutas menos `NotFound`).
+ *
+ * `ProgramIndex` (Fase 2, 2026-08-28) cierra Home: la lista de las 5 páginas
+ * a igual peso, el "índice de programa" que las tres IAs consultadas
+ * señalaron como el hueco real de dejar la home en solo Hero+About — antes
+ * Trayectoria/Presente solo existían como texto chico en Header/Footer.
  */
 function Home() {
-  const [loading, setLoading] = useState(true);
-  const handleLoaded = useCallback(() => setLoading(false), []);
-  const { t } = useLanguage();
+  const location = useLocation();
+
+  // Si se llega acá con un hash pendiente (ej. "Sobre mí" clickeado desde
+  // `/producir`, que navega a `/#sobre-mi`), bajar hasta esa sección en vez
+  // de quedarse arriba — `SiteLayout` no hace `scrollTo(0,0)` en este caso
+  // a propósito, ver su propio docblock.
+  useEffect(() => {
+    if (!location.hash) return;
+    const target = document.querySelector(location.hash);
+    if (!target) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  }, [location.hash]);
 
   return (
     <>
-      {loading && <Preloader onComplete={handleLoaded} />}
-      <Grain />
-      <ScrollProgress />
-      <Header />
       <Hero />
       <AboutMe />
-      {/* Las costuras anuncian lo que viene y ocupan los bordes que la
-          auditoría midió como los únicos tramos ≥300px sin tinta del sitio
-          (E3 / H7). El rótulo reusa el `eyebrow` de cada sección — no hay
-          copy nueva que traducir. */}
-      <Seam numeral="I" label={t.crear.eyebrow} />
-      <Crear />
-      <Seam numeral="II" label={t.ensenar.eyebrow} />
-      <Ensenar />
-      <Seam numeral="III" label={t.producir.eyebrow} />
-      <Producir />
-      <Seam label={t.trayectoria.eyebrow} />
-      <Trayectoria />
-      <Seam label={t.presente.eyebrow} />
-      <Presente />
-      <Footer />
+      <ProgramIndex />
     </>
   );
 }
@@ -77,7 +75,18 @@ function App() {
 
       <main id="main" tabIndex={-1} className="outline-none">
         <Routes>
-          <Route path="/" element={<Home />} />
+          {/* `NotFound` se queda fuera del layout a propósito — pantalla
+              aislada, sin Header/Footer/obertura (docblock de NotFound.tsx). */}
+          <Route element={<SiteLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/crear" element={<CrearPage />} />
+            <Route path="/ensenar" element={<EnsenarPage />} />
+            <Route path="/producir" element={<ProducirPage />} />
+            <Route path="/trayectoria" element={<TrayectoriaPage />} />
+            <Route path="/presente" element={<PresentePage />} />
+            <Route path="/archivo" element={<ArchivoPage />} />
+            <Route path="/contacto" element={<ContactoPage />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

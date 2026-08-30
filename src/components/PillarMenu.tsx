@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { EASE_REVEAL } from '@/lib/ease';
 import { cn } from '@/lib/utils';
 import type { Pillar } from '@/src/i18n/content';
@@ -77,41 +78,54 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
       <ul className={cn('flex', inline ? 'flex-row flex-wrap items-baseline gap-x-6 gap-y-1 md:gap-x-10' : 'flex-col gap-1 md:gap-2')}>
         {items.map(({ key, label, href }, index) => {
           const isActive = index === active;
-          // Sin sección a la que ir, el ítem no es un link (ver docblock).
-          const Tag = href ? 'a' : 'span';
+          const itemClassName = 'flex min-h-11 cursor-pointer items-baseline gap-3 outline-none md:gap-4';
+          const content = (
+            <>
+              <span
+                className={cn(
+                  'font-label text-[11px] font-bold tracking-[0.2em] transition-colors duration-300',
+                  isActive ? 'text-brand-red' : 'text-cream/25'
+                )}
+              >
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span
+                className={cn(
+                  'font-display uppercase leading-[0.95] transition-colors duration-300',
+                  inline ? 'text-xl sm:text-2xl md:text-3xl' : 'text-4xl sm:text-5xl',
+                  isActive ? 'text-cream' : 'text-cream/25'
+                )}
+              >
+                {label}
+              </span>
+            </>
+          );
+          const handlers = {
+            onMouseEnter: () => setActive(index),
+            onFocus: () => setActive(index),
+            // En touch no hay hover: sin esto el mosaico se quedaría
+            // siempre en la primera foto.
+            onTouchStart: () => setActive(index),
+            'aria-current': isActive ? ('true' as const) : undefined,
+          };
           return (
             <li key={key}>
-              <Tag
-                // Sin `href` sigue siendo focusable para que con teclado se
+              {href ? (
+                // Ruta interna (Fase 1: los pilares ahora apuntan a `/crear`,
+                // `/ensenar`, `/producir` en vez de anchors) — `Link` navega
+                // sin recargar y dispara la transición de `PageCurtain`.
+                <Link to={href} {...handlers} className={itemClassName}>
+                  {content}
+                </Link>
+              ) : (
+                // Sin sección a la que ir, el ítem no es un link (ver
+                // docblock) — sigue siendo focusable para que con teclado se
                 // puedan recorrer los pilares y leer sus pies, pero no se le
                 // pone `role="button"`: no dispara ninguna acción.
-                {...(href ? { href } : { tabIndex: 0 })}
-                onMouseEnter={() => setActive(index)}
-                onFocus={() => setActive(index)}
-                // En touch no hay hover: sin esto el mosaico se quedaría
-                // siempre en la primera foto.
-                onTouchStart={() => setActive(index)}
-                aria-current={isActive ? 'true' : undefined}
-                className="flex min-h-11 cursor-pointer items-baseline gap-3 outline-none md:gap-4"
-              >
-                <span
-                  className={cn(
-                    'font-label text-[11px] font-bold tracking-[0.2em] transition-colors duration-300',
-                    isActive ? 'text-brand-red' : 'text-cream/25'
-                  )}
-                >
-                  {String(index + 1).padStart(2, '0')}
+                <span tabIndex={0} {...handlers} className={itemClassName}>
+                  {content}
                 </span>
-                <span
-                  className={cn(
-                    'font-display uppercase leading-[0.95] transition-colors duration-300',
-                    inline ? 'text-xl sm:text-2xl md:text-3xl' : 'text-4xl sm:text-5xl',
-                    isActive ? 'text-cream' : 'text-cream/25'
-                  )}
-                >
-                  {label}
-                </span>
-              </Tag>
+              )}
             </li>
           );
         })}
