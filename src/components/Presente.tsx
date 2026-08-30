@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -11,13 +11,14 @@ import Reveal from './Reveal';
  * en texto) y antes del Footer. Como Trayectoria, no es uno de los tres
  * Actos: sin numeral, sin foto ancla única — acá la foto ES el contenido.
  *
- * Las seis fotos son de la sesión de estudio de Nora (2026-03-08, fotógrafa
- * Paula — la misma del retrato del Hero, ver `hero.portraitCredit`), dos de
- * cada registro: book de estudio, clown, editorial. El crédito va una sola
- * vez para toda la sección (`presente.credit`) en vez de repetirse por
- * ítem, porque las seis comparten fotógrafa y fecha — a diferencia del
- * archivo de `AboutMe`, donde cada pieza es de una obra y un fotógrafo
- * distintos.
+ * Las fotos son de la sesión de estudio de Nora (2026-03-08, fotógrafa
+ * Paula — la misma del retrato del Hero, ver `hero.portraitCredit`), cuatro
+ * de cada registro: book de estudio, clown, editorial (ampliado de dos a
+ * cuatro por registro el 2026-08-30, a pedido del usuario de mostrar más
+ * material de la misma sesión). El crédito va una sola vez para toda la
+ * sección (`presente.credit`) en vez de repetirse por ítem, porque todas
+ * comparten fotógrafa y fecha — a diferencia del archivo de `AboutMe`,
+ * donde cada pieza es de una obra y un fotógrafo distintos.
  *
  * La grilla usa un offset vertical por columna (`i % 3`) en vez de filas
  * parejas: da una pared de fotos tipo contact sheet, no un grid genérico de
@@ -38,17 +39,38 @@ export default function Presente() {
   const reduced = useReducedMotion();
   const isOpen = openIndex !== null;
   const current = isOpen ? presente.items[openIndex] : null;
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const close = () => setOpenIndex(null);
   const step = (delta: number) =>
     setOpenIndex((i) => (i === null ? i : (i + delta + presente.items.length) % presente.items.length));
 
+  // F9 (pulido, teclado/lector de pantalla): sin esto, un usuario de teclado
+  // que abre el lightbox con Enter/Espacio seguía tabulando por la grilla de
+  // atrás (tapada por el overlay pero no `inert`) en vez de moverse entre
+  // cerrar/anterior/siguiente. Mueve el foco adentro al abrir y atrapa el Tab
+  // mientras está abierto — al cerrar, el foco vuelve solo al botón que lo
+  // abrió porque nunca se le sacó el foco del DOM.
   useEffect(() => {
     if (!isOpen) return;
+    dialogRef.current?.querySelector<HTMLElement>('button')?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') close();
       if (e.key === 'ArrowRight') step(1);
       if (e.key === 'ArrowLeft') step(-1);
+      if (e.key === 'Tab') {
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button');
+        if (!focusable || focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     const previousOverflow = document.body.style.overflow;
@@ -58,7 +80,7 @@ export default function Presente() {
       document.body.style.overflow = previousOverflow;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, openIndex]);
 
   return (
     <section id="presente" className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
@@ -82,7 +104,7 @@ export default function Presente() {
           <Reveal as="p" delay={0.15} className="max-w-[60ch] text-body font-body leading-relaxed text-cream/80">
             {presente.body}
           </Reveal>
-          <Reveal as="p" delay={0.2} className="shrink-0 font-label text-xs uppercase tracking-[0.15em] text-cream/40">
+          <Reveal as="p" delay={0.2} className="shrink-0 font-label text-xs uppercase tracking-[0.15em] text-cream/50">
             {presente.credit}
           </Reveal>
         </div>
@@ -123,7 +145,7 @@ export default function Presente() {
                   </span>
                 </span>
               </button>
-              <figcaption className="mt-2 font-label text-[10px] uppercase tracking-[0.15em] text-cream/40">
+              <figcaption className="mt-2 font-label text-[10px] uppercase tracking-[0.15em] text-cream/50">
                 {item.label}
               </figcaption>
             </Reveal>
@@ -134,6 +156,7 @@ export default function Presente() {
       <AnimatePresence>
         {isOpen && current && (
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label={current.label}

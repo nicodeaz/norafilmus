@@ -87,7 +87,7 @@ export default function Hero({ className }: HeroProps) {
         {/* Crédito del retrato — regla 3 de content.ts. Pegado al borde de la
             figura, en vertical, para no competir con el nombre que pasa por
             detrás ni con la banda de pie. */}
-        <span className="pointer-events-none absolute bottom-2 right-1 font-label text-[9px] uppercase tracking-[0.15em] text-cream/25 [writing-mode:vertical-rl]">
+        <span className="pointer-events-none absolute bottom-2 right-1 font-label text-[9px] uppercase tracking-[0.15em] text-cream/50 [writing-mode:vertical-rl]">
           Foto: {t.hero.portraitCredit}
         </span>
       </motion.div>
@@ -105,7 +105,7 @@ export default function Hero({ className }: HeroProps) {
 
       {/* ── Barra superior ──────────────────────────────────────────────── */}
       <div className="relative z-30 flex w-full items-center justify-between px-6 pt-6 sm:px-10 md:px-12">
-        <span className="font-label text-[11px] uppercase tracking-[0.25em] text-cream/40">
+        <span className="font-label text-[11px] uppercase tracking-[0.25em] text-cream/50">
           {t.hero.location}
         </span>
         <LanguageToggle />
@@ -171,7 +171,7 @@ export default function Hero({ className }: HeroProps) {
           {t.hero.credentials.map((c) => (
             <li
               key={c}
-              className="font-label text-[10px] uppercase tracking-[0.18em] text-cream/40"
+              className="font-label text-[10px] uppercase tracking-[0.18em] text-cream/50"
             >
               {c}
             </li>

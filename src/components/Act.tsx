@@ -168,9 +168,9 @@ export default function Act({
                     mirrored && 'rotate-2'
                   )}
                 />
-                <figcaption className="mt-3 font-label text-[11px] leading-snug text-cream/40">
+                <figcaption className="mt-3 font-label text-[11px] leading-snug text-cream/50">
                   <span className="block text-cream/60">{image.caption}</span>
-                  <span className="block text-cream/25">Foto: {image.credit}</span>
+                  <span className="block text-cream/50">Foto: {image.credit}</span>
                 </figcaption>
               </Reveal>
             ) : aside ? (

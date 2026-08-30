@@ -215,10 +215,10 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
 
         {/* Qué es el pilar + crédito de la fotógrafa (nunca se usa una foto
             ajena sin acreditarla — varias traen marca de agua). */}
-        <p className="font-label text-[10px] leading-snug text-cream/45">
+        <p className="font-label text-[10px] leading-snug text-cream/50">
           {current.caption}
           {current.credit ? (
-            <span className="mt-0.5 block text-cream/25">Foto: {current.credit}</span>
+            <span className="mt-0.5 block text-cream/50">Foto: {current.credit}</span>
           ) : null}
         </p>
       </div>

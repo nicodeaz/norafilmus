@@ -110,7 +110,7 @@ export default function Archivo() {
                     {item.work} · {item.years}
                   </span>
                   <span className="block text-brand-red">{item.role}</span>
-                  <span className="block text-cream/25">Foto: {item.credit}</span>
+                  <span className="block text-cream/50">Foto: {item.credit}</span>
                 </figcaption>
               </Reveal>
             ))}

@@ -68,7 +68,7 @@ export default function Contacto() {
             <Linkedin className="h-4 w-4" />
             {t.social.linkedin}
           </a>
-          <span className="font-label text-xs uppercase tracking-[0.15em] text-cream/40">
+          <span className="font-label text-xs uppercase tracking-[0.15em] text-cream/50">
             {t.hero.location}
           </span>
         </Reveal>

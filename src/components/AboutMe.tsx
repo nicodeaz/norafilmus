@@ -123,7 +123,9 @@ export default function AboutMe() {
         <h3 className="font-label text-[11px] uppercase tracking-[0.2em] text-cream/50">
           {about.galleryTitle}
         </h3>
-        <p className="mt-2 font-label text-xs text-cream/40">{about.galleryNote}</p>
+        {/* `/50` es el piso de contraste del sitio (CLAUDE.md) — a `/40` medía
+            3.47:1 contra el 4.5:1 mínimo (Lighthouse, auditoría F9). */}
+        <p className="mt-2 font-label text-xs text-cream/50">{about.galleryNote}</p>
       </div>
 
       {/* Con `prefers-reduced-motion` el marquee no corre y la fila pasa a ser
@@ -158,7 +160,7 @@ export default function AboutMe() {
                 <span className="block text-cream/70">{item.work}</span>
                 <span className="block text-brand-red">{item.role}</span>
                 {item.credit ? (
-                  <span className="block text-cream/25">Foto: {item.credit}</span>
+                  <span className="block text-cream/50">Foto: {item.credit}</span>
                 ) : null}
               </figcaption>
             </figure>

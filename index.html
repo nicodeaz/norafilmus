@@ -61,10 +61,26 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- F9 (pulido, peso): la hoja de estilos de Google Fonts bloqueaba el
+         primer paint (Lighthouse la midió en ~775ms) porque un
+         `<link rel="stylesheet">` normal es render-blocking por definición.
+         El truco `media="print"` + `onload` la baja de prioridad — el
+         navegador la descarga en paralelo sin bloquear, y el `onload` la
+         reactiva como hoja real apenas llega. `display=swap` en la URL ya
+         evita el texto invisible mientras tanto; el `<noscript>` es el
+         fallback bloqueante de siempre para el 0,1% sin JS. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Give+You+Glory&family=Quicksand:wght@300..700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Give+You+Glory&family=Quicksand:wght@300..700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Give+You+Glory&family=Quicksand:wght@300..700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap"
+      />
+    </noscript>
   </head>
   <body class="bg-ink text-cream antialiased selection:bg-brand-red selection:text-cream">
     <div id="root"></div>

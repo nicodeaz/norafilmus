@@ -1,18 +1,24 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import AboutMe from './components/AboutMe';
 import ProgramIndex from './components/ProgramIndex';
 import NotFound from './components/NotFound';
 import SiteLayout from './components/SiteLayout';
-import CrearPage from './pages/CrearPage';
-import EnsenarPage from './pages/EnsenarPage';
-import ProducirPage from './pages/ProducirPage';
-import TrayectoriaPage from './pages/TrayectoriaPage';
-import PresentePage from './pages/PresentePage';
-import ArchivoPage from './pages/ArchivoPage';
-import ContactoPage from './pages/ContactoPage';
 import { useLanguage } from './i18n/LanguageContext';
+
+// Cada Acto/pieza de archivo va en su propio chunk — F9 (peso de assets):
+// un solo bundle de 507KB para 7 rutas cuando Home (el 90% de las visitas
+// según la arquitectura de "hub") solo necesita Hero+AboutMe+ProgramIndex.
+// `PageCurtain` ya cubre el swap de página con el telón, así que el
+// `Suspense` que envuelve las rutas no necesita fallback propio.
+const CrearPage = lazy(() => import('./pages/CrearPage'));
+const EnsenarPage = lazy(() => import('./pages/EnsenarPage'));
+const ProducirPage = lazy(() => import('./pages/ProducirPage'));
+const TrayectoriaPage = lazy(() => import('./pages/TrayectoriaPage'));
+const PresentePage = lazy(() => import('./pages/PresentePage'));
+const ArchivoPage = lazy(() => import('./pages/ArchivoPage'));
+const ContactoPage = lazy(() => import('./pages/ContactoPage'));
 
 /**
  * Home — Fase 1 (arquitectura de rutas, 2026-08-28). Antes concatenaba el
@@ -74,21 +80,23 @@ function App() {
       </a>
 
       <main id="main" tabIndex={-1} className="outline-none">
-        <Routes>
-          {/* `NotFound` se queda fuera del layout a propósito — pantalla
-              aislada, sin Header/Footer/obertura (docblock de NotFound.tsx). */}
-          <Route element={<SiteLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/crear" element={<CrearPage />} />
-            <Route path="/ensenar" element={<EnsenarPage />} />
-            <Route path="/producir" element={<ProducirPage />} />
-            <Route path="/trayectoria" element={<TrayectoriaPage />} />
-            <Route path="/presente" element={<PresentePage />} />
-            <Route path="/archivo" element={<ArchivoPage />} />
-            <Route path="/contacto" element={<ContactoPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            {/* `NotFound` se queda fuera del layout a propósito — pantalla
+                aislada, sin Header/Footer/obertura (docblock de NotFound.tsx). */}
+            <Route element={<SiteLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/crear" element={<CrearPage />} />
+              <Route path="/ensenar" element={<EnsenarPage />} />
+              <Route path="/producir" element={<ProducirPage />} />
+              <Route path="/trayectoria" element={<TrayectoriaPage />} />
+              <Route path="/presente" element={<PresentePage />} />
+              <Route path="/archivo" element={<ArchivoPage />} />
+              <Route path="/contacto" element={<ContactoPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
     </>
   );

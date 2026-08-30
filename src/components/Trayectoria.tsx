@@ -180,7 +180,7 @@ export default function Trayectoria() {
                       isOpen ? 'bg-brand-red/50' : 'bg-cream/15'
                     )}
                   />
-                  <span className="shrink-0 font-label text-xs text-cream/40">{items.length}</span>
+                  <span className="shrink-0 font-label text-xs text-cream/50">{items.length}</span>
                   <span className="w-3 shrink-0 text-right font-label text-xs uppercase tracking-[0.1em] text-brand-red">
                     {isOpen ? '−' : '+'}
                   </span>

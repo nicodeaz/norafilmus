@@ -109,7 +109,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-cream/10 pt-8 font-label text-[11px] uppercase tracking-[0.15em] text-cream/40">
+        <div className="flex flex-col gap-4 border-t border-cream/10 pt-8 font-label text-[11px] uppercase tracking-[0.15em] text-cream/50">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <span>
               © {new Date().getFullYear()} Nora Filmus — {t.footer.rights}
@@ -119,7 +119,7 @@ export default function Footer() {
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-flex min-h-11 items-center gap-1.5 text-cream/40 transition-colors duration-300 hover:text-brand-red"
+                className="inline-flex min-h-11 items-center gap-1.5 text-cream/50 transition-colors duration-300 hover:text-brand-red"
               >
                 {t.footer.backToTop}
                 <ArrowUp className="h-3.5 w-3.5" />
@@ -128,8 +128,9 @@ export default function Footer() {
           </div>
           {/* Colofón fotográfico (Fase 5) — normal-case y tracking más suelto
               que el resto de la fila: es una nota de crédito, no un label de
-              nav, no tiene que gritar igual. */}
-          <p className="normal-case tracking-normal text-cream/30">{t.footer.photoCredits}</p>
+              nav, no tiene que gritar igual. `/50` igual (F9): es el piso de
+              contraste del sitio, no hay excepción para texto "quieto". */}
+          <p className="normal-case tracking-normal text-cream/50">{t.footer.photoCredits}</p>
         </div>
       </Reveal>
     </footer>

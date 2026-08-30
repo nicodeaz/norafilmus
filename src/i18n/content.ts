@@ -281,7 +281,7 @@ export interface SiteContent {
     titleLead: string;
     titleAccent: string;
     body: string;
-    /** Crédito único para las seis fotos — misma fotógrafa, misma sesión. */
+    /** Crédito único para todas las fotos — misma fotógrafa, misma sesión. */
     credit: string;
     items: PresenteItem[];
     /** Labels del lightbox (Fase 5) — controles solo-ícono, necesitan aria-label. */
@@ -1033,7 +1033,7 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Presente',
       titleLead: 'Así se ve',
       titleAccent: 'hoy.',
-      body: 'Estas seis fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown como Rita Universos —mi personaje para las infancias, con vestuario propio, que armé en pandemia— y un registro editorial: el material más reciente que tengo.',
+      body: 'Estas doce fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown como Rita Universos —mi personaje para las infancias, con vestuario propio, que armé en pandemia— y un registro editorial: el material más reciente que tengo.',
       credit: 'Fotos: Paula, marzo 2026',
       items: PRESENTE_ES,
       close: 'Cerrar',
@@ -1399,7 +1399,7 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Present',
       titleLead: 'This is',
       titleAccent: 'now.',
-      body: "These six photos are from the same session, March 2026: a studio book, my clown work as Rita Universos —my character for children, with her own costume, that I put together during the pandemic— and an editorial shoot: the most recent material I have.",
+      body: "These twelve photos are from the same session, March 2026: a studio book, my clown work as Rita Universos —my character for children, with her own costume, that I put together during the pandemic— and an editorial shoot: the most recent material I have.",
       credit: 'Photos: Paula, March 2026',
       items: PRESENTE_EN,
       close: 'Close',

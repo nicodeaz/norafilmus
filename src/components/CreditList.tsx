@@ -25,19 +25,19 @@ export type CreditListVariant = 'cast' | 'notebook' | 'dossier';
 function IndexMarker({ index, variant }: { index: number; variant: CreditListVariant }) {
   if (variant === 'dossier') {
     return (
-      <span className="font-mono text-[11px] tabular-nums tracking-tight text-cream/35">
+      <span className="font-mono text-[11px] tabular-nums tracking-tight text-cream/50">
         [{String(index + 1).padStart(2, '0')}]
       </span>
     );
   }
   if (variant === 'notebook') {
     return (
-      <span className="font-signature text-lg leading-none text-cream/45">
+      <span className="font-signature text-lg leading-none text-cream/50">
         {ROMAN[index] ?? index + 1}.
       </span>
     );
   }
-  return <span className="font-body italic text-cream/35">{ROMAN[index] ?? index + 1}.</span>;
+  return <span className="font-body italic text-cream/50">{ROMAN[index] ?? index + 1}.</span>;
 }
 
 /**
@@ -97,7 +97,7 @@ export default function CreditList({
                 >
                   {c.work}
                 </span>
-                <span className="ml-auto shrink-0 font-label text-xs text-cream/40">{c.years}</span>
+                <span className="ml-auto shrink-0 font-label text-xs text-cream/50">{c.years}</span>
               </button>
 
               {/* Grid-rows trick: anima alto sin medir con JS; con
@@ -122,7 +122,7 @@ export default function CreditList({
                     )}
                     <p className="font-label text-xs leading-relaxed text-cream/50">{c.detail}</p>
                     {c.image && (
-                      <p className="mt-1 font-label text-[10px] text-cream/30">Foto: {c.image.credit}</p>
+                      <p className="mt-1 font-label text-[10px] text-cream/50">Foto: {c.image.credit}</p>
                     )}
                   </div>
                 </div>

@@ -67,7 +67,7 @@ export default function ProgramIndex() {
                 className="group flex items-baseline justify-between gap-6 border-b border-cream/10 py-6 outline-none md:py-8"
               >
                 <span className="flex items-baseline gap-4 md:gap-8">
-                  <span className="font-label text-xs text-cream/25 transition-colors duration-300 group-hover:text-brand-red group-focus-visible:text-brand-red md:text-sm">
+                  <span className="font-label text-xs text-cream/50 transition-colors duration-300 group-hover:text-brand-red group-focus-visible:text-brand-red md:text-sm">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span className="font-display text-4xl uppercase leading-none text-cream/70 transition-colors duration-300 group-hover:text-cream group-focus-visible:text-cream sm:text-5xl md:text-7xl">
@@ -78,7 +78,7 @@ export default function ProgramIndex() {
                   {item.descriptor && (
                     <span
                       className={cn(
-                        'hidden font-label text-xs uppercase tracking-[0.2em] text-cream/25',
+                        'hidden font-label text-xs uppercase tracking-[0.2em] text-cream/50',
                         'transition-colors duration-300 group-hover:text-brand-red/70 sm:inline'
                       )}
                     >
