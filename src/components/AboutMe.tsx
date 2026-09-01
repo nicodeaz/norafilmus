@@ -84,10 +84,16 @@ export default function AboutMe() {
           <span className="text-brand-red">{about.titleAccent}</span>
         </Reveal>
 
+        {/* Auditoría 2026-08-31: `max-w-xl` (36rem) + texto centrado a varias
+            líneas escanea mal — es el antipatrón clásico de párrafo centrado.
+            `max-w-md` (28rem) acorta la línea sin abandonar el centrado (que
+            sí funciona para un párrafo corto, ver skill premium-ui); `text-lead`
+            reemplaza el `text-sm` de font-label, que compartía tamaño con un
+            label de 11px para el bloque de texto más largo de la sección. */}
         <Reveal
           as="div"
           delay={0.2}
-          className="mt-6 max-w-xl space-y-4 font-label text-sm leading-relaxed text-cream/70"
+          className="mt-6 max-w-md space-y-4 font-label text-lead text-cream/80"
         >
           <p>{about.body1}</p>
           <p>{about.body2}</p>

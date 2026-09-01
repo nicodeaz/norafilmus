@@ -72,8 +72,16 @@ export default function Header() {
         !visible && 'pointer-events-none'
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 sm:px-10 md:px-12">
-        <Link to="/" className="flex min-h-11 items-center" aria-label={t.nav.home}>
+      {/* `gap-6` (auditoría 2026-08-31): con `justify-between` puro, a 768-850px
+          — donde el nav ya muestra 8 ítems (md: se cumple justo ahí) — el
+          espacio libre entre logo y nav llegaba a cero: "ABOUT" quedaba
+          literalmente pegado a "Filmus." Confirmado con getBoundingClientRect
+          real en ese rango (Playwright, viewport 800px), no a simple vista.
+          `gap-*` en flexbox actúa como piso mínimo incluso con `justify-between`
+          (que solo reparte el espacio SOBRANTE), así que ahora nunca colapsa a
+          cero por más que el nav crezca. */}
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-3 sm:px-10 md:px-12">
+        <Link to="/" className="flex min-h-11 shrink-0 items-center" aria-label={t.nav.home}>
           <Picture
             src="/img/nora-firma-roja.png"
             alt="Nora Filmus"
@@ -97,10 +105,16 @@ export default function Header() {
           <Link to="/presente" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.presente}
           </Link>
-          <Link to="/archivo" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+          {/* Archivo/Contacto pasan a `lg:` (auditoría 2026-08-31): son links
+              de utilidad, no piezas del "Programa" (Crear/Enseñar/Producir/
+              Trayectoria/Presente) — correrlos a `lg` libera exactamente el
+              rango 768-1023px donde chocaban con el logo, y de paso separa
+              "páginas del programa" de "utilidad" en vez de una lista plana
+              de 8 links del mismo peso. */}
+          <Link to="/archivo" className={cn(NAV_LINK, 'hidden lg:inline-flex')}>
             {t.nav.archivo}
           </Link>
-          <Link to="/contacto" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
+          <Link to="/contacto" className={cn(NAV_LINK, 'hidden lg:inline-flex')}>
             {t.nav.contacto}
           </Link>
           <LanguageToggle />

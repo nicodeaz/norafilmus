@@ -32,6 +32,12 @@
      el rango 17–19px pedido. */
   --text-body: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
   --text-body--line-height: 1.7;
+  /* Auditoría 2026-08-31 (.claude/skills/design-system): faltaba una voz
+     entre el label (11px) y el body largo en serif (17-19px) — el body corto
+     en prosa (bio del Hero, intro de AboutMe) vivía forzado en font-label a
+     14px, subdimensionado para texto que sí hay que leer. */
+  --text-lead: clamp(0.9375rem, 0.875rem + 0.3vw, 1.0625rem);
+  --text-lead--line-height: 1.65;
   --text-label: 0.6875rem;
   --text-label--line-height: 1.4;
 }

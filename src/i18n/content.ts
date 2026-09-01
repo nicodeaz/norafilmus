@@ -84,6 +84,12 @@ export interface Credit {
    * solo si el usuario abre el acordeón).
    */
   image?: { src: string; alt: string; credit: string };
+  /**
+   * Video propio de ESTE crédito (no un componente de video del sitio,
+   * solo un link — YouTube por ahora). Mismo criterio que `image`: solo
+   * un puñado de créditos tiene material real.
+   */
+  video?: { url: string };
 }
 
 export type TimelineCategory = 'actuacion' | 'docencia' | 'produccion' | 'formacion';
@@ -144,6 +150,14 @@ export interface SiteContent {
      * Star+ = Planners (directora de arte) · HBO = figura en el CV entre las
      * productoras para las que trabajó · Teatro Colón = sala donde tocó Los
      * Ranz · St. Patrick's Festival = 2023, Dublín.
+     *
+     * Desde 2026-08-31 el Hero renderiza cada nombre como su logo oficial
+     * (siluetas cream, ver `CREDENTIAL_LOGOS` en `Hero.tsx` y
+     * `scripts/build-credential-logos.mjs`) — este array sigue siendo la
+     * fuente del orden y del alt text, no solo texto de respaldo. Si se
+     * agrega un nombre acá sin agregar su entrada en `CREDENTIAL_LOGOS`, el
+     * ítem no se renderiza (se descarta en silencio, a propósito: mejor
+     * faltante y visible en QA que un logo roto en producción).
      */
     credentials: string[];
   };
@@ -187,6 +201,18 @@ export interface SiteContent {
     body2: string;
     statNumber: string;
     statLabel: string;
+    /**
+     * Las tres modalidades de trabajo — texto madre que escribió Nora con
+     * ayuda de ChatGPT (2026-08-31, ES/EN), pensado para explicar el "cómo"
+     * de su práctica (Formación y Workshops, Entrenamiento Individual,
+     * Grupos/Equipos/Organizaciones). Va a ancho completo, antes de los
+     * créditos tipo CV — que siguen siendo la fuente del "dónde" (regla 1).
+     */
+    modalities: { title: string; body: string }[];
+    /** Cierre "Mi mirada" del mismo texto madre — después de los créditos. */
+    approachTitle: string;
+    approachBody: string;
+    approachClosing: string;
     coordTitle: string;
     coordCredits: Credit[];
     teachTitle: string;
@@ -291,6 +317,8 @@ export interface SiteContent {
     /** Microinteracción (Fase 6) — aparece en hover/focus sobre cada foto de la grilla. */
     view: string;
   };
+  /** Label reutilizado por `CreditList` cuando un crédito puntual tiene `video`. */
+  creditVideo: { watch: string };
   notFound: { text: string; home: string };
   social: { instagram: string; linkedin: string; email: string };
   /** Pie de sitio (F1) — LINKS (redes/mail) se reutiliza del Hero, esto es solo el texto que le falta. */
@@ -711,7 +739,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'Empecé a estudiar teatro a los catorce años con Alicia Aller, y seguí formándome con Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas y Marcelo Subiotto, entre otros — cursé hasta tercer año la Licenciatura en Dirección Escénica en la UNA. Actué diez años con el grupo Los Ranz en salas como el Teatro Colón y el Centro Cultural Recoleta, y participé en La Comuna Orgón, dirigida por Marcelo Subiotto en Puerta Roja.',
       body2:
-        'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones de Disney, RAI y Telefé.',
+        'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones para Netflix, Polka y Telefé.',
       image: {
         src: '/img/about/rapina-foto-5.jpg',
         alt: 'Escena de la pieza "Bañera", de Rapiña',
@@ -731,7 +759,10 @@ export const content: Record<Language, SiteContent> = {
           },
         },
         { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
-        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA', years: '2022–2023' },
+        // Sin año confirmado por Nora (su bio profesional, 2026-08-31, solo dice "temporadas");
+        // no se agregó a Trayectoria porque esa lista necesita `decade` y no hay dato para inferirlo. CHEQUEAR con Nora.
+        { work: 'Las Preciadas', detail: 'Festival Internacional de Buenos Aires (FIBA)', years: 'año a confirmar' },
+        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA y Microteatro Chauvin, Mar del Plata', years: '2022–2023' },
         { work: 'Betina Quiere', detail: 'Ignacio Torres, dir. Marianela Pensado — Microteatro BA', years: '2023' },
         { work: 'Solo llamé para decirte que te amo', detail: 'Nelson Valente — asistencia de dirección, CC25 de Mayo', years: '2023' },
         { work: 'Exagrama', detail: 'Florencia Aroldi, dir. Marianella Pensado — asistencia de dirección, Microteatro', years: '2023' },
@@ -744,6 +775,7 @@ export const content: Record<Language, SiteContent> = {
             alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
             credit: 'Colo Gens',
           },
+          video: { url: 'https://youtu.be/G13JP5uqVn0' },
         },
         { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
         {
@@ -777,11 +809,29 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Doce años',
       titleAccent: 'formando en las artes escénicas.',
       body1:
-        'Desde 2012 coordino el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —un programa de promoción de derechos para chicas y chicos en situación de vulnerabilidad social— con base en tres organizaciones civiles: la Federación de Instituciones Comunitarias, el Espacio Cultural Oliverio Girondo y, desde 2019, la Asociación F.A.C.E. (Formación de Artistas Contemporáneos para la Escena). Diseño y coordino los proyectos artísticos anuales, formo las duplas de docentes y operadores sociales, y soy el nexo con la Secretaría de Niñez y Adolescencia.',
+        'Mi práctica se construye en el cruce entre las artes escénicas y la pedagogía. A lo largo de mi recorrido como actriz, docente y coordinadora de proyectos artísticos y socioeducativos, fui profundizando una manera de trabajar en la que el teatro no es solamente un lenguaje artístico o una herramienta para la formación actoral: es también un espacio de exploración, encuentro y descubrimiento.',
       body2:
-        'También coordiné talleres de teatro en el Instituto de Menores San Martín, en escuelas medias de Marcos Paz y en el Comedor Comunitario Las Flores de Vicente López, y desde 2017 doy clases de teatro para la tercera edad (convenio PAMI). Cursé la Tecnicatura Superior en Pedagogía Social con Orientación en Derechos Humanos y fui asistente de cátedra de Pedagogía Social en el IFTS N.º 28. En 2015 y 2018 gané los concursos "Jóvenes Creadores" (SENAF / Asociación Argentina de Actores) y "Opresión y Libertad" (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
+        'Me interesa lo que sucede cuando la improvisación, el juego, el trabajo corporal, el clown y las herramientas de la actuación salen del entrenamiento estrictamente actoral y se ponen al servicio de otras necesidades: desarrollar presencia y expresividad, ampliar recursos de comunicación, estimular la creatividad, ganar confianza frente a otros, entrenar la escucha y relacionarse con lo inesperado.',
       statNumber: '12',
       statLabel: 'años coordinando el Programa Adolescencia — sin fotos publicables: el material muestra adolescentes en situación de vulnerabilidad.',
+      modalities: [
+        {
+          title: 'Formación y workshops',
+          body: 'Diseño y coordino experiencias teatrales para personas con o sin experiencia escénica. A través de la improvisación, el juego, el cuerpo, la presencia y la exploración del personaje, propongo espacios donde entrenar herramientas teatrales y, al mismo tiempo, habilitar la creatividad, la expresión personal, la escucha y el encuentro con otros. Dar el Salto, mi ciclo de talleres de teatro en español creado en Dublín, nace de esta mirada: entrar por el juego, animarse a hacer y descubrir en la experiencia nuevas posibilidades.',
+        },
+        {
+          title: 'Entrenamiento individual',
+          body: 'También desarrollo procesos personalizados para artistas, performers, músicos, presentadores y personas que necesitan desenvolverse frente a un público o fortalecer sus recursos expresivos. El trabajo parte de las necesidades concretas de cada persona y puede abordar presencia escénica, expresión corporal, espontaneidad, comunicación, confianza, escucha y capacidad de respuesta ante lo inesperado. No se trata de imponer una manera de estar en escena, sino de acompañar a cada persona a encontrar y ampliar sus propios recursos.',
+        },
+        {
+          title: 'Grupos, equipos y organizaciones',
+          body: 'Las herramientas de la improvisación y el teatro también se trasladan a contextos no escénicos: el juego teatral permite crear experiencias grupales en torno a la comunicación, la escucha, la creatividad, la colaboración, la confianza y la capacidad de adaptación. Esta línea recoge mi experiencia de más de una década en proyectos artísticos y socioeducativos, trabajando con distintas poblaciones y coordinando equipos interdisciplinarios.',
+        },
+      ],
+      approachTitle: 'Mi mirada',
+      approachBody:
+        'Creo en el teatro como un espacio donde podemos ensayar otras posibilidades. A veces alguien llega porque quiere actuar. A veces porque necesita desenvolverse mejor frente a otros. A veces porque quiere crear, jugar o recuperar cierta espontaneidad. Y muchas veces algo se modifica simplemente porque se animó a hacer algo que antes no se animaba.',
+      approachClosing: 'Entrar por el juego. Descubrirse haciendo.',
       coordTitle: 'Coordinación',
       coordCredits: [
         { work: 'Programa Adolescencia', detail: 'Asociación F.A.C.E. — Gobierno de la Ciudad de Buenos Aires', years: 'desde 2019' },
@@ -824,7 +874,7 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Detrás de escena,',
       titleAccent: 'en teatro y en pantalla.',
       body1:
-        'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
+        'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui productora de arte en El amor después del amor (Netflix), administradora de producción en Chocolate para 3, directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
       body2:
         'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
       image: {
@@ -888,16 +938,19 @@ export const content: Record<Language, SiteContent> = {
       screenCredits: [
         { work: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', years: 'en curso' },
         { work: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte, dir. Daniel Barone', years: 'temporada 1' },
-        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — equipo de producción', years: '2022' },
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — productora de arte', years: '2022' },
+        { work: 'Chocolate para 3', detail: 'Sánchez Cine — administradora de producción (largometraje INCAA)', years: '2021' },
         { work: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', years: '2017–2018' },
       ],
       irelandTitle: 'Irlanda',
       irelandCredits: [
         { work: 'Argentina Day', detail: 'Productora: La Clave Group', years: '2023–2026' },
-        { work: 'The Floor', detail: 'Programa de TV — Bigger Stage, runner de producción audiovisual', years: '2025' },
+        { work: 'The Floor', detail: 'Programa de TV — Bigger Stage, runner de producción audiovisual (temporadas 4 y 5, grabado en Bray)', years: '2025' },
         { work: 'The Sugar Club', detail: 'Asistente de producción — presentación del disco solista de Gustavo Ecclesia', years: '2025' },
         { work: 'International Literature Festival Dublin', detail: 'Voluntaria, runner de producción', years: '2025' },
         { work: 'Christmas Market Latinoamericano', detail: 'Coordinación de producción — La Clave Group, Dtwo', years: '2025' },
+        // La bio profesional de Nora (2026-08-31) lo escribe "Rather Gather Festivalito" —
+        // se mantiene la grafía "Rathe" ya usada en todo el sitio hasta confirmar cuál es la correcta. CHEQUEAR con Nora.
         { work: 'Rathe Gather Festivalito', detail: 'Asistencia y runner de producción', years: '2024' },
         { work: 'La Peña Argentina en Dublín', detail: 'Producción — La Clave Group', years: '2024–2025' },
         { work: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', years: '2023' },
@@ -943,7 +996,8 @@ export const content: Record<Language, SiteContent> = {
         { year: '2019', title: 'Improvisación Mosquito', detail: 'Producción — Productora Demos', category: 'produccion', decade: '2010s' },
         { year: '2020', title: 'Tecnicatura Superior en Pedagogía Social', detail: 'Orientación en Derechos Humanos — IFTS N.º 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', category: 'docencia', decade: '2020s' },
-        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — extra en pantalla, equipo de producción', category: 'produccion', decade: '2020s' },
+        { year: '2021', title: 'Chocolate para 3', detail: 'Sánchez Cine — extra en pantalla, administradora de producción (largometraje INCAA)', category: 'produccion', decade: '2020s' },
+        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — extra en pantalla, productora de arte', category: 'produccion', decade: '2020s' },
         { year: '2022', title: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (GCBA) y Fundación Santander — Programa Adolescencia', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (GCBA) y Fundación Santander', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Mudanza a Dublín', detail: 'Irlanda', category: 'formacion', decade: '2020s' },
@@ -953,7 +1007,7 @@ export const content: Record<Language, SiteContent> = {
         { year: 'temporada 1', title: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Festival Internacional de Teatro Shakespeare', detail: '"Maten a Hamlet" (Los Macoco) — asistente de producción voluntaria, Craiova, Rumania', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena, como Rita Universos, y asistencia de producción', category: 'actuacion', decade: '2020s' },
-        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual', category: 'produccion', decade: '2020s' },
+        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual (temporadas 4 y 5, Bray)', category: 'produccion', decade: '2020s' },
         { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Irlanda', category: 'formacion', decade: '2020s' },
         { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Irlanda', category: 'formacion', decade: '2020s' },
       ],
@@ -1018,9 +1072,9 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Treinta y seis años',
       titleAccent: 'arriba y detrás del escenario.',
       body1:
-        'Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
+        'Soy actriz, docente y productora audiovisual y cultural argentino-rumana, radicada en Dublín. Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
       body2:
-        'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ y Disney. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
+        'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ e INCAA. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
       cta: 'Escribime',
       cvLabel: 'Descargar CV',
       galleryTitle: 'Del archivo',
@@ -1041,6 +1095,8 @@ export const content: Record<Language, SiteContent> = {
       next: 'Siguiente',
       view: 'Ver',
     },
+
+    creditVideo: { watch: 'Ver video' },
 
     notFound: {
       text: 'La página que buscás no existe o fue movida.',
@@ -1088,7 +1144,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'I started studying theatre at fourteen with Alicia Aller, and went on training with Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas and Marcelo Subiotto, among others — I completed three years of a degree in Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years acting with the company Los Ranz, performing in venues including the Teatro Colón and the Centro Cultural Recoleta in Buenos Aires, and took part in La Comuna Orgón, directed by Marcelo Subiotto at Teatro Puerta Roja.',
       body2:
-        'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Disney, RAI and Telefé.',
+        'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Netflix, Polka and Telefé.',
       image: {
         src: '/img/about/rapina-foto-5.jpg',
         alt: 'Scene from "Bañera", part of Rapiña',
@@ -1108,7 +1164,10 @@ export const content: Record<Language, SiteContent> = {
           },
         },
         { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
-        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA', years: '2022–2023' },
+        // No confirmed year from Nora's professional bio (2026-08-31, only says "seasons");
+        // not added to the Timeline, which needs `decade` and there's no data to infer it from. CHECK with Nora.
+        { work: 'Las Preciadas', detail: 'Buenos Aires International Festival (FIBA)', years: 'year to confirm' },
+        { work: 'Las Manos de Alicia', detail: 'Nelson Valente, dir. Marianella Pensado — Microteatro BA and Microteatro Chauvin, Mar del Plata', years: '2022–2023' },
         { work: 'Betina Quiere', detail: 'Ignacio Torres, dir. Marianela Pensado — Microteatro BA', years: '2023' },
         { work: 'Solo llamé para decirte que te amo', detail: 'Nelson Valente — assistant director, CC25 de Mayo', years: '2023' },
         { work: 'Exagrama', detail: 'Florencia Aroldi, dir. Marianella Pensado — assistant director, Microteatro', years: '2023' },
@@ -1121,6 +1180,7 @@ export const content: Record<Language, SiteContent> = {
             alt: 'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
             credit: 'Colo Gens',
           },
+          video: { url: 'https://youtu.be/G13JP5uqVn0' },
         },
         { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
         {
@@ -1154,11 +1214,29 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Twelve years',
       titleAccent: 'training people in the performing arts.',
       body1:
-        'Since 2012 I have coordinated Programa Adolescencia for the City of Buenos Aires — a rights programme for teenagers in vulnerable social contexts — delivered through three civil associations: the Federación de Instituciones Comunitarias, the Espacio Cultural Oliverio Girondo, and, since 2019, Asociación F.A.C.E. (Formación de Artistas Contemporáneos para la Escena). I design and coordinate the yearly artistic projects, put together the teaching pairs of artistic instructors and social workers, and act as the point of contact with the City\'s child and adolescent welfare office.',
+        'My practice sits at the crossing point between the performing arts and education. Through my work as an actress, theatre educator and coordinator of artistic and socially engaged projects, I have developed an approach that sees theatre not only as an art form or a space for actor training, but also as a powerful way to explore, connect and discover.',
       body2:
-        'I also ran theatre workshops at the Instituto de Menores San Martín (a juvenile detention facility), at secondary schools in Marcos Paz, and at the Las Flores community canteen in Vicente López, and since 2017 I have taught theatre to older adults under PAMI, Argentina\'s public health programme for retirees. I completed a further-education degree in Social Pedagogy with a focus on Human Rights, and was a teaching assistant for Social Pedagogy at IFTS Nº 28. In 2015 and 2018 I won the "Jóvenes Creadores" award (SENAF / Asociación Argentina de Actores) and the "Opresión y Libertad" award (Fondo Metropolitano de la Cultura, las Artes y las Ciencias).',
+        'I am particularly interested in what happens when improvisation, play, physical work, clowning and acting techniques move beyond traditional actor training: how they can help us develop presence and expressiveness, build confidence, strengthen communication and listening skills, stimulate creativity, become more comfortable with the unexpected, and discover new ways of responding and connecting with others.',
       statNumber: '12',
       statLabel: 'years coordinating Programa Adolescencia — no publishable photos: the material shows teenagers in vulnerable circumstances.',
+      modalities: [
+        {
+          title: 'Training & workshops',
+          body: 'I design and facilitate theatre workshops for adults with or without previous performance experience. Through improvisation, play, physical and expressive work, stage presence and character exploration, I create spaces where participants can develop performance skills while exploring their creativity, spontaneity, confidence, listening and connection with others. Dar el Salto, my Spanish-language theatre workshop series in Dublin, grew from this approach: a space to play, experiment, take creative risks and discover new possibilities through doing.',
+        },
+        {
+          title: '1:1 creative & performance training',
+          body: 'I offer tailored one-to-one sessions for performers, musicians, presenters, speakers and anyone who wants to feel more confident, present and expressive in front of others. Each process begins with the person and what they want to develop. Sessions may explore stage presence, physical expression, spontaneity, communication, confidence, audience connection, listening and responding to the unexpected. Rather than teaching one particular way of performing, I work with each person to identify, develop and expand their own expressive resources.',
+        },
+        {
+          title: 'Groups, teams & organisations',
+          body: 'Improvisation, play and theatre-based practices can also offer valuable tools beyond the stage: I design experiential sessions for groups and teams that use theatre and improvisation to explore communication, active listening, creativity, collaboration, adaptability and connection. This part of my practice is informed by more than a decade of experience in arts education and socially engaged projects, working with people of different ages and backgrounds and coordinating multidisciplinary teams.',
+        },
+      ],
+      approachTitle: 'My approach',
+      approachBody:
+        "I believe theatre gives us a space to try things out, take risks and explore new possibilities. Some people come to theatre because they want to perform. Others want to feel more confident in front of people, communicate more freely, reconnect with their creativity or simply try something new. And often, through play and experience, we discover abilities and possibilities we didn't know were there.",
+      approachClosing: 'Through play, we discover new possibilities.',
       coordTitle: 'Coordination',
       coordCredits: [
         { work: 'Programa Adolescencia', detail: 'Asociación F.A.C.E. — City of Buenos Aires', years: 'since 2019' },
@@ -1196,7 +1274,7 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Behind the scenes,',
       titleAccent: 'in theatre and on screen.',
       body1:
-        'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
+        'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art producer on El amor después del amor (Netflix), production administrator on Chocolate para 3, art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
       body2:
         'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
       image: {
@@ -1257,13 +1335,14 @@ export const content: Record<Language, SiteContent> = {
       screenCredits: [
         { work: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', years: 'ongoing' },
         { work: 'Planners', detail: 'Star+ / PEGSA Group — art director, dir. Daniel Barone', years: 'season 1' },
-        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — production team', years: '2022' },
+        { work: 'El amor después del amor', detail: 'Netflix / More Televisión — art producer', years: '2022' },
+        { work: 'Chocolate para 3', detail: 'Sánchez Cine — production administrator (INCAA feature)', years: '2021' },
         { work: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', years: '2017–2018' },
       ],
       irelandTitle: 'Ireland',
       irelandCredits: [
         { work: 'Argentina Day', detail: 'Producer: La Clave Group', years: '2023–2026' },
-        { work: 'The Floor', detail: 'TV show — Bigger Stage, production runner', years: '2025' },
+        { work: 'The Floor', detail: 'TV show — Bigger Stage, production runner (Series 4 & 5, filmed in Bray)', years: '2025' },
         { work: 'The Sugar Club', detail: 'Production assistant — Gustavo Ecclesia\'s solo album launch', years: '2025' },
         { work: 'International Literature Festival Dublin', detail: 'Volunteer production runner', years: '2025' },
         { work: 'Christmas Market Latinoamericano', detail: 'Production coordination — La Clave Group, Dtwo', years: '2025' },
@@ -1312,7 +1391,8 @@ export const content: Record<Language, SiteContent> = {
         { year: '2019', title: 'Improvisación Mosquito', detail: 'Producer — Productora Demos', category: 'produccion', decade: '2010s' },
         { year: '2020', title: 'Further-education degree in Social Pedagogy', detail: 'Human Rights focus — IFTS Nº 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', category: 'docencia', decade: '2020s' },
-        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — on-screen extra, production team', category: 'produccion', decade: '2020s' },
+        { year: '2021', title: 'Chocolate para 3', detail: 'Sánchez Cine — on-screen extra, production administrator (INCAA feature)', category: 'produccion', decade: '2020s' },
+        { year: '2022', title: 'El amor después del amor', detail: 'Netflix / More Televisión — on-screen extra, art producer', category: 'produccion', decade: '2020s' },
         { year: '2022', title: 'Mecenazgo Cultural — "Adolescencias libres"', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander — Programa Adolescencia', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Mecenazgo Cultural — "Adolescencias en Galpón F.A.C.E."', detail: 'Impulso Cultural (City of Buenos Aires) and Fundación Santander', category: 'produccion', decade: '2020s' },
         { year: '2023', title: 'Moved to Dublin', detail: 'Ireland', category: 'formacion', decade: '2020s' },
@@ -1322,7 +1402,7 @@ export const content: Record<Language, SiteContent> = {
         { year: 'season 1', title: 'Planners', detail: 'Star+ / PEGSA Group — art director', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Shakespeare International Theatre Festival', detail: '"Maten a Hamlet" (Los Macoco) — volunteer production assistant, Craiova, Romania', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance as Rita Universos, and production assistance', category: 'actuacion', decade: '2020s' },
-        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner', category: 'produccion', decade: '2020s' },
+        { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner (Series 4 & 5, Bray)', category: 'produccion', decade: '2020s' },
         { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Ireland', category: 'formacion', decade: '2020s' },
         { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Ireland', category: 'formacion', decade: '2020s' },
       ],
@@ -1385,9 +1465,9 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Thirty-six years',
       titleAccent: 'on stage and behind it.',
       body1:
-        'I trained at the IFT Integral Theatre School and studied Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years with the company Los Ranz, five with Marcelo Subiotto’s Colectivo Teatral Puerta Roja, and I have been part of the Boquitas Pintadas company since 2015.',
+        'I\'m an Argentine-Romanian actress, educator and audiovisual and cultural producer, based in Dublin. I trained at the IFT Integral Theatre School and studied Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years with the company Los Ranz, five with Marcelo Subiotto’s Colectivo Teatral Puerta Roja, and I have been part of the Boquitas Pintadas company since 2015.',
       body2:
-        'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and Disney. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the Rathe Gather Festival.',
+        'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and INCAA. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the Rathe Gather Festival.',
       cta: 'Get in touch',
       cvLabel: 'Download CV',
       galleryTitle: 'From the archive',
@@ -1407,6 +1487,8 @@ export const content: Record<Language, SiteContent> = {
       next: 'Next',
       view: 'View',
     },
+
+    creditVideo: { watch: 'Watch video' },
 
     notFound: {
       text: 'The page you are looking for does not exist or has been moved.',

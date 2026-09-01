@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Instagram, Linkedin, Mail } from 'lucide-react';
 import { EASE_REVEAL } from '@/lib/ease';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,27 @@ import PillarMenu from './PillarMenu';
 interface HeroProps {
   className?: string;
 }
+
+/**
+ * Logos oficiales de la tira de credenciales (2026-08-31, reemplaza al texto
+ * plano que había antes). Generados por `scripts/build-credential-logos.mjs`
+ * a partir de fuentes archivadas en `external-assets/brand/credentials/` —
+ * siluetas monocromas en cream, sin los colores propios de cada marca (ver
+ * docblock del script). Es un lookup por nombre, no un campo de
+ * `content.ts`: el logo es el mismo objeto visual en los dos idiomas, a
+ * diferencia del resto del contenido bilingüe del archivo.
+ */
+const CREDENTIAL_LOGOS: Record<string, { src: string; width: number; height: number }> = {
+  Netflix: { src: '/img/credentials/netflix.png', width: 740, height: 200 },
+  'Star+': { src: '/img/credentials/star-plus.png', width: 701, height: 199 },
+  HBO: { src: '/img/credentials/hbo.png', width: 485, height: 200 },
+  'Teatro Colón': { src: '/img/credentials/teatro-colon.png', width: 1517, height: 200 },
+  "St. Patrick's Festival": {
+    src: '/img/credentials/st-patricks-festival.png',
+    width: 2212,
+    height: 200,
+  },
+};
 
 /**
  * Hero — **afiche de teatro** (recompuesto 2026-08-18).
@@ -34,6 +55,16 @@ interface HeroProps {
  *   cabeza: el recorte de `nora-portrait.webp` viene trimeado al ras del pelo
  *   (`sharp.trim()`), así que a `h-full` la cabeza tocaba el borde superior y
  *   se leía como cortada. Ahora la imagen mide menos que el viewport y respira.
+ * - **La figura lleva un efecto halftone** (2026-09-01, `nora-portrait-halftone.png`,
+ *   generado por `scripts/build-hero-halftone.mjs` a partir del mismo
+ *   `nora-portrait.webp`): puntos de `brand-red` cuya densidad sigue la
+ *   luminancia de la foto original. Reemplaza al recorte a color plano — la
+ *   foto de book al lado de numerales de Acto y grano de papel se veía
+ *   genérica. Se probó también un duotono ink→rojo y salió plano (la sesión
+ *   de estudio está iluminada muy pareja, sin rango de sombra/luz real); el
+ *   halftone no depende de eso, solo de densidad de punto, así que sí
+ *   funciona con esta foto puntual — decisión tomada con el usuario viendo
+ *   ambos previews sobre la imagen real, no a ciegas.
  * - **Los pilares bajan a una banda al pie, en horizontal** (`orientation="inline"`
  *   de `PillarMenu`), con una hairline arriba. Llenan el ancho del pie, se leen
  *   como navegación y ya no flotan chicos en la esquina derecha.
@@ -48,12 +79,17 @@ interface HeroProps {
  */
 export default function Hero({ className }: HeroProps) {
   const { t } = useLanguage();
+  const reduced = useReducedMotion();
 
   const socialLinks = [
     { label: t.social.instagram, href: LINKS.instagram, icon: Instagram, external: true },
     { label: t.social.linkedin, href: LINKS.linkedin, icon: Linkedin, external: true },
     { label: t.social.email, href: LINKS.email, icon: Mail, external: false },
   ];
+
+  const credentialLogos = t.hero.credentials
+    .map((name) => ({ name, logo: CREDENTIAL_LOGOS[name] }))
+    .filter((c): c is { name: string; logo: (typeof CREDENTIAL_LOGOS)[string] } => Boolean(c.logo));
 
   return (
     <div
@@ -75,7 +111,7 @@ export default function Hero({ className }: HeroProps) {
         className="pointer-events-none absolute bottom-0 right-0 z-20 h-[52vh] md:right-[11vw] md:h-[90vh]"
       >
         <Picture
-          src="/img/nora-portrait.webp"
+          src="/img/nora-portrait-halftone.png"
           alt={t.hero.portraitAlt}
           sizes="(min-width: 768px) 460px, 78vw"
           fetchPriority="high"
@@ -146,13 +182,18 @@ export default function Hero({ className }: HeroProps) {
               titular en vez de quedar como una columna angosta a la
               izquierda, que era parte del vacío medido. */}
           <div className="mt-4 flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10">
-            <p className="max-w-xs font-label text-sm leading-relaxed text-cream/80">
-              {t.hero.bio}
-            </p>
+            {/* `text-lead` (auditoría 2026-08-31, design-system): antes vivía en
+                `text-sm` de font-label, la misma voz que un label de 11px — para
+                el único párrafo de bio del Hero hacía falta un escalón propio,
+                no compartir tamaño con "DUBLÍN, IRLANDA". */}
+            <p className="max-w-sm font-label text-lead text-cream/80">{t.hero.bio}</p>
             {/* Fase 2 (2026-08-28): antes apuntaba a `#sobre-mi` pese a decir
                 "Ver trayectoria" — un desvío que sobrevivió porque `/trayectoria`
-                no existía como página propia hasta la Fase 1. Ya existe. */}
-            <ButtonLink to="/trayectoria" variant="secondary" size="md" className="shrink-0">
+                no existía como página propia hasta la Fase 1. Ya existe.
+                Variante `primary` (auditoría 2026-08-31): es la única acción del
+                Hero — en `secondary` (borde fino) perdía contra el rojo saturado
+                del wordmark que la rodea. */}
+            <ButtonLink to="/trayectoria" variant="primary" size="md" className="shrink-0">
               {t.hero.cta}
             </ButtonLink>
           </div>
@@ -161,22 +202,41 @@ export default function Hero({ className }: HeroProps) {
         {/* Tira de credenciales: nombres reconocibles y nada más. Ocupa la
             zona baja-izquierda —que quedaba vacía al subir el bloque de
             texto— con contenido real en vez de aire, y es lo que hace que
-            alguien entienda el nivel sin leer la bio. */}
-        <motion.ul
+            alguien entienda el nivel sin leer la bio.
+            Slider infinito (2026-09-01): mismo patrón que el marquee de
+            `AboutMe` (duplicar el array + `x: ['0%','-50%']` en loop lineal,
+            máscara de fade en los bordes) — con `prefers-reduced-motion` no
+            corre y la fila pasa a scrollear a mano en vez de animar. */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1.05 }}
-          className="mt-10 flex max-w-xl flex-wrap items-center gap-x-5 gap-y-2 border-t border-cream/10 pt-4 md:mt-14"
+          className="relative mt-10 w-full max-w-xl border-t border-cream/10 pt-5 md:mt-14 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
-          {t.hero.credentials.map((c) => (
-            <li
-              key={c}
-              className="font-label text-[10px] uppercase tracking-[0.18em] text-cream/50"
+          <div className={cn('w-full', reduced ? 'overflow-x-auto' : 'overflow-hidden')}>
+            <motion.ul
+              className="flex w-max items-center gap-x-8"
+              animate={reduced ? undefined : { x: ['0%', '-50%'] }}
+              transition={reduced ? undefined : { duration: 18, ease: 'linear', repeat: Infinity }}
             >
-              {c}
-            </li>
-          ))}
-        </motion.ul>
+              {(reduced ? credentialLogos : [...credentialLogos, ...credentialLogos]).map(
+                ({ name, logo }, i) => (
+                  <li key={`${name}-${i}`} className="flex shrink-0 items-center">
+                    <img
+                      src={logo.src}
+                      alt={name}
+                      width={logo.width}
+                      height={logo.height}
+                      loading={i < credentialLogos.length ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className="h-5 w-auto object-contain opacity-60 sm:h-6"
+                    />
+                  </li>
+                )
+              )}
+            </motion.ul>
+          </div>
+        </motion.div>
       </div>
 
       {/* ── Banda de pie: pilares + contacto ────────────────────────────── */}

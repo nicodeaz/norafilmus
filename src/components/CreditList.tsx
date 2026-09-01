@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Play } from 'lucide-react';
 import type { Credit } from '@/src/i18n/content';
+import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
 import Picture from './Picture';
 
@@ -72,6 +74,7 @@ export default function CreditList({
   variant?: CreditListVariant;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   return (
     <div>
@@ -123,6 +126,17 @@ export default function CreditList({
                     <p className="font-label text-xs leading-relaxed text-cream/50">{c.detail}</p>
                     {c.image && (
                       <p className="mt-1 font-label text-[10px] text-cream/50">Foto: {c.image.credit}</p>
+                    )}
+                    {c.video && (
+                      <a
+                        href={c.video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex min-h-11 items-center gap-2 font-label text-xs uppercase tracking-[0.15em] text-cream/70 underline decoration-brand-red/60 underline-offset-4 transition-colors hover:text-brand-red"
+                      >
+                        <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                        {t.creditVideo.watch}
+                      </a>
                     )}
                   </div>
                 </div>

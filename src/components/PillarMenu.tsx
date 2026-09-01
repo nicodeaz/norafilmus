@@ -69,7 +69,7 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
       className={cn(
         'flex w-full gap-6',
         inline
-          ? 'flex-row items-end justify-between gap-4 md:gap-8'
+          ? 'flex-col gap-2 md:gap-3'
           : 'flex-col items-center md:flex-row md:items-center md:gap-7',
         className
       )}
@@ -84,7 +84,7 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
               <span
                 className={cn(
                   'font-label text-[11px] font-bold tracking-[0.2em] transition-colors duration-300',
-                  isActive ? 'text-brand-red' : 'text-cream/25'
+                  isActive ? 'text-brand-red' : 'text-cream/35'
                 )}
               >
                 {String(index + 1).padStart(2, '0')}
@@ -93,7 +93,7 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
                 className={cn(
                   'font-display uppercase leading-[0.95] transition-colors duration-300',
                   inline ? 'text-xl sm:text-2xl md:text-3xl' : 'text-4xl sm:text-5xl',
-                  isActive ? 'text-cream' : 'text-cream/25'
+                  isActive ? 'text-cream' : 'text-cream/35'
                 )}
               >
                 {label}
@@ -130,6 +130,28 @@ export default function PillarMenu({ items, className, orientation = 'vertical' 
           );
         })}
       </ul>
+
+      {/* Pie del pilar activo en modo `inline` (auditoría 2026-08-31): antes
+          el Hero mostraba solo la palabra "Enseñar"/"Producir" sin ningún
+          contexto — el `caption` de cada pilar ya existe en `content.ts` y ya
+          se usa en modo `vertical`, acá solo faltaba mostrarlo. Una sola línea,
+          crossfade con el mismo timing que el mosaico. */}
+      {inline && (
+        <div className="min-h-[1.4em] overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={current.key}
+              initial={{ opacity: 0, y: reduced ? 0 : 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reduced ? 0 : -6 }}
+              transition={{ duration: 0.25, ease: EASE_REVEAL }}
+              className="max-w-md font-label text-[11px] leading-snug text-cream/60"
+            >
+              {current.caption}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Mosaico + pie del pilar activo. En `inline` el mosaico es chico y va
           al final de la banda: es la vista previa del pilar activo, no el

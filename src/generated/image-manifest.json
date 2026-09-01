@@ -196,6 +196,45 @@
       960
     ]
   },
+  "/img/credentials/hbo.png": {
+    "width": 485,
+    "height": 200,
+    "widths": [
+      480
+    ]
+  },
+  "/img/credentials/netflix.png": {
+    "width": 740,
+    "height": 200,
+    "widths": [
+      480
+    ]
+  },
+  "/img/credentials/st-patricks-festival.png": {
+    "width": 2212,
+    "height": 200,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/credentials/star-plus.png": {
+    "width": 701,
+    "height": 199,
+    "widths": [
+      480
+    ]
+  },
+  "/img/credentials/teatro-colon.png": {
+    "width": 1517,
+    "height": 200,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
   "/img/menu/improvisacion-mosquito-afiche.jpg": {
     "width": 288,
     "height": 360,
@@ -236,6 +275,14 @@
   "/img/nora-logo.png": {
     "width": 1408,
     "height": 1117,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/nora-portrait-halftone.png": {
+    "width": 1364,
+    "height": 3129,
     "widths": [
       480,
       960
