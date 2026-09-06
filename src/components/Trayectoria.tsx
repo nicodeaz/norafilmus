@@ -1,60 +1,69 @@
 import { useMemo, useRef, useState } from 'react';
-import { motion, useReducedMotion, useScroll } from 'motion/react';
-import type { Decade, TimelineCategory } from '@/src/i18n/content';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import type { Decade, TimelineCategory, TimelineEntry } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
+import Picture from './Picture';
 import Reveal from './Reveal';
 
 type FilterKey = 'todos' | TimelineCategory;
+type Side = 'left' | 'right';
 const DECADES: Decade[] = ['1990s', '2000s', '2010s', '2020s'];
 
 /**
- * "El programa" — Trayectoria, la línea de tiempo completa. Redirección de
- * dirección artística post-F5 (ver informe de dirección creativa en el
- * chat): la versión anterior agrupaba por década en acordeones que leían
- * como un FAQ. Acá es una espina vertical — una sola línea roja continua
- * que atraviesa las cuatro décadas, con cada una como una parada sobre esa
- * línea en vez de una fila de acordeón genérica.
+ * "El programa" — Trayectoria, la línea de tiempo completa. Rediseñada
+ * 2026-09-04 a pedido explícito del usuario: antes cada década era un
+ * acordeón con la lista de hitos apilada en una sola columna de texto — acá
+ * es una **espina vertebral** de verdad, de 1990 al presente, con los hitos
+ * alternando a la izquierda y a la derecha de la línea y, cuando hay una
+ * foto real disponible, la foto sale junto al hito.
  *
- * No es uno de los tres Actos (no tiene numeral romano ni foto): es el
- * archivo completo, consolida los 4 CVs — varios hitos ya aparecen en
- * Crear/Enseñar/Producir (selecciones curadas), acá está todo junto.
+ * **Solo un puñado de los 39 hitos tiene `images`** — no es un déficit del
+ * diseño, es la regla 1 de `content.ts` ("todo dato es verificable"): cada
+ * foto que aparece acá es una que el sitio YA usa y acredita en otro lado
+ * (Crear/Producir/`GALLERY_ES`), reusada con el mismo `alt`/crédito exactos.
+ * No se inventó ninguna atribución nueva y no se forzó ninguna foto a un
+ * hito con el que no coincide (ej. la foto de Marcos Paz — docencia con
+ * menores identificables, cara desenfocada — se dejó afuera: el hito de
+ * Trayectoria más parecido, "Instituto de Menores San Martín", es una
+ * institución distinta, no la misma que la foto documenta).
  *
- * Los filtros de categoría dejaron de ser pills redondeadas (ese patrón se
- * repetía demasiado en el sitio) y pasaron a ser texto subrayado, más cerca
- * de una tabla de contenidos que de un control de formulario.
+ * Ya no es un acordeón: no hay estado de década abierta/cerrada, todos los
+ * hitos filtrados se renderizan siempre. Se pierde el efecto `sticky` de la
+ * Fase 4 (dejó de tener sentido sin accordion — el "encabezado actual"
+ * pinneado solo servía para marcar cuál década estaba desplegada), pero se
+ * conserva la espina que se llena con el scroll (`scrollYProgress` →
+ * `scaleY`, misma técnica de `ScrollProgress.tsx`) — el "avance mecánico
+ * por el tiempo" sigue siendo la pieza "frame por frame" del sitio.
  *
- * Fase 4 (2026-08-28) — la pieza "frame por frame" que las tres IAs
- * consultadas en la auditoría de Fase 1 señalaron como la mayor oportunidad
- * del sitio. Sin canvas image-sequence (no hay 20-60 fotos de una misma
- * escena para animar cuadro a cuadro — inventar esa secuencia habría violado
- * la regla 1 de `content.ts`, "todo dato es verificable"): en cambio, la
- * espina y el encabezado de década responden de verdad al scroll con datos
- * reales, con la misma técnica ya validada en `ScrollProgress.tsx`
- * (`useScroll` → `MotionValue`, animado en el compositor, sin re-render de
- * React por tick de scroll).
+ * Alternancia izquierda/derecha: un contador corrido (no por década) para
+ * que dos hitos consecutivos nunca caigan del mismo lado aunque una década
+ * tenga un número impar de hitos filtrados.
  *
- * 1. **La espina se llena.** Una segunda línea roja, con `scaleY` atado a
- *    `scrollYProgress` del contenedor de décadas, se dibuja encima de la
- *    línea de fondo a medida que se scrollea la sección — el "avance
- *    mecánico por el tiempo" que pedían las tres auditorías, sin inventar
- *    material fotográfico.
- * 2. **El encabezado de década que está abierto queda `sticky`.** Como
- *    `openDecade` es de a una (accordion, no multi-expand), esto alcanza
- *    para dar el efecto "el año cambia mientras scrolleás" sin un segundo
- *    mecanismo de tracking: la década pinneada en pantalla ES la actual.
+ * El cometa (2026-09-06): un halo rojo pegado a la punta de la línea que se
+ * llena, siguiendo el mismo `scrollYProgress`. La Fase 4 dejó la espina
+ * "llenándose" pero sin nada que marque el punto exacto de avance — con
+ * décadas largas (2020s tiene 17 hitos) la línea rellena se leía como una
+ * barra de progreso más, no como algo recorriéndose en el momento.
  */
 export default function Trayectoria() {
   const { t } = useLanguage();
   const { trayectoria } = t;
   const [filter, setFilter] = useState<FilterKey>('todos');
-  const [openDecade, setOpenDecade] = useState<Decade | null>(null);
   const spineRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const { scrollYProgress: spineProgress } = useScroll({
     target: spineRef,
-    offset: ['start 0.75', 'end 0.25'],
+    offset: ['start 0.85', 'end 0.15'],
   });
+  // Punta encendida de la espina — un "cometa" que camina con el mismo
+  // progreso que ya llena la línea (2026-09-06). Es la pieza que le faltaba
+  // al efecto "frame por frame" de la Fase 4: la línea se llenaba pero no
+  // había nada marcando DÓNDE está el avance ahora mismo, solo hasta dónde
+  // llegó. clamp evita que el halo se salga del contenedor en los extremos
+  // del scroll (el propio `useScroll` ya devuelve 0..1, pero un rebote del
+  // trackpad puede pasarse por muy poco).
+  const cometTop = useTransform(spineProgress, (v) => `${Math.min(100, Math.max(0, v * 100))}%`);
 
   const filters: { key: FilterKey; label: string }[] = [
     { key: 'todos', label: trayectoria.filterAll },
@@ -72,14 +81,11 @@ export default function Trayectoria() {
     })).filter((g) => g.items.length > 0);
   }, [trayectoria.items, filter]);
 
+  // Corrido a través de todas las décadas — no se reinicia en cada grupo, así
+  // el lado nunca se repite en el borde entre una década y la siguiente.
+  let sideCounter = -1;
+
   return (
-    // Sin `overflow-hidden` a propósito (Fase 4): a diferencia de `Act.tsx`
-    // (que lo usa para recortar el óvalo de luz que sangra fuera de la
-    // sección), acá nada bleedea — y `overflow` != `visible` en cualquier
-    // ancestro rompe `position: sticky` de sus descendientes en Chrome (se
-    // confirmó con getComputedStyle: el botón medía `position: sticky` pero
-    // su rect seguía scrolleando normal, sin pinnearse). Con esto puesto el
-    // encabezado de década no se quedaba nunca arriba.
     <section id="trayectoria" className="relative w-full bg-ink py-16 md:py-24">
       {/* max-w-7xl y no 5xl: alinea la espina con la grilla de los Actos y del
           Hero — con 5xl la sección quedaba angosta y descentrada respecto al
@@ -126,98 +132,119 @@ export default function Trayectoria() {
           ))}
         </Reveal>
 
-        {/* La espina: una línea vertical continua que atraviesa las décadas.
-            Sin `Reveal` acá a propósito (Fase 4): `Reveal` es un `motion.div`
-            que deja un `transform` inline puesto incluso en reposo, y
-            `transform` en cualquier ancestro rompe `position: sticky` de sus
-            descendientes (el encabezado de década dejaba de pinnearse — se
-            probó con `Reveal` puesto y el sticky no hacía nada). El resto de
-            la sección (eyebrow/título/filtros arriba) sigue con `Reveal`, acá
-            no hay más entradas individuales que animar de todos modos. */}
-        <div className="relative mt-16 pl-8 md:pl-14">
+        {/* La espina: una línea vertical continua, centrada desde `md` (los
+            hitos alternan a cada lado) y pegada al borde izquierdo en mobile
+            (una sola columna, como el resto del sitio a ese ancho). Sin
+            `Reveal` en el contenedor — sería un observer por sección, no por
+            hito; el fade-in de grupo alcanza (ver más abajo) y evita el costo
+            de 39 observers individuales. */}
+        <div className="relative mt-16 md:mt-20">
           <div ref={spineRef} className="relative">
-            <div className="absolute inset-y-0 left-0 w-px bg-cream/15 md:left-1" aria-hidden />
+            <div
+              aria-hidden
+              className="absolute inset-y-0 left-4 w-px bg-cream/15 md:left-1/2 md:-translate-x-1/2"
+            />
             {!reduced && (
-              <motion.div
-                aria-hidden
-                style={{ scaleY: spineProgress }}
-                className="absolute inset-y-0 left-0 w-px origin-top bg-brand-red md:left-1"
-              />
+              <>
+                <motion.div
+                  aria-hidden
+                  style={{ scaleY: spineProgress }}
+                  className="absolute inset-y-0 left-4 w-px origin-top bg-brand-red md:left-1/2 md:-translate-x-1/2"
+                />
+                {/* El cometa: un halo chico que marca la punta encendida de la
+                    espina, no solo cuánto se llenó. `radial-gradient`, no
+                    `box-shadow` (design-system) ni `backdrop-blur` (el área es
+                    mínima así que un blur normal es barato, pero ni hace
+                    falta). */}
+                <motion.div
+                  aria-hidden
+                  style={{ top: cometTop }}
+                  className="absolute left-4 z-10 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full md:left-1/2"
+                >
+                  <div
+                    className="h-full w-full rounded-full blur-[2px]"
+                    style={{
+                      background:
+                        'radial-gradient(closest-side, rgba(229,57,53,0.95), rgba(229,57,53,0.25) 45%, rgba(229,57,53,0) 72%)',
+                    }}
+                  />
+                  <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cream" />
+                </motion.div>
+              </>
             )}
 
-            {groups.map(({ decade, items }, gi) => {
-            const isOpen = openDecade === decade;
-            return (
-              <div key={decade} className={cn('relative', gi !== 0 && 'mt-14')}>
-                <span
-                  aria-hidden
-                  className="absolute -left-8 top-2 h-2 w-2 rounded-full bg-brand-red md:-left-14"
-                />
-                {/* La fila ocupa el ancho completo, con la cuenta y el signo
-                    empujados al borde derecho por una hairline: antes el botón
-                    medía solo lo que medía el texto y dejaba el 65 % derecho de
-                    la sección en negro — el peor tramo muerto del sitio una vez
-                    resueltos los actos. Mismo dispositivo que usan las costuras.
-
-                    `sticky top-16 bg-ink` (Fase 4): mientras se scrollea una
-                    década abierta (2010s/2020s tienen 16 ítems cada una), su
-                    encabezado queda pinneado bajo el Header en vez de
-                    desaparecer arriba del viewport — es la "década actual"
-                    sin un segundo mecanismo de tracking por scroll. */}
-                <button
-                  type="button"
-                  onClick={() => setOpenDecade(isOpen ? null : decade)}
-                  aria-expanded={isOpen}
-                  className="sticky top-16 z-10 flex min-h-11 w-full items-baseline gap-4 bg-ink text-left"
-                >
-                  <span className="font-display text-4xl uppercase leading-none text-cream sm:text-5xl">
-                    {decade}
-                  </span>
-                  <span
-                    aria-hidden
-                    className={cn(
-                      'mb-2 h-px flex-grow transition-colors duration-300',
-                      isOpen ? 'bg-brand-red/50' : 'bg-cream/15'
-                    )}
-                  />
-                  <span className="shrink-0 font-label text-xs text-cream/50">{items.length}</span>
-                  <span className="w-3 shrink-0 text-right font-label text-xs uppercase tracking-[0.1em] text-brand-red">
-                    {isOpen ? '−' : '+'}
-                  </span>
-                </button>
-
-                <div
-                  className={cn(
-                    'grid transition-[grid-template-rows] duration-300 motion-reduce:transition-none',
-                    isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                  )}
-                >
-                  <div className="overflow-hidden">
-                    <ul className="mt-6 flex flex-col">
-                      {items.map((item, i) => (
-                        <li
-                          key={`${item.year}-${item.title}`}
-                          className={cn(
-                            'grid grid-cols-[5.5rem_1fr] gap-4 py-3 sm:grid-cols-[7rem_1fr]',
-                            i !== 0 && 'border-t border-cream/10'
-                          )}
-                        >
-                          <span className="font-label text-xs text-brand-red">{item.year}</span>
-                          <div className="min-w-0">
-                            <p className="font-body text-cream">{item.title}</p>
-                            <p className="mt-0.5 font-label text-xs text-cream/50">{item.detail}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+            <Reveal as="div" className="relative">
+              {groups.map(({ decade, items }, gi) => (
+                <div key={decade} className={cn(gi !== 0 && 'mt-6 md:mt-10')}>
+                  <div className="relative flex items-center gap-3 py-8 pl-10 md:justify-center md:py-10 md:pl-0">
+                    <span className="relative z-10 bg-ink font-display text-4xl uppercase leading-none text-cream sm:text-5xl md:px-4 md:text-6xl">
+                      {decade}
+                    </span>
+                    <span className="font-label text-xs text-cream/50">{items.length}</span>
                   </div>
+
+                  <ul className="flex flex-col">
+                    {items.map((item) => {
+                      sideCounter += 1;
+                      const side: Side = sideCounter % 2 === 0 ? 'left' : 'right';
+                      return <TimelineRow key={`${item.year}-${item.title}`} item={item} side={side} />;
+                    })}
+                  </ul>
                 </div>
-              </div>
-            );
-            })}
+              ))}
+            </Reveal>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function TimelineRow({ item, side }: { item: TimelineEntry; side: Side }) {
+  const mirrored = side === 'right';
+  const photoCredits = item.images?.length
+    ? Array.from(new Set(item.images.map((img) => img.credit)))
+    : [];
+
+  return (
+    <li className="relative py-5 md:py-7">
+      <span
+        aria-hidden
+        className="absolute left-4 top-1.5 h-2.5 w-2.5 rounded-full bg-brand-red md:left-1/2 md:-translate-x-1/2"
+      />
+      <div
+        className={cn(
+          'ml-10 md:w-[calc(50%-2rem)]',
+          mirrored ? 'md:ml-auto' : 'md:ml-0'
+        )}
+      >
+        <span className="font-label text-xs text-brand-red">{item.year}</span>
+        <p className="mt-1 font-body text-cream">{item.title}</p>
+        <p className="mt-1 font-label text-xs text-cream/50">{item.detail}</p>
+
+        {item.images && item.images.length > 0 && (
+          <>
+            <div className={cn('mt-4 flex flex-wrap gap-3', mirrored && 'md:justify-end')}>
+              {item.images.map((img, i) => (
+                <Picture
+                  key={img.src}
+                  src={img.src}
+                  alt={img.alt}
+                  sizes="(min-width: 768px) 8rem, 30vw"
+                  loading="lazy"
+                  decoding="async"
+                  pictureClassName="block"
+                  className={cn(
+                    'aspect-[3/4] w-20 border-[3px] border-cream/15 object-cover sm:w-24',
+                    i % 2 === 0 ? '-rotate-2' : 'rotate-2'
+                  )}
+                />
+              ))}
+            </div>
+            <p className="mt-2 font-label text-[11px] text-cream/50">Foto: {photoCredits.join(' · ')}</p>
+          </>
+        )}
+      </div>
+    </li>
   );
 }

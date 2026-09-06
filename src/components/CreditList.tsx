@@ -5,8 +5,29 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
 import Picture from './Picture';
 
-/** i, ii, iii... — alcanza con lo que mide una lista de créditos real (nunca más de ~6). */
-const ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii'];
+/**
+ * Numeral romano en minúscula, sin tope — la lista de teatro de `Crear` ya
+ * pasó las 8 entradas que cubría el lookup fijo que había acá antes (9., 10.,
+ * 11. caían a arábigo plano, rompiendo el dispositivo de "programa de sala"
+ * a mitad de lista). Alcanza hasta miles, muy por encima de cualquier lista
+ * de créditos real.
+ */
+function toRoman(num: number): string {
+  const VALUES: [number, string][] = [
+    [1000, 'm'], [900, 'cm'], [500, 'd'], [400, 'cd'],
+    [100, 'c'], [90, 'xc'], [50, 'l'], [40, 'xl'],
+    [10, 'x'], [9, 'ix'], [5, 'v'], [4, 'iv'], [1, 'i'],
+  ];
+  let n = num;
+  let out = '';
+  for (const [value, symbol] of VALUES) {
+    while (n >= value) {
+      out += symbol;
+      n -= value;
+    }
+  }
+  return out;
+}
 
 export type CreditListVariant = 'cast' | 'notebook' | 'dossier';
 
@@ -35,11 +56,11 @@ function IndexMarker({ index, variant }: { index: number; variant: CreditListVar
   if (variant === 'notebook') {
     return (
       <span className="font-signature text-lg leading-none text-cream/50">
-        {ROMAN[index] ?? index + 1}.
+        {toRoman(index + 1)}.
       </span>
     );
   }
-  return <span className="font-body italic text-cream/50">{ROMAN[index] ?? index + 1}.</span>;
+  return <span className="font-body italic text-cream/50">{toRoman(index + 1)}.</span>;
 }
 
 /**
@@ -61,8 +82,13 @@ const creditId = (c: Credit) => `${c.work}::${c.years}`;
  * de un ícono de flecha.
  *
  * Colapsado: índice + título + año. Expandido: detalle y, si ese crédito
- * puntual tiene `image`, su propia foto — nunca una imagen fija de toda la
- * sección (eso repetía con el mosaico del Hero). Todo arranca cerrado.
+ * puntual tiene `images`, sus propias fotos — nunca una imagen fija de toda
+ * la sección (eso repetía con el mosaico del Hero). La mayoría de los
+ * créditos con material trae una sola; un puñado (Rapiña, ¡Mujeres a la
+ * obra!, Los golpes de Clara) trae varias — 2026-09-04, a pedido del
+ * usuario de mostrar más fotos de una obra **pegadas a su crédito**, no en
+ * una galería aparte al pie del Acto (así queda inequívoco de qué obra es
+ * cada una). Todo arranca cerrado.
  */
 export default function CreditList({
   title,
@@ -113,19 +139,34 @@ export default function CreditList({
               >
                 <div className="overflow-hidden">
                   <div className="ml-6 border-l-2 border-brand-red/60 pb-4 pl-4">
-                    {c.image && (
+                    {c.images?.length === 1 && (
                       <Picture
-                        src={c.image.src}
-                        alt={c.image.alt}
+                        src={c.images[0].src}
+                        alt={c.images[0].alt}
                         sizes="(min-width: 768px) 20rem, 80vw"
                         loading="lazy"
                         decoding="async"
                         className="mb-3 w-full max-w-[14rem] rounded object-cover"
                       />
                     )}
+                    {c.images && c.images.length > 1 && (
+                      <div className="mb-3 grid max-w-md grid-cols-3 gap-1.5">
+                        {c.images.map((img) => (
+                          <Picture
+                            key={img.src}
+                            src={img.src}
+                            alt={img.alt}
+                            sizes="120px"
+                            loading="lazy"
+                            decoding="async"
+                            className="aspect-[3/4] w-full rounded object-cover"
+                          />
+                        ))}
+                      </div>
+                    )}
                     <p className="font-label text-xs leading-relaxed text-cream/50">{c.detail}</p>
-                    {c.image && (
-                      <p className="mt-1 font-label text-[10px] text-cream/50">Foto: {c.image.credit}</p>
+                    {c.images && c.images.length > 0 && (
+                      <p className="mt-1 font-label text-[10px] text-cream/50">Foto: {c.images[0].credit}</p>
                     )}
                     {c.video && (
                       <a
