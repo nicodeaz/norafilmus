@@ -14,14 +14,6 @@
       480
     ]
   },
-  "/img/about/los-golpes-de-clara-foto-1.jpg": {
-    "width": 960,
-    "height": 640,
-    "widths": [
-      480,
-      960
-    ]
-  },
   "/img/about/los-golpes-de-clara-foto-2.jpg": {
     "width": 960,
     "height": 640,
@@ -65,25 +57,7 @@
       480
     ]
   },
-  "/img/about/rapina-foto-3.jpg": {
-    "width": 2717,
-    "height": 2244,
-    "widths": [
-      480,
-      960,
-      1440
-    ]
-  },
   "/img/about/rapina-foto-5.jpg": {
-    "width": 2717,
-    "height": 2244,
-    "widths": [
-      480,
-      960,
-      1440
-    ]
-  },
-  "/img/about/rapina-foto-6.jpg": {
     "width": 2717,
     "height": 2244,
     "widths": [
@@ -264,130 +238,9 @@
       960
     ]
   },
-  "/img/nora-firma.png": {
-    "width": 1191,
-    "height": 666,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/nora-logo.png": {
-    "width": 1408,
-    "height": 1117,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/nora-portrait-halftone.png": {
-    "width": 1364,
-    "height": 3129,
-    "widths": [
-      480,
-      960
-    ]
-  },
   "/img/nora-portrait.webp": {
     "width": 1268,
     "height": 1949,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/clown-1.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/clown-2.jpg": {
-    "width": 2000,
-    "height": 1333,
-    "widths": [
-      480,
-      960,
-      1440
-    ]
-  },
-  "/img/presente/clown-3.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/clown-4.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/editorial-1.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/editorial-2.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/editorial-3.jpg": {
-    "width": 1334,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/editorial-4.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/estudio-1.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/estudio-2.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/estudio-3.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/presente/estudio-4.jpg": {
-    "width": 1333,
-    "height": 2000,
     "widths": [
       480,
       960
