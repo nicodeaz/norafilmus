@@ -16,26 +16,27 @@ const CrearPage = lazy(() => import('./pages/CrearPage'));
 const EnsenarPage = lazy(() => import('./pages/EnsenarPage'));
 const ProducirPage = lazy(() => import('./pages/ProducirPage'));
 const TrayectoriaPage = lazy(() => import('./pages/TrayectoriaPage'));
-const PresentePage = lazy(() => import('./pages/PresentePage'));
-const ArchivoPage = lazy(() => import('./pages/ArchivoPage'));
 const ContactoPage = lazy(() => import('./pages/ContactoPage'));
 
 /**
  * Home — Fase 1 (arquitectura de rutas, 2026-08-28). Antes concatenaba el
  * sitio entero (Hero → About → Crear → Enseñar → Producir → Trayectoria →
- * Presente → Footer): el usuario pidió que la home sirva para NAVEGAR hacia
- * el resto del contenido, no para contenerlo todo. Cada Acto/pieza de
- * archivo pasó a su propia ruta (`src/pages/*Page.tsx`) — Home queda en
- * Hero (portada) + AboutMe ("quién es"), que es lo que corresponde a un
- * hub de navegación, no un resumen comprimido del sitio entero.
+ * Footer): el usuario pidió que la home sirva para NAVEGAR hacia el resto
+ * del contenido, no para contenerlo todo. Cada Acto pasó a su propia ruta
+ * (`src/pages/*Page.tsx`) — Home queda en Hero (portada) + AboutMe ("quién
+ * es"), que es lo que corresponde a un hub de navegación, no un resumen
+ * comprimido del sitio entero.
  *
  * `Preloader`/`Grain`/`ScrollProgress`/`Header`/`Footer` se movieron a
  * `SiteLayout` (chrome compartido por todas las rutas menos `NotFound`).
  *
- * `ProgramIndex` (Fase 2, 2026-08-28) cierra Home: la lista de las 5 páginas
+ * `ProgramIndex` (Fase 2, 2026-08-28) cierra Home: la lista de las páginas
  * a igual peso, el "índice de programa" que las tres IAs consultadas
  * señalaron como el hueco real de dejar la home en solo Hero+About — antes
- * Trayectoria/Presente solo existían como texto chico en Header/Footer.
+ * Trayectoria solo existía como texto chico en Header/Footer. `Presente` y
+ * `Archivo` se sacaron del sitio 2026-09-04 (a pedido del usuario) — ver
+ * `content.ts` y el docblock de `ActGallery.tsx`, que reemplaza a `Archivo`
+ * dentro de Crear/Producir.
  */
 function Home() {
   const location = useLocation();
@@ -90,8 +91,6 @@ function App() {
               <Route path="/ensenar" element={<EnsenarPage />} />
               <Route path="/producir" element={<ProducirPage />} />
               <Route path="/trayectoria" element={<TrayectoriaPage />} />
-              <Route path="/presente" element={<PresentePage />} />
-              <Route path="/archivo" element={<ArchivoPage />} />
               <Route path="/contacto" element={<ContactoPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />

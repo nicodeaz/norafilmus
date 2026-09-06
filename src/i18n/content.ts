@@ -57,33 +57,23 @@ export interface GalleryItem {
   credit?: string;
 }
 
-/**
- * Una foto de la sección Presente (F6). No es material de archivo de una
- * obra —es la sesión personal actual (book de estudio, clown, editorial)—
- * así que no lleva `work`/`role` como `GalleryItem`: en vez de eso, `label`
- * dice de qué registro es cada foto. El crédito va una sola vez para toda
- * la sección (`presente.credit` en `SiteContent`), no por ítem, porque las
- * seis son de la misma fotógrafa y la misma sesión.
- */
-export interface PresenteItem {
-  src: string;
-  alt: string;
-  label: string;
-}
-
 /** Una línea de una lista de créditos tipo CV de sala (F2 en adelante). */
 export interface Credit {
   work: string;
   detail: string;
   years: string;
   /**
-   * Foto propia de ESTE crédito — no una imagen fija de toda la sección.
-   * Solo un puñado de créditos tiene material real; el resto se despliega
-   * sin foto. Evita que la misma imagen aparezca dos veces (el mosaico del
-   * Hero ya la muestra como preview; acá es la única otra vez que se ve, y
-   * solo si el usuario abre el acordeón).
+   * Fotos propias de ESTE crédito — no una imagen fija de toda la sección.
+   * Casi siempre una sola; créditos con material de archivo real (Rapiña,
+   * ¡Mujeres a la obra!, Los golpes de Clara) traen varias — 2026-09-04: el
+   * usuario pidió explícitamente que las fotos de una obra vivan pegadas a
+   * su crédito, no en una galería aparte, así se entiende sin ambigüedad de
+   * qué obra es cada una. Solo un puñado de créditos tiene material real; el
+   * resto se despliega sin foto. Evita que la misma imagen aparezca dos
+   * veces (el mosaico del Hero ya la muestra como preview; acá es la única
+   * otra vez que se ve, y solo si el usuario abre el acordeón).
    */
-  image?: { src: string; alt: string; credit: string };
+  images?: { src: string; alt: string; credit: string }[];
   /**
    * Video propio de ESTE crédito (no un componente de video del sitio,
    * solo un link — YouTube por ahora). Mismo criterio que `image`: solo
@@ -94,24 +84,6 @@ export interface Credit {
 
 export type TimelineCategory = 'actuacion' | 'docencia' | 'produccion' | 'formacion';
 export type Decade = '1990s' | '2000s' | '2010s' | '2020s';
-
-/**
- * Una pieza del archivo curado (F8, en preparación — no hay componente/ruta
- * `/archivo` todavía, esto es solo la data). `pillar` la separa por Crear,
- * Enseñar o Producir para el filtro que pide el plan; `role` nunca se omite
- * (regla 2) y `credit` es obligatorio salvo casos ya documentados como
- * excepción explícita en el código que arma `ARCHIVO_ES`/`ARCHIVO_EN`.
- */
-export interface ArchiveItem {
-  src: string;
-  alt: string;
-  work: string;
-  role: string;
-  years: string;
-  pillar: 'crear' | 'ensenar' | 'producir';
-  decade: Decade;
-  credit: string;
-}
 
 /**
  * Un hito de la línea de tiempo de #trayectoria (F5). `decade` es dato de
@@ -125,6 +97,15 @@ export interface TimelineEntry {
   detail: string;
   category: TimelineCategory;
   decade: Decade;
+  /**
+   * Fotos reales de ESTE hito, ya acreditadas en otro lado del sitio (Crear/
+   * Producir/`GALLERY_ES`) — nunca un archivo nuevo sin verificar acá. Array
+   * (no una sola) para los hitos con varias tomas de la misma obra (Rapiña,
+   * ¡Mujeres a la obra!, Los golpes de Clara): la espina pide "muchas
+   * imágenes", no solo una por hito. La mayoría de los 39 hitos sigue sin
+   * imagen — sería inventar material que no existe (regla 1).
+   */
+  images?: { src: string; alt: string; credit: string }[];
 }
 
 /** Forma completa del contenido de un idioma — si ES y EN se desalinean, rompe el build. */
@@ -162,14 +143,14 @@ export interface SiteContent {
     credentials: string[];
   };
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
-  nav: { home: string; about: string; trayectoria: string; presente: string; archivo: string; contacto: string };
+  nav: { home: string; about: string; trayectoria: string; contacto: string };
   pillars: Pillar[];
   /**
    * Índice de programa en Home (Fase 2 del rediseño de fondo, 2026-08-28) —
-   * la lista de las 5 páginas del sitio (los 3 pilares + Trayectoria +
-   * Presente) como su propio momento de navegación, no solo enlaces chicos
-   * en el Header/Footer. Los ítems salen de `pillars` + `nav.trayectoria` +
-   * `nav.presente`, esto solo agrega el eyebrow del bloque.
+   * la lista de las páginas del sitio (los 3 pilares + Trayectoria) como su
+   * propio momento de navegación, no solo enlaces chicos en el Header/Footer.
+   * Los ítems salen de `pillars` + `nav.trayectoria`, esto solo agrega el
+   * eyebrow del bloque.
    */
   programIndex: { eyebrow: string };
   /** Sección #crear (F2) — el pilar actriz. Fuente: CV/cv cuasi completo_.docx + content/alternativa-teatral*. */
@@ -254,25 +235,6 @@ export interface SiteContent {
     items: TimelineEntry[];
   };
   /**
-   * Archivo (F8, en preparación) — todavía sin ruta `/archivo` ni
-   * componente: esto es la data curada, lista para cuando se construya la
-   * galería. `items` no repite ninguna foto que ya use otra sección del
-   * sitio (mismo criterio que ya siguen Crear/Producir entre sí). `ensenar`
-   * queda vacío a propósito — ver `emptyEnsenar` y la regla 4.
-   */
-  archivo: {
-    eyebrow: string;
-    titleLead: string;
-    titleAccent: string;
-    body: string;
-    filterAll: string;
-    filterCrear: string;
-    filterEnsenar: string;
-    filterProducir: string;
-    emptyEnsenar: string;
-    items: ArchiveItem[];
-  };
-  /**
    * Contacto (F7, en preparación) — cierre del sitio. `LINKS`/`social` ya
    * existen y se reusan tal cual (mismo mail/redes que Footer); esto solo
    * agrega el copy propio de la página.
@@ -295,27 +257,6 @@ export interface SiteContent {
     galleryTitle: string;
     galleryNote: string;
     gallery: GalleryItem[];
-  };
-  /**
-   * Presente (F6, 2026-08-19) — cierra el arco del "Programa" mostrando el
-   * work más reciente, después de Trayectoria y antes del Footer. Fuente:
-   * sesión de Paula del 2026-03-08 (`external-assets/polas`/`Rita
-   * Universos_`/`Norah_`), la misma del retrato del Hero — ver `hero.portraitCredit`.
-   */
-  presente: {
-    eyebrow: string;
-    titleLead: string;
-    titleAccent: string;
-    body: string;
-    /** Crédito único para todas las fotos — misma fotógrafa, misma sesión. */
-    credit: string;
-    items: PresenteItem[];
-    /** Labels del lightbox (Fase 5) — controles solo-ícono, necesitan aria-label. */
-    close: string;
-    previous: string;
-    next: string;
-    /** Microinteracción (Fase 6) — aparece en hover/focus sobre cada foto de la grilla. */
-    view: string;
   };
   /** Label reutilizado por `CreditList` cuando un crédito puntual tiene `video`. */
   creditVideo: { watch: string };
@@ -344,38 +285,31 @@ const GALLERY_ES: GalleryItem[] = [
     credit: 'Marcela Russarabian',
   },
   {
-    src: '/img/about/rapina-foto-3.jpg',
-    alt: 'Escena de la pieza "Sur", de Rapiña',
-    work: 'Rapiña · 2017–2019',
-    role: 'Actriz',
-    credit: 'Marcela Russarabian',
+    src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+    alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+    work: 'Chicha, Carmen y Angelita · 2010–2013',
+    role: 'Dramaturgia y actuación',
+    credit: 'Colo Gens',
   },
   {
-    src: '/img/about/rapina-foto-6.jpg',
-    alt: 'Escena de la pieza "Fotos", de Rapiña',
-    work: 'Rapiña · 2017–2019',
-    role: 'Actriz',
-    credit: 'Marcela Russarabian',
+    src: '/img/crear/pizarnikett-flyer.jpg',
+    alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio',
+    work: 'Pizarn-i-kett Más? · 2009–2010',
+    role: 'Actuación, caracterización y maquillaje',
+    credit: 'Teatro El Refugio',
+  },
+  {
+    src: '/img/about/maldichas-foto-1.png',
+    alt: 'Integrante de Maldichas en escena',
+    work: 'Maldichas · 2018–2019',
+    role: 'Gestora cultural y productora ejecutiva',
+    credit: 'Ariel Ugolino',
   },
   {
     src: '/img/about/los-golpes-de-clara-afiche.jpg',
     alt: 'Afiche de Los golpes de Clara',
-    work: 'Los golpes de Clara · 2017–2025',
-    role: 'Producción ejecutiva',
-    credit: 'Nicolás Finoli',
-  },
-  {
-    src: '/img/about/los-golpes-de-clara-foto-1.jpg',
-    alt: 'Carolina Guevara en Los golpes de Clara',
-    work: 'Los golpes de Clara · 2017–2025',
-    role: 'Producción ejecutiva',
-    credit: 'Nicolás Finoli',
-  },
-  {
-    src: '/img/about/los-golpes-de-clara-foto-2.jpg',
-    alt: 'Carolina Guevara en Los golpes de Clara',
-    work: 'Los golpes de Clara · 2017–2025',
-    role: 'Producción ejecutiva',
+    work: 'Los golpes de Clara · 2020',
+    role: 'Produjo la única función',
     credit: 'Nicolás Finoli',
   },
   {
@@ -384,330 +318,36 @@ const GALLERY_ES: GalleryItem[] = [
     work: '¡Mujeres a la obra! · CELCIT, 2018',
     role: 'Producción',
   },
-];
-
-const PRESENTE_ES: PresenteItem[] = [
-  {
-    src: '/img/presente/estudio-1.jpg',
-    alt: 'Nora Filmus haciendo una mueca a cámara, en blanco y negro, book de estudio',
-    label: 'Book de estudio',
-  },
-  {
-    src: '/img/presente/estudio-2.jpg',
-    alt: 'Nora Filmus sonriendo a cámara, book de estudio',
-    label: 'Book de estudio',
-  },
-  {
-    src: '/img/presente/clown-1.jpg',
-    alt: 'Nora Filmus caracterizada de payasa, con nariz roja y peluca, caminando hacia cámara',
-    label: 'Rita Universos',
-  },
-  {
-    src: '/img/presente/clown-2.jpg',
-    alt: 'Nora Filmus caracterizada de payasa, leyendo un cuento ilustrado',
-    label: 'Rita Universos',
-  },
-  {
-    src: '/img/presente/editorial-1.jpg',
-    alt: 'Nora Filmus con campera roja, retrato en una terraza',
-    label: 'Book actual',
-  },
-  {
-    src: '/img/presente/editorial-2.jpg',
-    alt: 'Detalle de zapatos y maquillaje sobre una alfombra',
-    label: 'Book actual',
-  },
-  {
-    src: '/img/presente/estudio-3.jpg',
-    alt: 'Nora Filmus riendo a carcajadas con una mano en la cadera, en blanco y negro, book de estudio',
-    label: 'Book de estudio',
-  },
-  {
-    src: '/img/presente/estudio-4.jpg',
-    alt: 'Nora Filmus de perfil, con las manos juntas, en blanco y negro, book de estudio',
-    label: 'Book de estudio',
-  },
-  {
-    src: '/img/presente/clown-3.jpg',
-    alt: 'Nora Filmus caracterizada de payasa, con los brazos abiertos en una terraza',
-    label: 'Rita Universos',
-  },
-  {
-    src: '/img/presente/clown-4.jpg',
-    alt: 'Detalle de un muñeco tejido, parte del vestuario de Rita Universos',
-    label: 'Rita Universos',
-  },
-  {
-    src: '/img/presente/editorial-3.jpg',
-    alt: 'Nora Filmus con sweater negro, retrato sentada',
-    label: 'Book actual',
-  },
-  {
-    src: '/img/presente/editorial-4.jpg',
-    alt: 'Nora Filmus con sweater rojo y brazos abiertos, en una terraza',
-    label: 'Book actual',
-  },
-];
-
-/** Mismas fotos — solo cambia el `label` traducido. */
-const PRESENTE_EN: PresenteItem[] = PRESENTE_ES.map((item, i) => ({
-  ...item,
-  alt: [
-    'Nora Filmus pulling a face at the camera, black and white, studio book',
-    'Nora Filmus smiling at the camera, studio book',
-    'Nora Filmus in clown character, red nose and wig, walking toward camera',
-    'Nora Filmus in clown character, reading an illustrated storybook',
-    'Nora Filmus in a red jacket, portrait on a rooftop',
-    'Detail of shoes and makeup on a carpet',
-    'Nora Filmus laughing out loud with a hand on her hip, black and white, studio book',
-    'Nora Filmus in profile with hands clasped, black and white, studio book',
-    'Nora Filmus in clown character, arms open on a rooftop',
-    'Detail of a knitted doll, part of the Rita Universos costume',
-    'Nora Filmus in a black sweater, seated portrait',
-    'Nora Filmus in a red sweater with arms open, on a rooftop',
-  ][i],
-  label: [
-    'Studio book',
-    'Studio book',
-    'Rita Universos',
-    'Rita Universos',
-    'Current book',
-    'Current book',
-    'Studio book',
-    'Studio book',
-    'Rita Universos',
-    'Rita Universos',
-    'Current book',
-    'Current book',
-  ][i],
-}));
-
-/**
- * Primera curaduría del Archivo (F8), 2026-08-28 — ninguna foto repetida de
- * las que ya usan Hero/AboutMe/Crear/Producir. Se descartaron a propósito
- * varios candidatos: la foto de la muestra de Marcos Paz (cientos de
- * adolescentes con la cara visible, regla 4), una foto de la varieté de
- * clown en Casa Semilla (sin fotógrafo acreditado, regla 3), y una foto de
- * backstage de Maldichas en el Teatro Solís (misma razón — solo se sabe que
- * la resubió la cuenta del teatro, no quién la sacó). `ensenar` queda vacío:
- * no se encontró ninguna foto de docencia con adultos únicamente y crédito
- * confirmado — ver `emptyEnsenar`.
- */
-const ARCHIVO_ES: ArchiveItem[] = [
-  {
-    src: '/img/archivo/rapina-sur.jpg',
-    alt: 'Escena de la pieza "Sur", de Rapiña',
-    work: 'Rapiña · "Sur"',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/archivo/rapina-tarantulas-2.jpg',
-    alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
-    work: 'Rapiña · "Como las tarántulas"',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/archivo/rapina-funcion.jpg',
-    alt: 'Escena de función de Rapiña',
-    work: 'Rapiña',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
-    alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
-    work: 'Chicha, Carmen y Angelita',
-    role: 'Dramaturgia y actuación',
-    years: '2010–2013',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Colo Gens',
-  },
-  {
-    src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg',
-    alt: 'Escena del ciclo ¡Mujeres a la obra!',
-    work: '¡Mujeres a la obra!',
-    role: 'Producción',
-    years: '2018',
-    pillar: 'producir',
-    decade: '2010s',
-    credit: 'CELCIT',
-  },
-  {
-    src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
-    alt: 'Escena del ciclo ¡Mujeres a la obra!',
-    work: '¡Mujeres a la obra!',
-    role: 'Producción',
-    years: '2018',
-    pillar: 'producir',
-    decade: '2010s',
-    credit: 'CELCIT',
-  },
-  {
-    src: '/img/about/los-golpes-de-clara-foto-3.jpg',
-    alt: 'Carolina Guevara en Los golpes de Clara',
-    work: 'Los golpes de Clara',
-    role: 'Producción (una función)',
-    years: '2020',
-    pillar: 'producir',
-    decade: '2020s',
-    credit: 'Nicolás Finoli',
-  },
-  {
-    src: '/img/archivo/los-golpes-de-clara-foto-4.jpg',
-    alt: 'Carolina Guevara en Los golpes de Clara',
-    work: 'Los golpes de Clara',
-    role: 'Producción (una función)',
-    years: '2020',
-    pillar: 'producir',
-    decade: '2020s',
-    credit: 'Nicolás Finoli',
-  },
   {
     src: '/img/menu/improvisacion-mosquito-afiche.jpg',
     alt: 'Afiche de Improvisación Mosquito',
-    work: 'Improvisación Mosquito',
+    work: 'Improvisación Mosquito · 2019',
     role: 'Producción',
-    years: '2019',
-    pillar: 'producir',
-    decade: '2010s',
     credit: 'Productora Demos',
   },
-  {
-    // Única pieza de Enseñar en esta primera curaduría — ver la nota junto
-    // al mismo crédito en `ensenar.teachCredits` sobre el blur.
-    src: '/img/archivo/marcos-paz-blur.jpg',
-    alt: 'Público en la muestra de fin de taller en Marcos Paz, caras desenfocadas',
-    work: 'Teatro para adolescentes · Marcos Paz',
-    role: 'Docencia — grupo "Los Galponeros"',
-    years: '2015–2016',
-    pillar: 'ensenar',
-    decade: '2010s',
-    credit: 'Archivo personal de Nora',
-  },
-  // Segunda pasada de curaduría (2026-08-30), a pedido del usuario de sumar
-  // más material visible — mismas 3 reglas, mismo fotógrafo/crédito verificado
-  // que las piezas de Rapiña/¡Mujeres a la obra! ya publicadas arriba.
-  {
-    src: '/img/archivo/rapina-banera.jpg',
-    alt: 'Escena de la pieza "Bañera", de Rapiña',
-    work: 'Rapiña · "Bañera"',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/archivo/rapina-fotos-pieza.jpg',
-    alt: 'Escena de la pieza "Fotos", de Rapiña',
-    work: 'Rapiña · "Fotos"',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/archivo/rapina-tarantulas-3.jpg',
-    alt: 'Escena de la pieza "Como las tarántulas", de Rapiña, otro ángulo',
-    work: 'Rapiña · "Como las tarántulas"',
-    role: 'Actriz',
-    years: '2017–2019',
-    pillar: 'crear',
-    decade: '2010s',
-    credit: 'Marcela Russarabian',
-  },
-  {
-    src: '/img/archivo/mujeres-a-la-obra-foto-3.jpg',
-    alt: 'Escena del ciclo ¡Mujeres a la obra!',
-    work: '¡Mujeres a la obra!',
-    role: 'Producción',
-    years: '2018',
-    pillar: 'producir',
-    decade: '2010s',
-    credit: 'CELCIT',
-  },
 ];
-
-/** Mismas fotos — solo cambian obra/rol/alt traducidos. */
-const ARCHIVO_EN: ArchiveItem[] = ARCHIVO_ES.map((item, i) => ({
-  ...item,
-  alt: [
-    'Scene from "Sur", part of Rapiña',
-    'Scene from "Como las tarántulas", part of Rapiña',
-    'Scene from a Rapiña performance',
-    'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
-    'Scene from the ¡Mujeres a la obra! season',
-    'Scene from the ¡Mujeres a la obra! season',
-    'Carolina Guevara in Los golpes de Clara',
-    'Carolina Guevara in Los golpes de Clara',
-    'Poster for Improvisación Mosquito',
-    'Audience at the end-of-workshop show in Marcos Paz, faces blurred',
-    'Scene from "Bañera", part of Rapiña',
-    'Scene from "Fotos", part of Rapiña',
-    'Scene from "Como las tarántulas", part of Rapiña, another angle',
-    'Scene from the ¡Mujeres a la obra! season',
-  ][i],
-  work: [
-    'Rapiña · "Sur"',
-    'Rapiña · "Como las tarántulas"',
-    'Rapiña',
-    'Chicha, Carmen y Angelita',
-    '¡Mujeres a la obra!',
-    '¡Mujeres a la obra!',
-    'Los golpes de Clara',
-    'Los golpes de Clara',
-    'Improvisación Mosquito',
-    'Theatre for teenagers · Marcos Paz',
-    'Rapiña · "Bañera"',
-    'Rapiña · "Fotos"',
-    'Rapiña · "Como las tarántulas"',
-    '¡Mujeres a la obra!',
-  ][i],
-  role: [
-    'Actor',
-    'Actor',
-    'Actor',
-    'Writer and performer',
-    'Producer',
-    'Producer',
-    'Producer (one night)',
-    'Producer (one night)',
-    'Producer',
-    'Teaching — "Los Galponeros" group',
-    'Actor',
-    'Actor',
-    'Actor',
-    'Producer',
-  ][i],
-  credit: i === 9 ? "Nora's personal archive" : item.credit,
-}));
 
 /** Mismas imágenes, mismos créditos — solo cambian obra/rol traducidos. */
 const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
   ...item,
   alt: [
     'Poster for Rapiña',
-    'Scene from "Sur", part of Rapiña',
-    'Scene from "Fotos", part of Rapiña',
+    'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+    'Flyer for Pizarn-i-kett Más?, Teatro El Refugio',
+    'Member of Maldichas on stage',
     'Poster for Los golpes de Clara',
-    'Carolina Guevara in Los golpes de Clara',
-    'Carolina Guevara in Los golpes de Clara',
     'Poster for the ¡Mujeres a la obra! season',
+    'Poster for Improvisación Mosquito',
   ][i],
-  role: ['Actor', 'Actor', 'Actor', 'Executive producer', 'Executive producer', 'Executive producer', 'Producer'][i],
+  role: [
+    'Actor',
+    'Playwright and performer',
+    'Acting, characterisation and make-up',
+    'Cultural manager and executive producer',
+    'Produced the single performance',
+    'Producer',
+    'Producer',
+  ][i],
 }));
 
 export const content: Record<Language, SiteContent> = {
@@ -725,12 +365,12 @@ export const content: Record<Language, SiteContent> = {
       bio: 'Treinta y seis años en artes escénicas, entre Buenos Aires y Dublín. Actúo, produzco teatro y audiovisual, y coordino programas de formación artística.',
       cta: 'Ver trayectoria',
       location: 'Dublín, Irlanda',
-      portraitAlt: 'Nora Filmus en un retrato de estudio, girada de tres cuartos, sonriendo a cámara',
+      portraitAlt: 'Nora Filmus riendo a carcajadas en un retrato de estudio, con los brazos cruzados',
       portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', presente: 'Presente', archivo: 'Archivo', contacto: 'Contacto' },
+    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', contacto: 'Contacto' },
 
     crear: {
       eyebrow: 'Actuación',
@@ -752,11 +392,49 @@ export const content: Record<Language, SiteContent> = {
           work: 'Rapiña',
           detail: 'Elenco · Belisario Club de Cultura',
           years: '2017–2019',
-          image: {
-            src: '/img/crear/rapina-tarantulas.jpg',
-            alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
-            credit: 'Marcela Russarabian',
-          },
+          // Siete fotos de piezas distintas de la misma obra (2026-09-04 —
+          // el usuario pidió más imágenes en Crear, y que se entienda de qué
+          // obra son: pegadas acá, adentro del crédito, en vez de una
+          // galería aparte al pie del Acto). Ninguna repite la foto ancla
+          // del Acto (`crear.image`, "Bañera" en `/img/about/rapina-foto-5.jpg`
+          // — un fotograma distinto de la misma pieza que el de acá abajo).
+          images: [
+            {
+              src: '/img/crear/rapina-tarantulas.jpg',
+              alt: 'Escena de la pieza "Como las tarántulas", de Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-sur.jpg',
+              alt: 'Escena de la pieza "Sur", de Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-tarantulas-2.jpg',
+              alt: 'Escena de la pieza "Como las tarántulas", de Rapiña, otro ángulo',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-funcion.jpg',
+              alt: 'Escena de función de Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-banera.jpg',
+              alt: 'Escena de la pieza "Bañera", de Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-fotos-pieza.jpg',
+              alt: 'Escena de la pieza "Fotos", de Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-tarantulas-3.jpg',
+              alt: 'Escena de la pieza "Como las tarántulas", de Rapiña, tercer ángulo',
+              credit: 'Marcela Russarabian',
+            },
+          ],
         },
         { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
         // Sin año confirmado por Nora (su bio profesional, 2026-08-31, solo dice "temporadas");
@@ -770,11 +448,13 @@ export const content: Record<Language, SiteContent> = {
           work: 'Chicha, Carmen y Angelita',
           detail: 'Dramaturgia y actuación',
           years: '2010–2013',
-          image: {
-            src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
-            alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
-            credit: 'Colo Gens',
-          },
+          images: [
+            {
+              src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+              alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+              credit: 'Colo Gens',
+            },
+          ],
           video: { url: 'https://youtu.be/G13JP5uqVn0' },
         },
         { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
@@ -782,11 +462,13 @@ export const content: Record<Language, SiteContent> = {
           work: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)',
           detail: 'Actuación, caracterización y maquillaje — texto: Alejandra Pizarnik, dir. Gladys Huertos',
           years: '2009–2010',
-          image: {
-            src: '/img/crear/pizarnikett-flyer.jpg',
-            alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio',
-            credit: 'Teatro El Refugio',
-          },
+          images: [
+            {
+              src: '/img/crear/pizarnikett-flyer.jpg',
+              alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio',
+              credit: 'Teatro El Refugio',
+            },
+          ],
         },
         {
           work: 'Los Ranz',
@@ -848,16 +530,18 @@ export const content: Record<Language, SiteContent> = {
           work: 'Teatro para adolescentes',
           detail: 'Escuelas medias 1 y 2 de Marcos Paz — grupo "Los Galponeros"',
           years: '2015–2016',
-          image: {
-            // Foto de la muestra final del grupo, con las caras de los
-            // alumnos desenfocadas a propósito (regla 4: son adolescentes
-            // identificables, sin consentimiento escrito) — la franja de
-            // luces queda nítida, es arquitectura sin gente. Ver
-            // external-assets/marcos-paz-blur/blur.mjs para el proceso.
-            src: '/img/archivo/marcos-paz-blur.jpg',
-            alt: 'Público en la muestra de fin de taller en Marcos Paz, caras desenfocadas',
-            credit: 'Archivo personal de Nora',
-          },
+          images: [
+            {
+              // Foto de la muestra final del grupo, con las caras de los
+              // alumnos desenfocadas a propósito (regla 4: son adolescentes
+              // identificables, sin consentimiento escrito) — la franja de
+              // luces queda nítida, es arquitectura sin gente. Ver
+              // external-assets/marcos-paz-blur/blur.mjs para el proceso.
+              src: '/img/archivo/marcos-paz-blur.jpg',
+              alt: 'Público en la muestra de fin de taller en Marcos Paz, caras desenfocadas',
+              credit: 'Archivo personal de Nora',
+            },
+          ],
         },
         { work: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', years: '2014–2015' },
       ],
@@ -889,31 +573,54 @@ export const content: Record<Language, SiteContent> = {
           work: '¡Mujeres a la obra!',
           detail: 'Producción — 1º ciclo de teatro y feminismos, CELCIT',
           years: '2018',
-          image: {
-            src: '/img/about/mujeres-a-la-obra-afiche.jpg',
-            alt: 'Afiche del ciclo ¡Mujeres a la obra!',
-            credit: 'CELCIT',
-          },
+          // Cuatro fotos (2026-09-04, mismo pedido que en Crear: más
+          // imágenes, pegadas al crédito de la obra que les corresponde).
+          images: [
+            {
+              src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+              alt: 'Afiche del ciclo ¡Mujeres a la obra!',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg',
+              alt: 'Escena del ciclo ¡Mujeres a la obra!',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-3.jpg',
+              alt: 'Escena del ciclo ¡Mujeres a la obra!, otro momento',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
+              alt: 'Escena del ciclo ¡Mujeres a la obra!, otro momento',
+              credit: 'CELCIT',
+            },
+          ],
         },
         {
           work: 'Maldichas',
           detail: 'Gestora cultural y productora ejecutiva — Teatro Solís (Montevideo), Teatro Roma de Avellaneda, Teatro Celcit',
           years: '2018–2019',
-          image: {
-            src: '/img/about/maldichas-foto-1.png',
-            alt: 'Integrante de Maldichas en escena',
-            credit: 'Ariel Ugolino',
-          },
+          images: [
+            {
+              src: '/img/about/maldichas-foto-1.png',
+              alt: 'Integrante de Maldichas en escena',
+              credit: 'Ariel Ugolino',
+            },
+          ],
         },
         {
           work: 'Improvisación Mosquito',
           detail: 'Producción — Productora Demos, Teatro Porteño',
           years: '2019',
-          image: {
-            src: '/img/menu/improvisacion-mosquito-afiche.jpg',
-            alt: 'Afiche de Improvisación Mosquito',
-            credit: 'Productora Demos',
-          },
+          images: [
+            {
+              src: '/img/menu/improvisacion-mosquito-afiche.jpg',
+              alt: 'Afiche de Improvisación Mosquito',
+              credit: 'Productora Demos',
+            },
+          ],
         },
         { work: 'Pizarn-i-kett Más?', detail: 'Gestión del subsidio del Instituto Nacional del Teatro', years: '2009–2010' },
         { work: 'Que no quede huella', detail: 'Gestión del subsidio Proteatro', years: '2015–2017' },
@@ -927,11 +634,23 @@ export const content: Record<Language, SiteContent> = {
           work: 'Los golpes de Clara',
           detail: 'Produjo la única función, antes de la pandemia — texto: Carolina Guevara, que siguió la obra sola después',
           years: '2020',
-          image: {
-            src: '/img/about/los-golpes-de-clara-afiche.jpg',
-            alt: 'Afiche de Los golpes de Clara',
-            credit: 'Nicolás Finoli',
-          },
+          images: [
+            {
+              src: '/img/about/los-golpes-de-clara-afiche.jpg',
+              alt: 'Afiche de Los golpes de Clara',
+              credit: 'Nicolás Finoli',
+            },
+            {
+              src: '/img/about/los-golpes-de-clara-foto-3.jpg',
+              alt: 'Carolina Guevara en Los golpes de Clara',
+              credit: 'Nicolás Finoli',
+            },
+            {
+              src: '/img/archivo/los-golpes-de-clara-foto-4.jpg',
+              alt: 'Carolina Guevara en Los golpes de Clara, otro momento',
+              credit: 'Nicolás Finoli',
+            },
+          ],
         },
       ],
       screenTitle: 'Cine, TV y streaming',
@@ -975,9 +694,27 @@ export const content: Record<Language, SiteContent> = {
         { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango y otros — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
         { year: '1999–2000', title: 'Entrenamiento actoral Tadashi Suzuki', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
         { year: '2001–2004', title: 'Licenciatura en Dirección Escénica', detail: 'UNA — hasta 3er año', category: 'formacion', decade: '2000s' },
-        { year: '2009–2010', title: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)', detail: 'Actuación, caracterización y maquillaje, y gestión del subsidio del INT — dir. Gladys Huertos', category: 'actuacion', decade: '2000s' },
+        {
+          year: '2009–2010',
+          title: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)',
+          detail: 'Actuación, caracterización y maquillaje, y gestión del subsidio del INT — dir. Gladys Huertos',
+          category: 'actuacion',
+          decade: '2000s',
+          images: [
+            { src: '/img/crear/pizarnikett-flyer.jpg', alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio', credit: 'Teatro El Refugio' },
+          ],
+        },
         { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
-        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Dramaturgia y actuación — Compañía Boquitas Pintadas', category: 'actuacion', decade: '2010s' },
+        {
+          year: '2010–2015',
+          title: 'Chicha, Carmen y Angelita',
+          detail: 'Dramaturgia y actuación — Compañía Boquitas Pintadas',
+          category: 'actuacion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg', alt: 'Escena de Chicha, Carmen y Angelita, Teatro Español de Magdalena', credit: 'Colo Gens' },
+          ],
+        },
         { year: '2012–2013', title: 'Profesora de teatro para adolescentes', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
         { year: '2012–2024', title: 'Coordinación del Programa Adolescencia', detail: 'Gobierno de la Ciudad de Buenos Aires', category: 'produccion', decade: '2010s' },
         { year: '2014–2015', title: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', category: 'docencia', decade: '2010s' },
@@ -987,13 +724,62 @@ export const content: Record<Language, SiteContent> = {
         { year: '2017–2019', title: 'Teatro para niños y pre-adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'desde 2017', title: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Rapiña', detail: 'Elenco — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
-        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producción — CELCIT', category: 'produccion', decade: '2010s' },
+        {
+          year: '2018–2019',
+          title: 'Rapiña',
+          detail: 'Elenco — Belisario Club de Cultura',
+          category: 'actuacion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/rapina-foto-5.jpg', alt: 'Escena de la pieza "Bañera", de Rapiña', credit: 'Marcela Russarabian' },
+            { src: '/img/crear/rapina-tarantulas.jpg', alt: 'Escena de la pieza "Como las tarántulas", de Rapiña', credit: 'Marcela Russarabian' },
+            { src: '/img/archivo/rapina-sur.jpg', alt: 'Escena de la pieza "Sur", de Rapiña', credit: 'Marcela Russarabian' },
+          ],
+        },
+        {
+          year: '2018',
+          title: '¡Mujeres a la obra!',
+          detail: 'Producción — CELCIT',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/mujeres-a-la-obra-afiche.jpg', alt: 'Afiche del ciclo ¡Mujeres a la obra!', credit: 'CELCIT' },
+            { src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg', alt: 'Escena del ciclo ¡Mujeres a la obra!', credit: 'CELCIT' },
+          ],
+        },
         { year: '2018', title: 'Premio "Opresión y Libertad"', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Gestora cultural y productora ejecutiva — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        {
+          year: '2018–2019',
+          title: 'Maldichas',
+          detail: 'Gestora cultural y productora ejecutiva — Teatro Solís, Montevideo',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/maldichas-foto-1.png', alt: 'Integrante de Maldichas en escena', credit: 'Ariel Ugolino' },
+          ],
+        },
         // Año inferido — ver nota en producir.stageCredits más abajo. CHEQUEAR con Nora.
-        { year: '2020', title: 'Los golpes de Clara', detail: 'Produjo la única función — texto: Carolina Guevara, que siguió la obra sola después', category: 'produccion', decade: '2020s' },
-        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producción — Productora Demos', category: 'produccion', decade: '2010s' },
+        {
+          year: '2020',
+          title: 'Los golpes de Clara',
+          detail: 'Produjo la única función — texto: Carolina Guevara, que siguió la obra sola después',
+          category: 'produccion',
+          decade: '2020s',
+          images: [
+            { src: '/img/about/los-golpes-de-clara-afiche.jpg', alt: 'Afiche de Los golpes de Clara', credit: 'Nicolás Finoli' },
+            { src: '/img/about/los-golpes-de-clara-foto-3.jpg', alt: 'Carolina Guevara en Los golpes de Clara', credit: 'Nicolás Finoli' },
+          ],
+        },
+        {
+          year: '2019',
+          title: 'Improvisación Mosquito',
+          detail: 'Producción — Productora Demos',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/menu/improvisacion-mosquito-afiche.jpg', alt: 'Afiche de Improvisación Mosquito', credit: 'Productora Demos' },
+          ],
+        },
         { year: '2020', title: 'Tecnicatura Superior en Pedagogía Social', detail: 'Orientación en Derechos Humanos — IFTS N.º 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Asistente de cátedra, Pedagogía Social', detail: 'IFTS N.º 28', category: 'docencia', decade: '2020s' },
         { year: '2021', title: 'Chocolate para 3', detail: 'Sánchez Cine — extra en pantalla, administradora de producción (largometraje INCAA)', category: 'produccion', decade: '2020s' },
@@ -1046,19 +832,6 @@ export const content: Record<Language, SiteContent> = {
 
     programIndex: { eyebrow: 'El Programa' },
 
-    archivo: {
-      eyebrow: 'Archivo',
-      titleLead: 'Todo el material,',
-      titleAccent: 'en un solo lugar.',
-      body: 'Una primera selección curada del archivo completo — cada pieza indica la obra, el año y el rol real que tuve en ella.',
-      filterAll: 'Todo',
-      filterCrear: 'Crear',
-      filterEnsenar: 'Enseñar',
-      filterProducir: 'Producir',
-      emptyEnsenar: 'Todavía no hay fotos publicables de docencia: el material disponible muestra adolescentes del Programa Adolescencia, sin consentimiento escrito para publicar su cara.',
-      items: ARCHIVO_ES,
-    },
-
     contacto: {
       eyebrow: 'Contacto',
       titleLead: '¿Un proyecto',
@@ -1081,19 +854,6 @@ export const content: Record<Language, SiteContent> = {
       /** Aclaración fija al pie del archivo — refuerza la regla 2 en pantalla. */
       galleryNote: 'Cada pieza indica el rol que ocupé en esa producción.',
       gallery: GALLERY_ES,
-    },
-
-    presente: {
-      eyebrow: 'Presente',
-      titleLead: 'Así se ve',
-      titleAccent: 'hoy.',
-      body: 'Estas doce fotos son de la misma sesión, marzo de 2026: un book de estudio, mi trabajo de clown como Rita Universos —mi personaje para las infancias, con vestuario propio, que armé en pandemia— y un registro editorial: el material más reciente que tengo.',
-      credit: 'Fotos: Paula, marzo 2026',
-      items: PRESENTE_ES,
-      close: 'Cerrar',
-      previous: 'Anterior',
-      next: 'Siguiente',
-      view: 'Ver',
     },
 
     creditVideo: { watch: 'Ver video' },
@@ -1130,12 +890,12 @@ export const content: Record<Language, SiteContent> = {
       bio: 'Thirty-six years in the performing arts, between Buenos Aires and Dublin. I act, I produce for stage and screen, and I run arts education programmes.',
       cta: 'See my work',
       location: 'Dublin, Ireland',
-      portraitAlt: 'Nora Filmus in a studio portrait, turned three-quarters, smiling at the camera',
+      portraitAlt: 'Nora Filmus laughing out loud in a studio portrait, arms crossed',
       portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
     },
 
-    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', presente: 'Present', archivo: 'Archive', contacto: 'Contact' },
+    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', contacto: 'Contact' },
 
     crear: {
       eyebrow: 'Acting',
@@ -1157,11 +917,43 @@ export const content: Record<Language, SiteContent> = {
           work: 'Rapiña',
           detail: 'Ensemble cast · Belisario Club de Cultura, Buenos Aires',
           years: '2017–2019',
-          image: {
-            src: '/img/crear/rapina-tarantulas.jpg',
-            alt: 'Scene from "Como las tarántulas", part of Rapiña',
-            credit: 'Marcela Russarabian',
-          },
+          images: [
+            {
+              src: '/img/crear/rapina-tarantulas.jpg',
+              alt: 'Scene from "Como las tarántulas", part of Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-sur.jpg',
+              alt: 'Scene from "Sur", part of Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-tarantulas-2.jpg',
+              alt: 'Scene from "Como las tarántulas", part of Rapiña, another angle',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-funcion.jpg',
+              alt: 'Scene from a Rapiña performance',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-banera.jpg',
+              alt: 'Scene from "Bañera", part of Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-fotos-pieza.jpg',
+              alt: 'Scene from "Fotos", part of Rapiña',
+              credit: 'Marcela Russarabian',
+            },
+            {
+              src: '/img/archivo/rapina-tarantulas-3.jpg',
+              alt: 'Scene from "Como las tarántulas", part of Rapiña, a third angle',
+              credit: 'Marcela Russarabian',
+            },
+          ],
         },
         { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
         // No confirmed year from Nora's professional bio (2026-08-31, only says "seasons");
@@ -1175,11 +967,13 @@ export const content: Record<Language, SiteContent> = {
           work: 'Chicha, Carmen y Angelita',
           detail: 'Writer and performer',
           years: '2010–2013',
-          image: {
-            src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
-            alt: 'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
-            credit: 'Colo Gens',
-          },
+          images: [
+            {
+              src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
+              alt: 'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena',
+              credit: 'Colo Gens',
+            },
+          ],
           video: { url: 'https://youtu.be/G13JP5uqVn0' },
         },
         { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
@@ -1187,11 +981,13 @@ export const content: Record<Language, SiteContent> = {
           work: 'Pizarn-i-kett Más? (A Forced Hybrid)',
           detail: 'Performer, hair & makeup — text: Alejandra Pizarnik, dir. Gladys Huertos',
           years: '2009–2010',
-          image: {
-            src: '/img/crear/pizarnikett-flyer.jpg',
-            alt: 'Flyer for Pizarn-i-kett Más?, Teatro El Refugio',
-            credit: 'Teatro El Refugio',
-          },
+          images: [
+            {
+              src: '/img/crear/pizarnikett-flyer.jpg',
+              alt: 'Flyer for Pizarn-i-kett Más?, Teatro El Refugio',
+              credit: 'Teatro El Refugio',
+            },
+          ],
         },
         {
           work: 'Los Ranz',
@@ -1253,11 +1049,13 @@ export const content: Record<Language, SiteContent> = {
           work: 'Theatre for teenagers',
           detail: 'Secondary schools 1 & 2, Marcos Paz — "Los Galponeros" group',
           years: '2015–2016',
-          image: {
-            src: '/img/archivo/marcos-paz-blur.jpg',
-            alt: 'Audience at the end-of-workshop show in Marcos Paz, faces blurred',
-            credit: "Nora's personal archive",
-          },
+          images: [
+            {
+              src: '/img/archivo/marcos-paz-blur.jpg',
+              alt: 'Audience at the end-of-workshop show in Marcos Paz, faces blurred',
+              credit: "Nora's personal archive",
+            },
+          ],
         },
         { work: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', years: '2014–2015' },
       ],
@@ -1289,31 +1087,52 @@ export const content: Record<Language, SiteContent> = {
           work: '¡Mujeres a la obra!',
           detail: 'Producer — theatre & feminism festival, CELCIT',
           years: '2018',
-          image: {
-            src: '/img/about/mujeres-a-la-obra-afiche.jpg',
-            alt: 'Poster for the ¡Mujeres a la obra! season',
-            credit: 'CELCIT',
-          },
+          images: [
+            {
+              src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+              alt: 'Poster for the ¡Mujeres a la obra! season',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg',
+              alt: 'Scene from the ¡Mujeres a la obra! season',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-3.jpg',
+              alt: 'Scene from the ¡Mujeres a la obra! season, another moment',
+              credit: 'CELCIT',
+            },
+            {
+              src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
+              alt: 'Scene from the ¡Mujeres a la obra! season, another moment',
+              credit: 'CELCIT',
+            },
+          ],
         },
         {
           work: 'Maldichas',
           detail: 'Cultural manager and executive producer — Teatro Solís (Montevideo), Teatro Roma de Avellaneda, Teatro Celcit',
           years: '2018–2019',
-          image: {
-            src: '/img/about/maldichas-foto-1.png',
-            alt: 'A Maldichas performer on stage',
-            credit: 'Ariel Ugolino',
-          },
+          images: [
+            {
+              src: '/img/about/maldichas-foto-1.png',
+              alt: 'A Maldichas performer on stage',
+              credit: 'Ariel Ugolino',
+            },
+          ],
         },
         {
           work: 'Improvisación Mosquito',
           detail: 'Producer — Productora Demos, Teatro Porteño',
           years: '2019',
-          image: {
-            src: '/img/menu/improvisacion-mosquito-afiche.jpg',
-            alt: 'Poster for Improvisación Mosquito',
-            credit: 'Productora Demos',
-          },
+          images: [
+            {
+              src: '/img/menu/improvisacion-mosquito-afiche.jpg',
+              alt: 'Poster for Improvisación Mosquito',
+              credit: 'Productora Demos',
+            },
+          ],
         },
         { work: 'Pizarn-i-kett Más?', detail: 'Managed the grant from Argentina\'s National Theatre Institute', years: '2009–2010' },
         { work: 'Que no quede huella', detail: 'Managed the Proteatro grant', years: '2015–2017' },
@@ -1324,11 +1143,23 @@ export const content: Record<Language, SiteContent> = {
           work: 'Los golpes de Clara',
           detail: 'Produced the only night, right before the pandemic — text: Carolina Guevara, who went on with the show alone afterwards',
           years: '2020',
-          image: {
-            src: '/img/about/los-golpes-de-clara-afiche.jpg',
-            alt: 'Poster for Los golpes de Clara',
-            credit: 'Nicolás Finoli',
-          },
+          images: [
+            {
+              src: '/img/about/los-golpes-de-clara-afiche.jpg',
+              alt: 'Poster for Los golpes de Clara',
+              credit: 'Nicolás Finoli',
+            },
+            {
+              src: '/img/about/los-golpes-de-clara-foto-3.jpg',
+              alt: 'Carolina Guevara in Los golpes de Clara',
+              credit: 'Nicolás Finoli',
+            },
+            {
+              src: '/img/archivo/los-golpes-de-clara-foto-4.jpg',
+              alt: 'Carolina Guevara in Los golpes de Clara, another moment',
+              credit: 'Nicolás Finoli',
+            },
+          ],
         },
       ],
       screenTitle: 'Film, TV & streaming',
@@ -1370,9 +1201,27 @@ export const content: Record<Language, SiteContent> = {
         { year: '1998–2007', title: 'Los Ranz', detail: 'Inténtalo otra vez, Animal Tango and others — Teatro Colón, Centro Cultural Recoleta', category: 'actuacion', decade: '1990s' },
         { year: '1999–2000', title: 'Tadashi Suzuki actor training', detail: 'Marisa Salas — Teatro Templum', category: 'formacion', decade: '1990s' },
         { year: '2001–2004', title: 'Degree in Stage Direction', detail: 'UNA — three years completed', category: 'formacion', decade: '2000s' },
-        { year: '2009–2010', title: 'Pizarn-i-kett Más? (A Forced Hybrid)', detail: 'Performer, hair & makeup, and managed the INT grant — dir. Gladys Huertos', category: 'actuacion', decade: '2000s' },
+        {
+          year: '2009–2010',
+          title: 'Pizarn-i-kett Más? (A Forced Hybrid)',
+          detail: 'Performer, hair & makeup, and managed the INT grant — dir. Gladys Huertos',
+          category: 'actuacion',
+          decade: '2000s',
+          images: [
+            { src: '/img/crear/pizarnikett-flyer.jpg', alt: 'Flyer for Pizarn-i-kett Más?, Teatro El Refugio', credit: 'Teatro El Refugio' },
+          ],
+        },
         { year: '2010–2011', title: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto — Teatro Puerta Roja', category: 'actuacion', decade: '2010s' },
-        { year: '2010–2015', title: 'Chicha, Carmen y Angelita', detail: 'Writer and performer — Boquitas Pintadas company', category: 'actuacion', decade: '2010s' },
+        {
+          year: '2010–2015',
+          title: 'Chicha, Carmen y Angelita',
+          detail: 'Writer and performer — Boquitas Pintadas company',
+          category: 'actuacion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg', alt: 'Scene from Chicha, Carmen y Angelita, Teatro Español de Magdalena', credit: 'Colo Gens' },
+          ],
+        },
         { year: '2012–2013', title: 'Theatre teacher for teenagers', detail: 'Programa Adolescencia — Federación de Instituciones Comunitarias', category: 'docencia', decade: '2010s' },
         { year: '2012–2024', title: 'Coordinator, Programa Adolescencia', detail: 'City of Buenos Aires', category: 'produccion', decade: '2010s' },
         { year: '2014–2015', title: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', category: 'docencia', decade: '2010s' },
@@ -1382,13 +1231,62 @@ export const content: Record<Language, SiteContent> = {
         { year: '2017–2019', title: 'Theatre for children and pre-teens', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'since 2017', title: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Rapiña', detail: 'Ensemble cast — Belisario Club de Cultura', category: 'actuacion', decade: '2010s' },
-        { year: '2018', title: '¡Mujeres a la obra!', detail: 'Producer — CELCIT', category: 'produccion', decade: '2010s' },
+        {
+          year: '2018–2019',
+          title: 'Rapiña',
+          detail: 'Ensemble cast — Belisario Club de Cultura',
+          category: 'actuacion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/rapina-foto-5.jpg', alt: 'Scene from "Bañera", part of Rapiña', credit: 'Marcela Russarabian' },
+            { src: '/img/crear/rapina-tarantulas.jpg', alt: 'Scene from "Como las tarántulas", part of Rapiña', credit: 'Marcela Russarabian' },
+            { src: '/img/archivo/rapina-sur.jpg', alt: 'Scene from "Sur", part of Rapiña', credit: 'Marcela Russarabian' },
+          ],
+        },
+        {
+          year: '2018',
+          title: '¡Mujeres a la obra!',
+          detail: 'Producer — CELCIT',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/mujeres-a-la-obra-afiche.jpg', alt: 'Poster for the ¡Mujeres a la obra! season', credit: 'CELCIT' },
+            { src: '/img/archivo/mujeres-a-la-obra-foto-2.jpg', alt: 'Scene from the ¡Mujeres a la obra! season', credit: 'CELCIT' },
+          ],
+        },
         { year: '2018', title: '"Opresión y Libertad" award', detail: 'Fondo Metropolitano de la Cultura, las Artes y las Ciencias', category: 'produccion', decade: '2010s' },
-        { year: '2018–2019', title: 'Maldichas', detail: 'Cultural manager and executive producer — Teatro Solís, Montevideo', category: 'produccion', decade: '2010s' },
+        {
+          year: '2018–2019',
+          title: 'Maldichas',
+          detail: 'Cultural manager and executive producer — Teatro Solís, Montevideo',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/about/maldichas-foto-1.png', alt: 'A Maldichas performer on stage', credit: 'Ariel Ugolino' },
+          ],
+        },
         // Inferred year — see the note in producir.stageCredits above. CHECK with Nora.
-        { year: '2020', title: 'Los golpes de Clara', detail: 'Produced the only night — text: Carolina Guevara, who went on with the show alone afterwards', category: 'produccion', decade: '2020s' },
-        { year: '2019', title: 'Improvisación Mosquito', detail: 'Producer — Productora Demos', category: 'produccion', decade: '2010s' },
+        {
+          year: '2020',
+          title: 'Los golpes de Clara',
+          detail: 'Produced the only night — text: Carolina Guevara, who went on with the show alone afterwards',
+          category: 'produccion',
+          decade: '2020s',
+          images: [
+            { src: '/img/about/los-golpes-de-clara-afiche.jpg', alt: 'Poster for Los golpes de Clara', credit: 'Nicolás Finoli' },
+            { src: '/img/about/los-golpes-de-clara-foto-3.jpg', alt: 'Carolina Guevara in Los golpes de Clara', credit: 'Nicolás Finoli' },
+          ],
+        },
+        {
+          year: '2019',
+          title: 'Improvisación Mosquito',
+          detail: 'Producer — Productora Demos',
+          category: 'produccion',
+          decade: '2010s',
+          images: [
+            { src: '/img/menu/improvisacion-mosquito-afiche.jpg', alt: 'Poster for Improvisación Mosquito', credit: 'Productora Demos' },
+          ],
+        },
         { year: '2020', title: 'Further-education degree in Social Pedagogy', detail: 'Human Rights focus — IFTS Nº 28', category: 'formacion', decade: '2020s' },
         { year: '2020–2022', title: 'Teaching assistant, Social Pedagogy', detail: 'IFTS Nº 28', category: 'docencia', decade: '2020s' },
         { year: '2021', title: 'Chocolate para 3', detail: 'Sánchez Cine — on-screen extra, production administrator (INCAA feature)', category: 'produccion', decade: '2020s' },
@@ -1439,19 +1337,6 @@ export const content: Record<Language, SiteContent> = {
 
     programIndex: { eyebrow: 'The Programme' },
 
-    archivo: {
-      eyebrow: 'Archive',
-      titleLead: 'Everything,',
-      titleAccent: 'in one place.',
-      body: 'A first curated selection from the full archive — each piece states the production, the year, and the role I actually held in it.',
-      filterAll: 'All',
-      filterCrear: 'Create',
-      filterEnsenar: 'Teach',
-      filterProducir: 'Produce',
-      emptyEnsenar: "No publishable teaching photos yet: the available material shows teenagers from Programa Adolescencia, without written consent to publish their faces.",
-      items: ARCHIVO_EN,
-    },
-
     contacto: {
       eyebrow: 'Contact',
       titleLead: 'Got a project',
@@ -1473,19 +1358,6 @@ export const content: Record<Language, SiteContent> = {
       galleryTitle: 'From the archive',
       galleryNote: 'Each piece states the role I held in that production.',
       gallery: GALLERY_EN,
-    },
-
-    presente: {
-      eyebrow: 'Present',
-      titleLead: 'This is',
-      titleAccent: 'now.',
-      body: "These twelve photos are from the same session, March 2026: a studio book, my clown work as Rita Universos —my character for children, with her own costume, that I put together during the pandemic— and an editorial shoot: the most recent material I have.",
-      credit: 'Photos: Paula, March 2026',
-      items: PRESENTE_EN,
-      close: 'Close',
-      previous: 'Previous',
-      next: 'Next',
-      view: 'View',
     },
 
     creditVideo: { watch: 'Watch video' },

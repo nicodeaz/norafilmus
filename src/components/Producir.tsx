@@ -30,6 +30,11 @@ import CreditList from './CreditList';
  * tres `CreditList` en variante `dossier` (índice `[01]` en monoespacio en
  * vez del romano en itálica de Crear) — lee como expediente/planilla, no
  * como programa de sala.
+ *
+ * Más fotos por crédito (2026-09-04) — mismo criterio que Crear: los
+ * créditos de ¡Mujeres a la obra! y Los golpes de Clara traen varias fotos
+ * cada uno (`producir.stageCredits[…].images` en `content.ts`) en vez de
+ * una galería aparte al pie del Acto. Ver el docblock de `CreditList.tsx`.
  */
 export default function Producir() {
   const { t } = useLanguage();

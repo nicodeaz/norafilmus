@@ -22,6 +22,12 @@ import CreditList from './CreditList';
  * teatro son el marcador más directo para "Actuación". Los créditos se
  * quedan en la variante `cast` (default) de `CreditList`: es el Acto que
  * define ese tratamiento, los otros dos se diferencian de este.
+ *
+ * Más fotos por crédito (2026-09-04) — el usuario pidió mostrar más
+ * imágenes acá, pero pegadas a la obra que corresponde, no en una galería
+ * aparte al pie del Acto: el crédito de Rapiña en `stageCredits` trae siete
+ * fotos (`crear.stageCredits[0].images` en `content.ts`), no una — el resto
+ * de los créditos siguen con una sola. Ver el docblock de `CreditList.tsx`.
  */
 export default function Crear() {
   const { t } = useLanguage();

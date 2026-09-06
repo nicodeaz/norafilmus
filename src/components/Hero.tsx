@@ -55,16 +55,26 @@ const CREDENTIAL_LOGOS: Record<string, { src: string; width: number; height: num
  *   cabeza: el recorte de `nora-portrait.webp` viene trimeado al ras del pelo
  *   (`sharp.trim()`), así que a `h-full` la cabeza tocaba el borde superior y
  *   se leía como cortada. Ahora la imagen mide menos que el viewport y respira.
- * - **La figura lleva un efecto halftone** (2026-09-01, `nora-portrait-halftone.png`,
- *   generado por `scripts/build-hero-halftone.mjs` a partir del mismo
- *   `nora-portrait.webp`): puntos de `brand-red` cuya densidad sigue la
- *   luminancia de la foto original. Reemplaza al recorte a color plano — la
- *   foto de book al lado de numerales de Acto y grano de papel se veía
- *   genérica. Se probó también un duotono ink→rojo y salió plano (la sesión
- *   de estudio está iluminada muy pareja, sin rango de sombra/luz real); el
- *   halftone no depende de eso, solo de densidad de punto, así que sí
- *   funciona con esta foto puntual — decisión tomada con el usuario viendo
- *   ambos previews sobre la imagen real, no a ciegas.
+ * - **La figura es una sola foto estática de Nora, sin fondo**
+ *   (`/img/nora-portrait.webp`, `object-contain object-bottom`, sin marco).
+ *   Pasó brevemente por un efecto halftone (1/9), por un rotador de las 28
+ *   fotos de `external-assets/polas/` (3/9–4/9) y por `PhotoMarquee` (una
+ *   pared diagonal de 12 fotos de `/img/presente/` con tres filas animadas
+ *   en loop infinito + una capa de `backdrop-blur-md` sobre buena parte del
+ *   viewport, probada y revertida el mismo 4/9 — el usuario reportó el sitio
+ *   "lentísimo" con esto puesto, muy probablemente el `backdrop-blur`
+ *   corriendo sobre un área grande del Hero en cada frame de las tres
+ *   animaciones simultáneas; el componente se borró entero, no quedó sin
+ *   usar — si se retoma, evitar `backdrop-blur` de área grande). Volvió a
+ *   una sola foto estática
+ *   **2026-09-04**, recortada de `DSC01552.jpg` (mismo lote/sesión, mismo
+ *   fotógrafo) en vez de `DSC01503.jpg`, que era la fuente original del
+ *   17/8. Mismo tratamiento de siempre: alfa real
+ *   (`@imgly/background-removal-node`, modelo local, no una API) +
+ *   `sharp.trim()` al bounding box, corrido en dos procesos Node separados
+ *   (sharp y onnxruntime no cargan juntos en el mismo proceso en este
+ *   Windows — ver memoria `sharp-vs-onnxruntime-y-shrink-to-fit`). Mismo
+ *   crédito de siempre (`hero.portraitCredit`, "Paula").
  * - **Los pilares bajan a una banda al pie, en horizontal** (`orientation="inline"`
  *   de `PillarMenu`), con una hairline arriba. Llenan el ancho del pie, se leen
  *   como navegación y ya no flotan chicos en la esquina derecha.
@@ -100,10 +110,42 @@ export default function Hero({ className }: HeroProps) {
     >
       <BackgroundDots />
 
+      {/* ── Luz de escena ambiente (2026-09-04, "living photo") ──────────
+          Capa independiente DETRÁS de la figura: un resplandor rojo tenue
+          que deriva de posición e intensidad muy lentamente (15s), como una
+          luz de escenario que respira. La figura nunca se mueve — es esta
+          capa la que da la sensación de escena viva, separada del cuerpo de
+          Nora (parallax de profundidad real entre dos capas, no un
+          translate/scale del bloque entero de la foto). Sin `filter`/
+          `backdrop-blur`: un `radial-gradient` ya lee como luz suave sin el
+          costo de repintado que tuvo `PhotoMarquee` (revertido el mismo día
+          por lento — ver docblock de más arriba). Antes de la figura en el
+          DOM → detrás en stacking (mismo z como BackgroundDots, gana por
+          orden), `z-10` explícito para quedar entre los puntos (z-0) y la
+          figura (`z-20`). */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 right-0 z-10 h-[50vh] w-[55vw] max-w-[480px] md:right-[8vw] md:h-[80vh] md:w-[40vw]"
+        style={{
+          background: 'radial-gradient(closest-side, rgba(229,57,53,0.18), rgba(229,57,53,0) 72%)',
+        }}
+        animate={
+          reduced
+            ? undefined
+            : { x: [0, 16, -8, 0], y: [0, -12, 8, 0], opacity: [0.5, 0.8, 0.6, 0.5] }
+        }
+        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
       {/* ── Figura ───────────────────────────────────────────────────────
           Anclada abajo y a la derecha, con tope de alto para dejar aire
           sobre la cabeza (ver docblock). `z-20` la pone por delante del
-          nombre, que pasa por detrás. */}
+          nombre, que pasa por detrás. Una sola foto estática — sin ancho
+          propio (`w-auto`, shrink-to-fit a través de `picture`), un solo
+          nivel de `position:absolute` (a diferencia del rotador que estuvo
+          acá 3/9–4/9, que necesitaba dos niveles anidados para el crossfade
+          y por eso forzaba `aspect-[3/4]` explícito — ver memoria
+          `sharp-vs-onnxruntime-y-shrink-to-fit` si esto vuelve a cambiar). */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -111,19 +153,52 @@ export default function Hero({ className }: HeroProps) {
         className="pointer-events-none absolute bottom-0 right-0 z-20 h-[52vh] md:right-[11vw] md:h-[90vh]"
       >
         <Picture
-          src="/img/nora-portrait-halftone.png"
+          src="/img/nora-portrait.webp"
           alt={t.hero.portraitAlt}
           sizes="(min-width: 768px) 460px, 78vw"
           fetchPriority="high"
           loading="eager"
           decoding="async"
-          pictureClassName="block h-full"
+          pictureClassName="block h-full w-auto"
           className="h-full w-auto object-contain object-bottom"
         />
+        {/* Barrido de luz sobre la silueta — enmascarado al alfa exacto de
+            la foto (`mask-image` con el mismo src: el canal alfa del cutout
+            hace de máscara nativa). Un barrido diagonal muy tenue la cruza
+            cada ~8.9s (2.4s de recorrido + 6.5s de pausa), como una luz de
+            escenario rozándola — movimiento DENTRO de la fotografía, nunca
+            del bloque completo (el `<Picture>` de al lado no se transforma).
+            `mix-blend-mode: soft-light` para que tome el tono de piel/ropa
+            en vez de blanquear un rectángulo; vive en un descendiente del
+            Hero, no le rompe el `sticky` a ningún ancestro (ver memoria
+            `sticky-roto-por-transform-y-overflow` — ese gotcha es al revés,
+            de ancestro a descendiente). */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden mix-blend-soft-light"
+          style={{
+            WebkitMaskImage: 'url(/img/nora-portrait.webp)',
+            maskImage: 'url(/img/nora-portrait.webp)',
+            WebkitMaskSize: '100% 100%',
+            maskSize: '100% 100%',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+          }}
+        >
+          <motion.div
+            className="absolute inset-[-30%]"
+            style={{
+              background:
+                'linear-gradient(115deg, transparent 42%, rgba(245,239,230,0.22) 50%, transparent 58%)',
+            }}
+            animate={reduced ? undefined : { x: ['-45%', '45%'] }}
+            transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 6.5, ease: 'easeInOut' }}
+          />
+        </div>
         {/* Crédito del retrato — regla 3 de content.ts. Pegado al borde de la
             figura, en vertical, para no competir con el nombre que pasa por
             detrás ni con la banda de pie. */}
-        <span className="pointer-events-none absolute bottom-2 right-1 font-label text-[9px] uppercase tracking-[0.15em] text-cream/50 [writing-mode:vertical-rl]">
+        <span className="pointer-events-none absolute bottom-2 right-1 z-10 font-label text-[9px] uppercase tracking-[0.15em] text-cream/50 [writing-mode:vertical-rl]">
           Foto: {t.hero.portraitCredit}
         </span>
       </motion.div>

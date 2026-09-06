@@ -15,9 +15,12 @@ import PageCurtain from './PageCurtain';
  * envolviendo todas las rutas menos `NotFound`, que se queda aislada a
  * propósito — ver `App.tsx`).
  *
- * `Preloader` sigue funcionando igual sin importar por qué ruta se entra
- * primero: ya se gobierna con `sessionStorage` (una vez por pestaña), no con
- * la ruta.
+ * **`Preloader` vuelve 2026-09-04** con el monograma NF (`NFMark`, mismo
+ * componente que usa `PageCurtain` en cada cambio de ruta) — se había sacado
+ * el 3/9 porque el usuario rechazó el telón de dos hojas que tenía esa
+ * versión ("eliminar completamente el telón"), no la idea de una obertura en
+ * sí. Pedido explícito de vuelta: "quiero usar un loader en todo el sitio,
+ * quiero que el loader sea la n y la f".
  */
 export default function SiteLayout() {
   const [loading, setLoading] = useState(true);

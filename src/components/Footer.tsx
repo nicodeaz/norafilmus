@@ -22,9 +22,9 @@ import Seam from './Seam';
  * acá vuelve con un trabajo distinto: cerrar el Programa en vez de anunciar
  * el próximo Acto, con `colophon` en vez del `eyebrow` de una sección. La
  * línea de créditos fotográficos debajo agrega a las fotógrafas/fotógrafos
- * reales que ya se acreditan en el sitio (Crear/Enseñar/Producir/Presente) —
- * ninguna cara nueva, es la nómina completa en un solo lugar, como el
- * colofón de un programa de teatro real.
+ * reales que ya se acreditan en el sitio (Crear/Enseñar/Producir) — ninguna
+ * cara nueva, es la nómina completa en un solo lugar, como el colofón de un
+ * programa de teatro real.
  */
 /**
  * Los links del nav llevan `min-h-11` (44px) para cumplir el mínimo táctil sin
@@ -79,12 +79,6 @@ export default function Footer() {
             ))}
             <Link to="/trayectoria" className={NAV_LINK}>
               {t.nav.trayectoria}
-            </Link>
-            <Link to="/presente" className={NAV_LINK}>
-              {t.nav.presente}
-            </Link>
-            <Link to="/archivo" className={NAV_LINK}>
-              {t.nav.archivo}
             </Link>
             <Link to="/contacto" className={NAV_LINK}>
               {t.nav.contacto}

@@ -102,18 +102,10 @@ export default function Header() {
           <Link to="/trayectoria" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
             {t.nav.trayectoria}
           </Link>
-          <Link to="/presente" className={cn(NAV_LINK, 'hidden md:inline-flex')}>
-            {t.nav.presente}
-          </Link>
-          {/* Archivo/Contacto pasan a `lg:` (auditoría 2026-08-31): son links
-              de utilidad, no piezas del "Programa" (Crear/Enseñar/Producir/
-              Trayectoria/Presente) — correrlos a `lg` libera exactamente el
-              rango 768-1023px donde chocaban con el logo, y de paso separa
-              "páginas del programa" de "utilidad" en vez de una lista plana
-              de 8 links del mismo peso. */}
-          <Link to="/archivo" className={cn(NAV_LINK, 'hidden lg:inline-flex')}>
-            {t.nav.archivo}
-          </Link>
+          {/* Contacto pasa a `lg:` (auditoría 2026-08-31): es un link de
+              utilidad, no una pieza del "Programa" (Crear/Enseñar/Producir/
+              Trayectoria) — correrlo a `lg` libera exactamente el rango
+              768-1023px donde chocaba con el logo. */}
           <Link to="/contacto" className={cn(NAV_LINK, 'hidden lg:inline-flex')}>
             {t.nav.contacto}
           </Link>
