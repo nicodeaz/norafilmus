@@ -9,16 +9,22 @@
  * cara en la tarjeta.
  *
  * Compone: fondo ink de marca + el retrato (flush a la derecha, altura
- * completa) + el wordmark "Nora / Filmus" + rol.
+ * completa) + el logo real (firma manuscrita "Nora / Filmus.",
+ * `nora-firma-roja.png`) + rol + un hairline rojo — el mismo dispositivo
+ * tipográfico (regla + rótulo) que ya usan `Seam`/`Act`/los rieles de
+ * `AboutMe` en el sitio, no un motivo nuevo.
  *
- * **Por qué el texto va en Impact y no en Protest Riot** (se probó primero):
- * el renderer de SVG de este build de sharp/libvips (librsvg) no soporta
- * `@font-face` con woff2 embebido en base64 — lo probé aislado con un SVG
- * mínimo y cae en un serif del sistema sin avisar, sin tirar error. Impact
- * es lo más cercano en peso/actitud (condensada, mayúscula, contundente) de
- * lo que hay instalado en el sistema. Si en algún momento se resuelve el
- * embedding real (ej. corriendo esto con resvg en vez de librsvg), esta es
- * la única función que hay que tocar.
+ * **2026-09-06 — reemplazó al wordmark dibujado en Impact.** La versión
+ * anterior armaba "Nora"/"FILMUS" a mano con `<text>` en fuente Impact
+ * porque el renderer de SVG de este build de sharp/libvips (librsvg) no
+ * soporta `@font-face` con woff2 embebido (falla en silencio, cae a un serif
+ * del sistema). Eso quedó desalineado de la marca real desde que el sitio
+ * adoptó la firma manuscrita como logo oficial en Hero/Header/Footer
+ * (2026-08-30, ver CLAUDE.md "Logo manuscrito en todo el sitio"). Componer
+ * el PNG del logo (con alfa real) evita el problema de fuentes por completo
+ * — no hay texto de marca que renderizar, solo la imagen. El texto chico
+ * (rol, tagline) se queda en Arial vía SVG, que sí renderiza bien en este
+ * entorno (ya estaba probado).
  *
  * Uso: node scripts/generate-og-image.mjs
  */
@@ -28,6 +34,7 @@ import sharp from 'sharp';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const PORTRAIT = path.join(ROOT, 'public', 'img', 'nora-portrait.webp');
+const LOGO = path.join(ROOT, 'public', 'img', 'nora-firma-roja.png');
 const OUT = path.join(ROOT, 'public', 'img', 'og-image.jpg');
 
 const WIDTH = 1200;
@@ -35,13 +42,12 @@ const HEIGHT = 630;
 const INK = '#0F0E0D';
 const CREAM = '#F5EFE6';
 const RED = '#E53935';
-const DISPLAY_FONT = 'Impact, \'Arial Black\', sans-serif';
 
 async function main() {
   const portrait = sharp(PORTRAIT);
-  const meta = await portrait.metadata();
+  const portraitMeta = await portrait.metadata();
   const portraitHeight = HEIGHT;
-  const portraitWidth = Math.round((meta.width / meta.height) * portraitHeight);
+  const portraitWidth = Math.round((portraitMeta.width / portraitMeta.height) * portraitHeight);
   // PNG y no JPEG a propósito: el retrato es un recorte con transparencia y
   // JPEG no tiene canal alfa — sharp lo aplanaba contra negro puro, así que
   // sobre el fondo ink (#0F0E0D) quedaba un rectángulo negro visible alrededor
@@ -51,6 +57,20 @@ async function main() {
     .png()
     .toBuffer();
   const portraitX = WIDTH - portraitWidth;
+
+  // Logo a un ancho fijo generoso (afiche, no ícono chico) — la altura sale
+  // de su proporción real (1133×636).
+  const logoWidth = 560;
+  const logo = sharp(LOGO);
+  const logoMeta = await logo.metadata();
+  const logoHeight = Math.round((logoMeta.height / logoMeta.width) * logoWidth);
+  const logoBuf = await logo.resize({ width: logoWidth }).png().toBuffer();
+  const logoX = 70;
+  const logoY = 70;
+
+  const railY = logoY + logoHeight + 6;
+  const labelY = railY + 46;
+  const subtitleY = labelY + 40;
 
   // Degradé para que el texto de la izquierda tenga contraste incluso donde
   // se superpone con el borde del retrato (el retrato es flush-right, pero
@@ -71,10 +91,10 @@ async function main() {
        se encontró al revisar el primer render, no una decisión). -->
   <rect x="${portraitX - 260}" width="${WIDTH - portraitX + 260}" height="${HEIGHT}" fill="url(#fade)" />
 
-  <text x="80" y="230" font-family="${DISPLAY_FONT}" font-size="120" fill="${RED}">Nora</text>
-  <text x="80" y="330" font-family="${DISPLAY_FONT}" font-size="100" fill="${CREAM}" letter-spacing="2">FILMUS</text>
-  <text x="82" y="380" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="${RED}">ACTRIZ · PRODUCTORA · PEDAGOGA TEATRAL</text>
-  <text x="82" y="420" font-family="Arial, sans-serif" font-size="22" fill="${CREAM}" fill-opacity="0.7">36 años en artes escénicas — Buenos Aires · Dublín</text>
+  <!-- Hairline roja + rótulo: mismo dispositivo que Seam/Act/AboutMe. -->
+  <rect x="${logoX + 2}" y="${railY}" width="46" height="4" fill="${RED}" />
+  <text x="${logoX + 2}" y="${labelY}" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="${RED}">ACTRIZ · PRODUCTORA · PEDAGOGA TEATRAL</text>
+  <text x="${logoX + 2}" y="${subtitleY}" font-family="Arial, sans-serif" font-size="22" fill="${CREAM}" fill-opacity="0.7">36 años en artes escénicas — Buenos Aires · Dublín</text>
 </svg>`;
 
   await sharp({
@@ -83,6 +103,7 @@ async function main() {
     .composite([
       { input: portraitBuf, left: portraitX, top: 0 },
       { input: Buffer.from(svg), left: 0, top: 0 },
+      { input: logoBuf, left: logoX, top: logoY },
     ])
     .jpeg({ quality: 88 })
     .toFile(OUT);

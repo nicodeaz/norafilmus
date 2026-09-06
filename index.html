@@ -9,31 +9,67 @@
          busca a Nora: va con las credenciales al frente, no con rótulos. -->
     <meta
       name="description"
-      content="Actriz, productora y pedagoga teatral argentina radicada en Dublín. 36 años en artes escénicas: teatro independiente, producción para cine y TV, y coordinación de programas de formación artística."
+      content="Actriz, productora y pedagoga teatral argentino-rumana radicada en Dublín. 36 años en artes escénicas: teatro independiente, producción para cine y TV, y coordinación de programas de formación artística."
     />
+
+    <!-- Dominio de producción: norafilmus.com (confirmado por el usuario
+         2026-09-06). Único lugar donde vive como string — canonical, og:url,
+         sitemap.xml (scripts/generate-sitemap.mjs) y el JSON-LD de abajo lo
+         referencian; si el dominio cambia algún día, actualizar acá primero. -->
+    <link rel="canonical" href="https://norafilmus.com/" />
+
     <meta property="og:title" content="Nora Filmus — Actriz, productora y pedagoga teatral" />
     <meta
       property="og:description"
       content="36 años en artes escénicas, entre Buenos Aires y Dublín."
     />
     <meta property="og:type" content="profile" />
-    <meta property="og:image" content="/img/og-image.jpg" />
+    <meta property="og:url" content="https://norafilmus.com/" />
+    <meta property="og:site_name" content="Nora Filmus" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <!-- Absoluta a propósito: WhatsApp/Slack/iMessage no resuelven og:image
+         relativo de forma confiable (varían por cliente), a diferencia de
+         Facebook/LinkedIn que sí lo hacen casi siempre. -->
+    <meta property="og:image" content="https://norafilmus.com/img/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Nora Filmus — actriz, productora y pedagoga teatral" />
+
+    <!-- Twitter/X card — faltaba entero. Sin esto, X ignora las og:* de
+         arriba y muestra un link pelado sin imagen. summary_large_image usa
+         la misma imagen 1200×630 que ya generamos para OG. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Nora Filmus — Actriz, productora y pedagoga teatral" />
+    <meta
+      name="twitter:description"
+      content="36 años en artes escénicas, entre Buenos Aires y Dublín."
+    />
+    <meta name="twitter:image" content="https://norafilmus.com/img/og-image.jpg" />
+
+    <!-- Color de la barra de navegador/status bar en Android/iOS cuando se
+         agrega el sitio a la pantalla de inicio o se lo comparte — sin esto
+         el navegador usa blanco por default, que desentona con el resto de
+         la identidad ink/cream. -->
+    <meta name="theme-color" content="#0F0E0D" />
 
     <!-- schema.org Person — SUPERPROMPT.md §05. Estático y en español (no
          sigue el toggle EN/ES del sitio, que es client-side): es lo que lee
          un buscador cuando indexa la página, y matchea el idioma del resto
          del HTML estático (title/description de arriba). Solo datos
-         verificables contra CV/ y content.ts — nada de inventar un dominio
-         para `url` mientras el sitio no esté publicado en uno real. -->
+         verificables contra CV/ y content.ts. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Person",
         "name": "Nora Filmus",
+        "url": "https://norafilmus.com/",
         "jobTitle": ["Actriz", "Productora", "Pedagoga teatral"],
-        "image": "/img/nora-portrait.webp",
+        "image": "https://norafilmus.com/img/nora-portrait.webp",
+        "nationality": [
+          { "@type": "Country", "name": "Argentina" },
+          { "@type": "Country", "name": "Romania" }
+        ],
         "address": {
           "@type": "PostalAddress",
           "addressLocality": "Dublin",
