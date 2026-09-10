@@ -66,16 +66,33 @@ const PANEL_CROSSFADE_END = 0.08;
  * - **Ancho:** el alto del bloque DEPENDE del ancho (columna angosta = más
  *   saltos de línea = más alto), y no de forma lineal: en el tramo `md`
  *   (768–1023px) la columna es angosta (54% del viewport) y el bloque en
- *   inglés llega a medir 960px — más alto que en mobile. Recién a partir de
- *   `lg` (1024px, la columna salta a 58%+ del viewport real, que a este
- *   ancho ya es más plata en px) el bloque se estabiliza bajo 770px en los
- *   dos idiomas. Pedir `md` solo (768px) dejaba pasar ese tramo intermedio y
- *   un iPad/ventana de 768×900 se recortaba 50-60px — medido, no hipotético.
+ *   inglés llega a medir 960px — más alto que en mobile.
+ *
+ * **Segunda vuelta (2026-09-11): el primer umbral (`min-width:1024px`)
+ * dejaba afuera del modo capa a las resoluciones de escritorio MÁS
+ * comunes** (1366×768, 1280×800) — el usuario lo reportó: "en resoluciones
+ * más chicas queda AboutMe en dos partes, no queda todo junto como antes".
+ * La causa: a exactamente 1024px de ancho el bloque en español todavía mide
+ * 766px — 2px de margen contra un viewport de 768px de alto, básicamente
+ * cero. Medido con una instancia headless propia de Playwright (el
+ * `chromium` que ya trae instalado `mcp__playwright` estaba tomado por otra
+ * sesión concurrente, ver `sesiones-concurrentes` en memoria — se lanzó una
+ * segunda instancia apuntando al mismo binario en vez de esperar): el
+ * bloque se ESTABILIZA en 709px (ES) / 695px (EN) recién a partir de
+ * **1152px** de ancho, no 1024 — ahí la columna (58% de un viewport ya más
+ * ancho en px reales) da margen real contra 1366×768/1280×800/1440×900,
+ * todas las resoluciones de escritorio típicas. El umbral de alto baja de
+ * 820 a **740** en consecuencia (28px de margen contra 768, cómodo dado que
+ * el contenido real solo necesita 695-719px a partir de 1152px de ancho).
+ * Sacrifica a propósito el tramo 1024-1151px de ancho (poco común como
+ * resolución real, cae a modo `flow` — sin recorte, solo secuencial) a
+ * cambio de que las resoluciones que la gente realmente usa se vean
+ * "juntas" de nuevo.
  *
  * Por debajo de cualquiera de los dos, AboutMe es una sección normal después
  * del Hero — y la transición de Nora se sigue viendo igual.
  */
-const OVERLAY_MEDIA_QUERY = '(min-width: 1024px) and (min-height: 820px)';
+const OVERLAY_MEDIA_QUERY = '(min-width: 1152px) and (min-height: 740px)';
 // Scroll extra DESPUÉS de que la transición ya terminó (progress=1), antes
 // de que el `sticky` se despegue y el Footer empiece a entrar.
 //
