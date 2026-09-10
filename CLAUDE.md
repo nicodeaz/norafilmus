@@ -668,3 +668,13 @@ Pedido explícito del usuario: "Podemos auditar la transición para que todo que
 **Verificado con Playwright contra un build de producción**, incluyendo por primera vez `prefers-reduced-motion` emulado de verdad: fluidez de rueda, reduced-motion (Hero legible, sin superposición), ancla `#sobre-mi`, gesto táctil en mobile (sin overflow horizontal), 26 combinaciones viewport×idioma sin recorte, sin errores de consola en el recorrido completo. `npm run lint`/`npm run build` limpios.
 
 **No verificado:** el gesto real de rueda/trackpad/touch con el video reproduciendo de verdad en un navegador real (límite de siempre con video en este entorno, ver memoria `video-processing-this-env`) — la mecánica y los números están confirmados, pero el "se siente bien" final lo tiene que dar el usuario.
+
+### El "hold" tras la transición era una pantalla muerta — bajado de 100vh a 18vh (2026-09-11)
+
+El usuario probó la auditoría anterior y reportó: "siento que una vez terminada la animación, en la versión de escritorio al menos, tengo 8 scrolls hacia abajo sin que haga nada, el sitio queda estático y el scroll a la derecha aparece bajando". Bug real, no percepción — `TRANSITION_HOLD_VH` (scroll extra pinneado DESPUÉS de que la transición termina, pensado como "tiempo para mirar la composición asentada") estaba en 100, es decir una pantalla entera de scroll muerto: a ~100px por muesca de rueda, exactamente las ~8-9 que reportó.
+
+Medido con Playwright antes del fix (rastreando `sticky.getBoundingClientRect().top`, la señal real de cuándo el `sticky` se despega — no la posición del Footer, que baja proporcional al scroll SIEMPRE, pinneado o no, y llevó a una primera medición engañosa): `AboutMe` llegaba a opacidad 1 en la muesca 9 (scrollY=900) y el `sticky` recién se despegaba en la muesca 17 (scrollY≈1700) — 8 muescas de scroll sin ningún cambio visual, coincide exacto con el reporte.
+
+Bajado a `TRANSITION_HOLD_VH = 18` (no a 0): la amortiguación del scroll tarda ~300-600ms en converger al 100% incluso después de que el progreso crudo ya llegó a 1, así que sin ALGO de margen el `sticky` podría despegarse mientras `AboutMe` todavía está terminando de asentar su opacidad. 18vh (~160px, menos de 2 muescas) cubre ese margen sin leerse como pantalla muerta. Medido después: `AboutMe` llega a opacidad 1 en la muesca 9-11 y el `sticky` se despega en la muesca 11 — **2 muescas muertas, no 8**.
+
+Verificado en navegador (Playwright, build de producción): composición asentada intacta a la muesca 9, el sitio ya avanza hacia el Footer para la muesca 11. `npm run lint`/`npm run build` limpios.

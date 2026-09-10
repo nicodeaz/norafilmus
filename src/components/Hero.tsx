@@ -76,12 +76,24 @@ const PANEL_CROSSFADE_END = 0.08;
  * del Hero — y la transición de Nora se sigue viendo igual.
  */
 const OVERLAY_MEDIA_QUERY = '(min-width: 1024px) and (min-height: 820px)';
-// Scroll extra DESPUÉS de que la transición ya terminó (progress=1): sin
-// esto, apenas se completa el cruce Hero→AboutMe el `sticky` se despega en
-// el acto y la composición asentada (Nora izquierda + AboutMe) dura un
-// instante en pantalla. Le da tiempo al usuario de quedarse mirándola antes
-// de seguir de largo.
-const TRANSITION_HOLD_VH = 100;
+// Scroll extra DESPUÉS de que la transición ya terminó (progress=1), antes
+// de que el `sticky` se despegue y el Footer empiece a entrar.
+//
+// **Bajado de 100 a 18 (2026-09-11), bug real reportado por el usuario:**
+// "tengo 8 scrolls hacia abajo sin que haga nada, el sitio queda estático".
+// 100vh eran, literalmente, una pantalla entera de scroll muerto — a ~100px
+// por muesca de rueda, exactamente las ~8-9 muescas que reportó. La
+// intención original ("darle tiempo al usuario de mirar la composición
+// asentada") sonaba razonable en abstracto pero en la práctica se sentía
+// como que el sitio se colgó, no como una pausa deliberada: no hay contenido
+// nuevo que revelar durante el hold, solo la misma pantalla sin reaccionar
+// al gesto. Un poco de margen SÍ hace falta — la amortiguación del scroll
+// (`SCROLL_SMOOTHING`) tarda unos ~300-600ms en converger al 100% incluso
+// después de que el `target` crudo ya llegó a progress=1, así que sin ALGO
+// de hold el `sticky` podría despegarse mientras `AboutMe` todavía está
+// terminando de asentar su opacidad. 18vh (~160px, menos de 2 muescas) cubre
+// ese margen de sobra sin leerse como una pantalla muerta.
+const TRANSITION_HOLD_VH = 18;
 // Punto de la transición (0→1) donde el Hero termina de apagarse y AboutMe
 // arranca a aparecer — antes eran las mismas ventanas (0→0.35) y las dos
 // cosas pasaban casi juntas; el usuario pidió correr la aparición de
