@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LINKS } from '@/src/i18n/content';
@@ -210,6 +211,35 @@ import Picture from './Picture';
  * `max-w-md` en modo flow): en modo capa cada línea extra de la bio suma
  * directo al alto del bloque, que es justo lo que hay que minimizar para
  * que quepa sin recortarse.
+ *
+ * **Marquee: de `motion.div`/`animate` a CSS puro + link (2026-09-11).** El
+ * usuario reportó que "se tranca con el scroll a veces" — la animación vivía
+ * como un tween de Framer Motion (`animate={{x:...}}`, `repeat: Infinity`),
+ * que interpola por JS en cada frame y compite por el hilo principal con el
+ * scroll handler de `Hero.tsx` (que en modo `overlay` escribe
+ * `style.opacity`/`transform`/`currentTime` en cada tick de scroll). Ahora
+ * el desplazamiento lo corre `.animate-marquee` (`src/index.css`,
+ * `@keyframes marquee`, `translateX(0→-50%)` lineal infinito) — una
+ * animación CSS pura, compositada, sin JS ni re-render por frame; el
+ * `useReducedMotion()` de acá solo decide estructura (duplicar el array
+ * para el loop, `overflow-x-auto` vs `overflow-hidden`), el propio
+ * `prefers-reduced-motion` la apaga por media query en el CSS.
+ *
+ * De paso, dos cosas que `GalleryItem.href` (`content.ts`) ya traía
+ * documentadas pero el componente nunca usaba: cada ficha es un `<Link>`
+ * a su crédito real (`/crear#Obra::años`, el mismo `creditId()` que lee
+ * `CreditList.tsx` al aterrizar) y, en hover/focus, la imagen escala
+ * (`scale-110`) para confirmar que es clickeable — mismo dispositivo que
+ * ya usa la píldora "VER" del lightbox que tuvo `Presente` (sección hoy
+ * removida) y el ícono de fila en `ProgramIndex`. **Ojo, confusión real
+ * en la misma sesión:** el usuario pidió sacar "el efecto 3d" y por un
+ * momento se sacó este scale del marquee por error — el pedido real era
+ * sobre `Tilt3D` en `Hero.tsx` (el tilt que seguía al cursor en todo el
+ * bloque de contenido, ver su propio historial más abajo/en `Hero.tsx`).
+ * El scale de acá se confirmó explícitamente ("ese efecto estaba bien") y
+ * quedó como estaba: el riel exterior sigue en `overflow-x-hidden
+ * overflow-y-visible` (con `overflow-hidden` a secas la ficha escalada se
+ * recorta arriba/abajo contra el borde del propio riel).
  */
 interface AboutMeProps {
   /**
@@ -257,7 +287,7 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
               : 'mx-auto max-w-3xl'
           )}
         >
-          <div className="flex items-center gap-2">
+          <div className={cn('flex items-center gap-2', overlay && 'shrink-0')}>
             <span className="h-px w-8 bg-brand-red" aria-hidden />
             <span className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">
               {about.eyebrow}
@@ -265,7 +295,32 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
             <span className="h-px w-8 bg-brand-red" aria-hidden />
           </div>
 
-          <h2 className="mt-2 font-display text-4xl uppercase leading-[0.95] text-cream sm:text-5xl md:text-6xl">
+          {/* Tipografía fluida en modo capa (2026-09-11) — ver el docblock de
+              `Hero.tsx`, "Tercera vuelta..." — reemplaza el umbral de tamaño
+              que se sacó. `clamp()` atado a `svh`: en vez de una talla fija
+              que cabe en según qué viewport y en otros no, el título se
+              achica en viewports bajos y vuelve a su talla de siempre
+              (60px, la de antes de este cambio) en cualquiera razonablemente
+              alto — sin escalón, sin punto de quiebre. En modo flow (sección
+              normal, con scroll propio) no hace falta achicar nada, se queda
+              con las clases fijas de siempre.
+              **Gotcha real, encontrado midiendo:** `leading-[0.95]` y
+              `text-[clamp(...)]` como clases separadas pierden contra la
+              cascada de Tailwind v4 — la utility `text-[...]` (arbitraria)
+              termina ganando su propio `line-height` por default (1.5,
+              confirmado con `getComputedStyle`: el título medía 72,6px de
+              alto de línea contra los 46px esperados), sin importar el orden
+              en el string de clases. Se resuelve con la sintaxis combinada
+              `text-[size]/[leading]`, que Tailwind arma en una sola
+              declaración — ahí no hay dos reglas compitiendo. */}
+          <h2
+            className={cn(
+              'font-display uppercase text-cream',
+              overlay
+                ? 'mt-[clamp(0.25rem,1svh,0.5rem)] text-[clamp(1.75rem,2.4vw+3.4svh,3.75rem)]/[0.95]'
+                : 'mt-2 text-4xl leading-[0.95] sm:text-5xl md:text-6xl'
+            )}
+          >
             {about.titleLead}
             <br />
             <span className="text-brand-red">{about.titleAccent}</span>
@@ -276,32 +331,31 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
               (28rem) acorta la línea; `text-lead` reemplaza el `text-sm` de
               font-label, que compartía tamaño con un label de 11px para el
               bloque de texto más largo de la sección.
-              **2026-09-10:** vertical compacto (`space-y-4`→`space-y-1`,
-              `mt-6`→`mt-3`) — este bloque ahora vive centrado en un solo
-              viewport de 100vh junto al resto del contenido (ver docblock,
-              "De sección normal-flow..."), no tiene el alto libre de una
-              sección propia para desperdiciar en aire vertical. Ajustado dos
-              veces: la primera pasada (`mt-4`/`space-y-2`) todavía se
-              recortaba en laptops de 800px de alto (13"), medido con
-              Playwright — ver docblock. */}
-          {/* En modo capa la bio va un escalón más ancha (`max-w-lg`, 512px
-              ≈ 60 caracteres por línea a 17px — dentro del rango legible de
-              45–75, y bastante por debajo del `max-w-xl` que la auditoría
-              del 2026-08-31 descartó por ancho). No es cosmético: son ~2
-              líneas menos, y con eso el bloque entero baja de 827px a ~771 y
-              entra en un viewport de 800 — o sea, un portátil de 13" conserva
-              la composición superpuesta en vez de caer a la sección normal. */}
+              **2026-09-11:** en modo capa el tamaño de fuente y el interlineado
+              también son fluidos (mismo mecanismo que el título, arriba) — la
+              bio es el bloque que más espacio vertical pesa (412px medidos en
+              el peor caso, una ventana real de 874×807 que el usuario mandó
+              por captura), así que es el que más rinde al achicarse. `max-w-lg`
+              se mantiene (ancho de columna, no de tipografía) — achicar la
+              fuente reduce PX por línea, no la cantidad de saltos de línea. */}
           <div
             className={cn(
-              'mt-2 space-y-1 font-label text-lead text-cream/80',
-              overlay ? 'max-w-lg' : 'max-w-md'
+              'font-label text-cream/80',
+              overlay
+                ? 'mt-[clamp(0.25rem,1svh,0.5rem)] max-w-lg space-y-[clamp(0.125rem,0.4svh,0.25rem)] text-[clamp(0.8125rem,0.3vw+1.5svh,1.0625rem)]/[1.45]'
+                : 'mt-2 max-w-md space-y-1 text-lead'
             )}
           >
             <p>{about.body1}</p>
             <p>{about.body2}</p>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
+          <div
+            className={cn(
+              'flex flex-wrap items-center justify-center gap-4',
+              overlay ? 'mt-[clamp(0.375rem,1svh,0.75rem)] shrink-0' : 'mt-3'
+            )}
+          >
             <a
               href={LINKS.email}
               className="inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-red px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:bg-brand-red-deep"
@@ -317,42 +371,49 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
               Preloader, CreditList, Trayectoria) ya la respetaba (auditoría
               E1/H4). Sin `repeat: Infinity` no hace falta duplicar la
               galería, así que en ese modo se renderiza una sola vez.
-              **2026-09-10:** `mt-16`→`mt-4` y las fichas se achican dos veces
-              (`h-56 sm:h-72`→`h-28 sm:h-36`→`h-24 sm:h-32`) — mismo motivo
-              que arriba, este bloque ahora comparte un solo viewport con
-              todo lo demás. */}
+              **2026-09-11:** las fichas también se achican con `svh` en modo
+              capa (`h-[clamp(3.5rem,11svh,7rem)]`) — mismo mecanismo que el
+              título/bio, para que el marquee no sea lo primero que se recorta
+              en un viewport bajo. */}
           <div
             className={cn(
-              'relative mt-3 w-full [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]',
-              reduced ? 'overflow-x-auto' : 'overflow-hidden'
+              'relative w-full [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]',
+              overlay ? 'mt-[clamp(0.375rem,1svh,0.75rem)] py-1' : 'mt-3 py-2',
+              reduced ? 'overflow-x-auto' : 'overflow-x-hidden overflow-y-visible'
             )}
           >
-            <motion.div
-              className="flex w-max gap-4"
-              animate={reduced ? undefined : { x: ['0%', '-50%'] }}
-              transition={reduced ? undefined : { duration: 34, ease: 'linear', repeat: Infinity }}
-            >
+            <div className={cn('flex w-max gap-4', !reduced && 'animate-marquee')}>
               {(reduced ? about.gallery : [...about.gallery, ...about.gallery]).map((item, i) => (
-                <figure key={i} className="w-24 flex-shrink-0 sm:w-28">
-                  <Picture
-                    src={item.src}
-                    alt={item.alt}
-                    loading="lazy"
-                    decoding="async"
-                    sizes="(min-width: 640px) 112px, 96px"
-                    pictureClassName="block"
-                    className="h-24 w-full rounded-lg object-cover sm:h-28"
-                  />
-                  <figcaption className="mt-2 font-label text-[10px] leading-snug text-cream/50">
-                    <span className="block text-cream/70">{item.work}</span>
-                    <span className="block text-brand-red">{item.role}</span>
-                    {item.credit ? (
-                      <span className="block text-cream/50">Foto: {item.credit}</span>
-                    ) : null}
-                  </figcaption>
-                </figure>
+                <Link
+                  key={i}
+                  to={item.href}
+                  className={cn('group flex-shrink-0', overlay ? 'w-[clamp(3.5rem,11svh,7rem)]' : 'w-24 sm:w-28')}
+                  tabIndex={reduced ? undefined : i < about.gallery.length ? 0 : -1}
+                >
+                  <figure>
+                    <Picture
+                      src={item.src}
+                      alt={item.alt}
+                      loading="lazy"
+                      decoding="async"
+                      sizes="(min-width: 640px) 112px, 96px"
+                      pictureClassName="block"
+                      className={cn(
+                        'w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110',
+                        overlay ? 'h-[clamp(3.5rem,11svh,7rem)]' : 'h-24 sm:h-28'
+                      )}
+                    />
+                    <figcaption className="mt-2 font-label text-[10px] leading-snug text-cream/50">
+                      <span className="block text-cream/70">{item.work}</span>
+                      <span className="block text-brand-red">{item.role}</span>
+                      {item.credit ? (
+                        <span className="block text-cream/50">Foto: {item.credit}</span>
+                      ) : null}
+                    </figcaption>
+                  </figure>
+                </Link>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
     </section>

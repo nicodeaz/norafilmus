@@ -56,43 +56,41 @@ const VIDEO_SEEK_EPSILON = 1 / 48;
 /** Tramo donde el loop se funde con el clip de transición. */
 const PANEL_CROSSFADE_END = 0.08;
 /**
- * Condición para la composición superpuesta (Hero y AboutMe compartiendo la
- * misma pantalla). Pide alto **y ancho**, cada uno por un motivo distinto:
+ * Tercera vuelta sobre esta condición, y la última — se saca del todo
+ * (2026-09-11). Historia real, porque vale la pena entender por qué se
+ * llega acá antes de volver a poner un umbral:
  *
- * - **Alto:** el bloque de AboutMe vive dentro de un `overflow-hidden` y no
- *   scrollea. Si no entra, se recorta arriba y abajo sin manera de llegar a
- *   lo cortado (medido antes de esto: un iPhone SE perdía 106px por lado; un
- *   portátil de 13", 30px).
- * - **Ancho:** el alto del bloque DEPENDE del ancho (columna angosta = más
- *   saltos de línea = más alto), y no de forma lineal: en el tramo `md`
- *   (768–1023px) la columna es angosta (54% del viewport) y el bloque en
- *   inglés llega a medir 960px — más alto que en mobile.
+ * 1ª vuelta: la capa superpuesta se activaba solo con `min-height:820px` —
+ * un iPad/ventana de 768×900 se recortaba 50-60px (bug real, medido).
+ * 2ª vuelta: se sumó `min-width:1024px` para resolver eso — pero a
+ * exactamente 1024px de ancho el bloque en español todavía mide 766px, así
+ * que el umbral se subió a `min-width:1152px`. Esto dejaba afuera del modo
+ * capa a resoluciones de escritorio MUY comunes (1366×768, 1280×800) — el
+ * usuario lo reportó una vez ("en resoluciones más chicas queda AboutMe en
+ * dos partes") y se corrigió subiendo el umbral.
+ * 3ª vuelta: el usuario mandó una captura real de su propia ventana —
+ * **874×807px** (un PNG width=874/height=807 leído de los bytes IHDR, no
+ * una resolución de monitor: es una ventana de Chrome no maximizada) — y
+ * reportó EL MISMO problema, "no queda como en la versión de escritorio".
+ * 874px de ancho está por debajo de CUALQUIER umbral que se probó hasta
+ * acá. La conclusión real: **no existe un número de umbral que no deje a
+ * alguien afuera** — cualquier ventana más angosta que el umbral de turno
+ * va a mostrar exactamente este mismo reclamo, es un problema estructural
+ * del enfoque "por debajo de X, layout distinto", no del valor de X.
  *
- * **Segunda vuelta (2026-09-11): el primer umbral (`min-width:1024px`)
- * dejaba afuera del modo capa a las resoluciones de escritorio MÁS
- * comunes** (1366×768, 1280×800) — el usuario lo reportó: "en resoluciones
- * más chicas queda AboutMe en dos partes, no queda todo junto como antes".
- * La causa: a exactamente 1024px de ancho el bloque en español todavía mide
- * 766px — 2px de margen contra un viewport de 768px de alto, básicamente
- * cero. Medido con una instancia headless propia de Playwright (el
- * `chromium` que ya trae instalado `mcp__playwright` estaba tomado por otra
- * sesión concurrente, ver `sesiones-concurrentes` en memoria — se lanzó una
- * segunda instancia apuntando al mismo binario en vez de esperar): el
- * bloque se ESTABILIZA en 709px (ES) / 695px (EN) recién a partir de
- * **1152px** de ancho, no 1024 — ahí la columna (58% de un viewport ya más
- * ancho en px reales) da margen real contra 1366×768/1280×800/1440×900,
- * todas las resoluciones de escritorio típicas. El umbral de alto baja de
- * 820 a **740** en consecuencia (28px de margen contra 768, cómodo dado que
- * el contenido real solo necesita 695-719px a partir de 1152px de ancho).
- * Sacrifica a propósito el tramo 1024-1151px de ancho (poco común como
- * resolución real, cae a modo `flow` — sin recorte, solo secuencial) a
- * cambio de que las resoluciones que la gente realmente usa se vean
- * "juntas" de nuevo.
- *
- * Por debajo de cualquiera de los dos, AboutMe es una sección normal después
- * del Hero — y la transición de Nora se sigue viendo igual.
+ * La solución no es subir el número una cuarta vez: es sacar la condición
+ * de tamaño por completo. La superposición ahora se activa siempre que
+ * `enableTransition` sea `true` (o sea, siempre, salvo
+ * `prefers-reduced-motion`/ahorro de datos — las dos únicas razones
+ * REALES, no de tamaño, para no correr el mecanismo). Para que esto no
+ * reintroduzca el recorte de la 1ª vuelta, `AboutMe.tsx` deja de tener
+ * tamaños fijos en su modo capa — la tipografía y el espaciado ahora son
+ * fluidos, atados a `svh` (ver su docblock, "Tipografía fluida..."): en vez
+ * de cortarse cuando no entra, el bloque se ACHICA hasta entrar. Sigue
+ * habiendo un piso de legibilidad (no se achica infinito), pero cualquier
+ * ventana de uso real —por angosta o baja que sea— ve la composición
+ * junta, nunca partida en dos.
  */
-const OVERLAY_MEDIA_QUERY = '(min-width: 1152px) and (min-height: 740px)';
 // Scroll extra DESPUÉS de que la transición ya terminó (progress=1), antes
 // de que el `sticky` se despegue y el Footer empiece a entrar.
 //
@@ -651,23 +649,12 @@ export default function Hero({ className }: HeroProps) {
   // ── Transición de foco (2026-09-10, scroll-scrub amortiguado) — ver docblock
   const enableTransition = !reduced && !slowConnection;
 
-  // ¿Entra la composición superpuesta (Hero y AboutMe compartiendo pantalla)
-  // en este viewport? Se decide con `matchMedia`, no midiendo el contenido:
-  // una medición del propio bloque cambiaría entre los dos modos (el ancho
-  // de columna no es el mismo) y podría oscilar. Inicializador lazy para que
-  // el primer render ya sepa la respuesta y no haya un salto de layout.
-  const [overlayFits, setOverlayFits] = useState(
-    () => typeof window === 'undefined' || window.matchMedia(OVERLAY_MEDIA_QUERY).matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia(OVERLAY_MEDIA_QUERY);
-    const apply = () => setOverlayFits(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
-
-  const overlayAbout = enableTransition && overlayFits;
+  // La superposición ya NO depende del tamaño de viewport (ver el docblock
+  // de arriba, "Tercera vuelta..." — cualquier umbral deja a alguien
+  // afuera). Las únicas razones reales para el modo `flow` son
+  // `prefers-reduced-motion` y ahorro de datos, las mismas que ya apagan
+  // `enableTransition`.
+  const overlayAbout = enableTransition;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
