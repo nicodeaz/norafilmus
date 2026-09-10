@@ -13,6 +13,24 @@ export const EASE_REVEAL = [0.22, 1, 0.36, 1] as const;
 /** CSS string form de EASE_OUT para transiciones inline. */
 export const EASE_OUT_CSS = 'cubic-bezier(0.16, 1, 0.3, 1)';
 
+/**
+ * Easings **escalares** (`f(t) → t'`, los dos en 0→1) para animación atada
+ * al scroll. Son otra cosa que los tokens de arriba: esos son tuplas de
+ * cubic-bezier que se le pasan declarativamente a una `transition` de
+ * `motion`. Un scrub por scroll no pasa por `motion` — mapea el progreso a
+ * mano en cada frame y escribe el estilo (ver `Hero.tsx`), así que necesita
+ * la función, no la curva.
+ *
+ * `easeInOutSine` es deliberadamente suave: para un movimiento de cámara,
+ * una curva más pronunciada (cubic) se siente elástica cuando además el
+ * progreso ya viene amortiguado.
+ */
+export const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2;
+/** Salidas: se mantiene arriba y cae rápido al final. */
+export const easeInQuad = (t: number) => t * t;
+/** Entradas: sube rápido y se asienta. */
+export const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
+
 /** Feedback de presión en botones y otras superficies tappeables. */
 export const SPRING_PRESS = {
   type: 'spring',
