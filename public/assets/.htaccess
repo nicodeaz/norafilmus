@@ -1,0 +1,7 @@
+# Todo lo que Vite escribe acá (dist/assets/) va con hash en el nombre del
+# archivo (ej. index-a1b2c3.js) — un cambio de contenido siempre es un
+# nombre nuevo, así que cachear "para siempre" es seguro (ver la nota en
+# public/.htaccess, que es donde vive el resto de la config de Apache).
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>

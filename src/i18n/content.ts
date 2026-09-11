@@ -24,9 +24,14 @@
 
 export type Language = 'es' | 'en';
 
-/** Un pilar del menú del Hero: las 3 facetas de Nora, no el nav del sitio. */
+/**
+ * Un pilar del menú del Hero: las 3 facetas de Nora, no el nav del sitio.
+ * `'trayectoria' | 'contacto'` se agregaron 2026-09-09 solo para que
+ * `Hero.tsx` pueda construir localmente 2 ítems más con esta misma forma —
+ * `pillars[]` (ES/EN) sigue teniendo nada más que las 3 facetas reales.
+ */
 export interface Pillar {
-  key: 'crear' | 'ensenar' | 'producir';
+  key: 'crear' | 'ensenar' | 'producir' | 'trayectoria' | 'contacto';
   label: string;
   /** Qué es ese pilar, en una línea. Se lee en el mosaico. */
   caption: string;
@@ -55,6 +60,32 @@ export interface GalleryItem {
   /** El rol REAL de Nora en esa producción. Nunca se omite (regla 2). */
   role: string;
   credit?: string;
+  /**
+   * A dónde navega el ítem al clickearlo (2026-09-06, "el slider... quiero
+   * que pueda clickear cualquiera de esos items y me lleve a la sección que
+   * corresponde, con la información de esa obra"). Ruta de Acto + hash del
+   * crédito exacto (`/crear#${encodeURIComponent('Rapiña::2017–2019')}`) —
+   * el mismo formato `work::years` que arma `creditId()` en `CreditList.tsx`,
+   * que al aterrizar abre ese crédito puntual y le hace scroll. Verificado a
+   * mano contra el `work`/`years` real de cada crédito (no derivado en
+   * runtime): en inglés un título cambia (Pizarn-i-kett Más?), así que
+   * `GALLERY_EN` pisa el `href` de esa entrada con el texto en inglés.
+   */
+  href: string;
+}
+
+/**
+ * Una foto del slider vertical infinito de un Acto (`VerticalPhotoSlider`,
+ * 2026-09-12) — reemplaza a la foto ancla única (`image`) de Crear/Producir.
+ * Selección hecha por el usuario en el artifact "Casting del Archivo" (ver
+ * memoria `casting-del-archivo-artifact`): son fotos de archivo reales, sin
+ * curaduría de "una sola pieza ancla" como tenía `image` — por eso no llevan
+ * `caption` propio, solo `alt`/`credit`.
+ */
+export interface ActGalleryPhoto {
+  src: string;
+  alt: string;
+  credit: string;
 }
 
 /** Una línea de una lista de créditos tipo CV de sala (F2 en adelante). */
@@ -114,12 +145,42 @@ export interface SiteContent {
   /** Texto del skip link — invisible salvo con teclado (Tab), primer foco de la página. */
   skipLink: string;
   langToggle: { label: string; short: string };
+  /**
+   * Copy del `ErrorBoundary` (2026-09-09) — se muestra cuando falla la carga
+   * de un chunk de ruta (típico con poca conectividad: la conexión se corta
+   * a mitad de la descarga del JS de `/crear`, `/ensenar`, etc.) en vez de
+   * dejar la pantalla en blanco. Ver `src/components/ErrorBoundary.tsx`.
+   */
+  connectionError: { title: string; body: string; retry: string };
+  /**
+   * `PageCurtain.tsx` (2026-09-11) — el loader entre páginas pasó de un
+   * fundido opaco a un blur translúcido con el ícono de la sección destino y
+   * este texto ("Yendo a {label}…", el label sale de `nav`/`pillars`, no de
+   * acá) — pedido explícito: "un blur suave en toda la página, el logo de la
+   * sección en cuestión y un texto de yendo".
+   */
+  pageTransition: { goingTo: string };
+  /**
+   * Aviso de "sitio en construcción" (2026-09-09, pedido explícito) — ver
+   * `SiteBanner.tsx`. Se muestra hasta que el usuario confirme el sitio
+   * final; no tiene fecha de corte automática en el código.
+   */
+  siteBanner: { message: string; dismiss: string };
   hero: {
     firstName: string;
     lastName: string;
     role: string;
     bio: string;
     cta: string;
+    /**
+     * Segundo CTA del Hero, junto al de arriba (2026-09-12, pedido explícito:
+     * "el botón de sobre mí no hace nada... quiero poner uno que diga
+     * hablemos o algo así") — a diferencia de `cta` (scrollea/navega a
+     * Trayectoria/Sobre mí, según `TRAYECTORIA_ENABLED`), este siempre apunta
+     * a `/contacto`: una vía de conversión directa, no otra forma de leer
+     * sobre Nora.
+     */
+    contactCta: string;
     location: string;
     portraitAlt: string;
     /** Crédito del retrato de estudio — regla 3 de este archivo. Confirmado por el usuario 2026-08-19: Paula. */
@@ -132,18 +193,31 @@ export interface SiteContent {
      * productoras para las que trabajó · Teatro Colón = sala donde tocó Los
      * Ranz · St. Patrick's Festival = 2023, Dublín.
      *
-     * Desde 2026-08-31 el Hero renderiza cada nombre como su logo oficial
-     * (siluetas cream, ver `CREDENTIAL_LOGOS` en `Hero.tsx` y
-     * `scripts/build-credential-logos.mjs`) — este array sigue siendo la
-     * fuente del orden y del alt text, no solo texto de respaldo. Si se
-     * agrega un nombre acá sin agregar su entrada en `CREDENTIAL_LOGOS`, el
-     * ítem no se renderiza (se descarta en silencio, a propósito: mejor
-     * faltante y visible en QA que un logo roto en producción).
+     * El Hero muestra estos nombres como una ficha editorial estática. Este
+     * array sigue siendo la fuente del orden y del texto bilingüe.
      */
     credentials: string[];
+    credentialsLabel: string;
+    /**
+     * Captions cortos para los dos ítems que el menú del Hero (`PillarMenu`,
+     * `orientation="inline"`) suma a los 3 pilares (2026-09-09, pedido
+     * explícito: "agregar trayectoria y contacto"). No son pilares reales
+     * (`pillars[]` sigue siendo solo las 3 facetas) — se arman localmente en
+     * `Hero.tsx` con el label de `nav.trayectoria`/`nav.contacto` y este
+     * caption, para no duplicarlos en el nav de `Header`/`Footer` (que ya los
+     * traen hardcodeados aparte).
+     */
+    menuCaptions: { trayectoria: string; contacto: string };
   };
   /** Nav del header de sitio (F1) — no confundir con `pillars`, que es el menú de 3 facetas del Hero. */
-  nav: { home: string; about: string; trayectoria: string; contacto: string };
+  nav: {
+    home: string;
+    about: string;
+    trayectoria: string;
+    contacto: string;
+    /** `aria-label` del `<nav>` de `SectionNav.tsx` (2026-09-11) — distingue ese landmark del `<nav>` sin label del `Footer`. */
+    sectionNav: string;
+  };
   pillars: Pillar[];
   /**
    * Índice de programa en Home (Fase 2 del rediseño de fondo, 2026-08-28) —
@@ -160,19 +234,23 @@ export interface SiteContent {
     titleAccent: string;
     body1: string;
     body2: string;
-    /** Foto ancla del Acto — distinta del archivo que usa el mosaico del Hero para este pilar. */
-    image: { src: string; alt: string; credit: string; caption: string };
+    /**
+     * Slider vertical infinito con TODA la selección de archivo para este
+     * Acto (2026-09-12, reemplaza a la foto ancla única `image`) — ver
+     * `VerticalPhotoSlider.tsx` y memoria `casting-del-archivo-artifact`.
+     */
+    gallery: ActGalleryPhoto[];
     stageTitle: string;
     stageCredits: Credit[];
     screenTitle: string;
     screenCredits: Credit[];
   };
   /**
-   * Sección #ensenar (F3) — el pilar pedagoga. Sin `image` a propósito: el
-   * material de docencia disponible muestra adolescentes identificables del
-   * Programa Adolescencia (regla 4). El "material" de esta sección es
-   * `statNumber`/`statLabel`, no una foto. Fuente: `CV/NoraFilmus2023PedCoord.docx`
-   * + `CV/FilmusProgramaAdolescencia.docx`.
+   * Sección #ensenar (F3) — el pilar pedagoga. Hasta 2026-09-12 iba sin
+   * `image`: el material de docencia disponible muestra menores
+   * identificables del Programa Adolescencia (regla 4), así que el "material"
+   * de esta sección era `statNumber`/`statLabel` en tipografía, no una foto.
+   * Fuente: `CV/NoraFilmus2023PedCoord.docx` + `CV/FilmusProgramaAdolescencia.docx`.
    */
   ensenar: {
     eyebrow: string;
@@ -182,6 +260,19 @@ export interface SiteContent {
     body2: string;
     statNumber: string;
     statLabel: string;
+    /**
+     * Slider vertical infinito (2026-09-12) — 20 fotos de archivo elegidas
+     * por el usuario en "Casting del Archivo" (ver memoria
+     * `casting-del-archivo-artifact`), 6 de ellas con las caras de los
+     * alumnes blurreadas a mano (sigma 28, mismo método que
+     * `external-assets/marcos-paz-blur/blur.mjs`) porque mostraban caras
+     * cercanas/reconocibles de menores — decisión explícita del usuario tras
+     * revisar la política de la regla 4 (blur donde hace falta, nunca
+     * descarte por defecto). `statNumber`/`statLabel` se quedan sin usar en
+     * `Ensenar.tsx` (el slider reemplaza ese lugar) pero no se borran del
+     * tipo — mismo criterio que ya sigue este archivo con `approach*`.
+     */
+    gallery: ActGalleryPhoto[];
     /**
      * Las tres modalidades de trabajo — texto madre que escribió Nora con
      * ayuda de ChatGPT (2026-08-31, ES/EN), pensado para explicar el "cómo"
@@ -208,8 +299,12 @@ export interface SiteContent {
     titleAccent: string;
     body1: string;
     body2: string;
-    /** Foto ancla del Acto — distinta del afiche que usa el mosaico del Hero para este pilar. */
-    image: { src: string; alt: string; credit: string; caption: string };
+    /**
+     * Slider vertical infinito con TODA la selección de archivo para este
+     * Acto (2026-09-12, reemplaza a la foto ancla única `image`) — ver
+     * `VerticalPhotoSlider.tsx` y memoria `casting-del-archivo-artifact`.
+     */
+    gallery: ActGalleryPhoto[];
     stageTitle: string;
     stageCredits: Credit[];
     screenTitle: string;
@@ -245,6 +340,41 @@ export interface SiteContent {
     titleAccent: string;
     body: string;
     emailLabel: string;
+    /** Alt de la foto banner (2026-09-09, DSC01947.jpg, sesión "Norah_" — mismo crédito que el resto, "Paula"). */
+    photoAlt: string;
+    /** Formulario con captcha propio (honeypot + desafío firmado, sin cuenta externa) — envía por `/api/contact` (Resend). */
+    form: {
+      nameLabel: string;
+      namePlaceholder: string;
+      emailLabel: string;
+      emailPlaceholder: string;
+      messageLabel: string;
+      messagePlaceholder: string;
+      captchaLabel: string;
+      submit: string;
+      sending: string;
+      success: string;
+      error: string;
+    };
+    /**
+     * "Dejar una huella" — pared de firmas pública (nombre + mensaje corto,
+     * sin foto ni dibujo) que cualquier visitante puede sumar vía `/api/sign`
+     * (mismo captcha propio; se guarda como commit a `public/data/signatures.json`).
+     */
+    wall: {
+      eyebrow: string;
+      title: string;
+      body: string;
+      nameLabel: string;
+      namePlaceholder: string;
+      messageLabel: string;
+      messagePlaceholder: string;
+      submit: string;
+      sending: string;
+      success: string;
+      error: string;
+      empty: string;
+    };
   };
   about: {
     eyebrow: string;
@@ -254,12 +384,18 @@ export interface SiteContent {
     body2: string;
     cta: string;
     cvLabel: string;
-    galleryTitle: string;
-    galleryNote: string;
     gallery: GalleryItem[];
   };
   /** Label reutilizado por `CreditList` cuando un crédito puntual tiene `video`. */
   creditVideo: { watch: string };
+  /**
+   * Labels del lightbox global (`Lightbox.tsx`, 2026-09-06) — cerrar/anterior/
+   * siguiente, compartidos por cualquier foto ampliable del sitio (Act,
+   * CreditList, Trayectoria). Antes vivían como `presente.close/previous/next`,
+   * específicos de la página `Presente` (borrada 2026-09-04); ahora son
+   * genéricos porque el lightbox ya no pertenece a una sola sección.
+   */
+  lightbox: { close: string; previous: string; next: string };
   notFound: { text: string; home: string };
   social: { instagram: string; linkedin: string; email: string };
   /** Pie de sitio (F1) — LINKS (redes/mail) se reutiliza del Hero, esto es solo el texto que le falta. */
@@ -283,6 +419,7 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Rapiña · 2017–2019',
     role: 'Actriz',
     credit: 'Marcela Russarabian',
+    href: `/crear#${encodeURIComponent('Rapiña::2017–2019')}`,
   },
   {
     src: '/img/about/chicha-carmen-y-angelita-foto-1.jpg',
@@ -290,6 +427,7 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Chicha, Carmen y Angelita · 2010–2013',
     role: 'Dramaturgia y actuación',
     credit: 'Colo Gens',
+    href: `/crear#${encodeURIComponent('Chicha, Carmen y Angelita::2010–2013')}`,
   },
   {
     src: '/img/crear/pizarnikett-flyer.jpg',
@@ -297,6 +435,7 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Pizarn-i-kett Más? · 2009–2010',
     role: 'Actuación, caracterización y maquillaje',
     credit: 'Teatro El Refugio',
+    href: `/crear#${encodeURIComponent('Pizarn-i-kett Más? (Un híbrido a la fuerza)::2009–2010')}`,
   },
   {
     src: '/img/about/maldichas-foto-1.png',
@@ -304,6 +443,7 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Maldichas · 2018–2019',
     role: 'Gestora cultural y productora ejecutiva',
     credit: 'Ariel Ugolino',
+    href: `/producir#${encodeURIComponent('Maldichas::2018–2019')}`,
   },
   {
     src: '/img/about/los-golpes-de-clara-afiche.jpg',
@@ -311,12 +451,14 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Los golpes de Clara · 2020',
     role: 'Produjo la única función',
     credit: 'Nicolás Finoli',
+    href: `/producir#${encodeURIComponent('Los golpes de Clara::2020')}`,
   },
   {
     src: '/img/about/mujeres-a-la-obra-afiche.jpg',
     alt: 'Afiche del ciclo ¡Mujeres a la obra!',
     work: '¡Mujeres a la obra! · CELCIT, 2018',
     role: 'Producción',
+    href: `/producir#${encodeURIComponent('¡Mujeres a la obra!::2018')}`,
   },
   {
     src: '/img/menu/improvisacion-mosquito-afiche.jpg',
@@ -324,6 +466,7 @@ const GALLERY_ES: GalleryItem[] = [
     work: 'Improvisación Mosquito · 2019',
     role: 'Producción',
     credit: 'Productora Demos',
+    href: `/producir#${encodeURIComponent('Improvisación Mosquito::2019')}`,
   },
 ];
 
@@ -340,7 +483,7 @@ const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
     'Poster for Improvisación Mosquito',
   ][i],
   role: [
-    'Actor',
+    'Actress',
     'Playwright and performer',
     'Acting, characterisation and make-up',
     'Cultural manager and executive producer',
@@ -348,6 +491,12 @@ const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
     'Producer',
     'Producer',
   ][i],
+  // Solo Pizarn-i-kett Más? traduce el subtítulo del título (ver
+  // crear.stageCredits en inglés) — el resto del `href` de GALLERY_ES ya
+  // vale tal cual porque el `work` del crédito no cambia de idioma.
+  ...(i === 2
+    ? { href: `/crear#${encodeURIComponent('Pizarn-i-kett Más? (A Forced Hybrid)::2009–2010')}` }
+    : {}),
 }));
 
 export const content: Record<Language, SiteContent> = {
@@ -356,6 +505,16 @@ export const content: Record<Language, SiteContent> = {
     htmlLang: 'es',
     skipLink: 'Saltar al contenido',
     langToggle: { label: 'Ver el sitio en inglés', short: 'EN' },
+    connectionError: {
+      title: 'No se pudo cargar esta página',
+      body: 'Puede ser una conexión débil o inestable. Revisá tu conexión y probá de nuevo.',
+      retry: 'Reintentar',
+    },
+    pageTransition: { goingTo: 'Yendo a' },
+    siteBanner: {
+      message: 'Este sitio está en obra — lo actualizamos todo el tiempo. Pronto vas a ver la versión final.',
+      dismiss: 'Cerrar aviso',
+    },
 
     hero: {
       /** El titular se arma en dos piezas tipográficas: firma + wordmark. */
@@ -364,13 +523,25 @@ export const content: Record<Language, SiteContent> = {
       role: 'Actriz · Productora · Pedagoga teatral',
       bio: 'Treinta y seis años en artes escénicas, entre Buenos Aires y Dublín. Actúo, produzco teatro y audiovisual, y coordino programas de formación artística.',
       cta: 'Ver trayectoria',
+      contactCta: 'Hablemos',
       location: 'Dublín, Irlanda',
       portraitAlt: 'Nora Filmus riendo a carcajadas en un retrato de estudio, con los brazos cruzados',
       portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
+      credentialsLabel: 'Créditos seleccionados',
+      menuCaptions: {
+        trayectoria: 'Treinta y seis años de carrera, año por año.',
+        contacto: 'Para proyectos, colaboraciones o consultas.',
+      },
     },
 
-    nav: { home: 'Inicio', about: 'Sobre mí', trayectoria: 'Trayectoria', contacto: 'Contacto' },
+    nav: {
+      home: 'Inicio',
+      about: 'Sobre mí',
+      trayectoria: 'Trayectoria',
+      contacto: 'Contacto',
+      sectionNav: 'Navegación del sitio',
+    },
 
     crear: {
       eyebrow: 'Actuación',
@@ -380,12 +551,72 @@ export const content: Record<Language, SiteContent> = {
         'Empecé a estudiar teatro a los catorce años con Alicia Aller, y seguí formándome con Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas y Marcelo Subiotto, entre otros — cursé hasta tercer año la Licenciatura en Dirección Escénica en la UNA. Actué diez años con el grupo Los Ranz en salas como el Teatro Colón y el Centro Cultural Recoleta, y participé en La Comuna Orgón, dirigida por Marcelo Subiotto en Puerta Roja.',
       body2:
         'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones para Netflix, Polka y Telefé.',
-      image: {
-        src: '/img/about/rapina-foto-5.jpg',
-        alt: 'Escena de la pieza "Bañera", de Rapiña',
-        credit: 'Marcela Russarabian',
-        caption: 'Rapiña · "Bañera" · 2017–2019',
-      },
+      gallery: [
+      { src: '/img/crear/galeria/chicha-magdalena-foto-1.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-6.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-10.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-25.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-28.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-39.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-45.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/variete-casa-semilla-foto-14.jpg', alt: 'Varieté de clown, Casa Semilla — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/variete-casa-semilla-foto-15.jpg', alt: 'Varieté de clown, Casa Semilla — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-2.jpg', alt: 'Pizarn-i-kett Más? — ensayo — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/book-actoral-foto-14.jpg', alt: 'Book actoral — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-7.jpg', alt: 'Pizarn-i-kett Más? — ensayo — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-9.jpg', alt: 'Pizarn-i-kett Más? — ensayo — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-20.jpg', alt: 'Pizarn-i-kett Más? — ensayo — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-27.jpg', alt: 'Pizarn-i-kett Más? — ensayo — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/rita-universos-DSC01597.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01593.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01616.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01630.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01641.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01677.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01660.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01694.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01685.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01696.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01708.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01710.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01722.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01719.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01728.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01731.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01753.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01743.jpg', alt: 'Rita Universos — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01465.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01517.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01514.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01520.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01522-2.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01525.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01552.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01556.jpg', alt: 'Book de estudio — foto de archivo', credit: 'Paula' },
+      { src: '/img/crear/galeria/ph-wild-tapa-ph-wild.jpg', alt: 'Tapa editorial "Ph Wild" — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-amentia-foto-1.jpg', alt: 'Amentia, de Marcelo Subiotto — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-musico-libario-foto-1.jpg', alt: 'Chicha, Carmen y el músico — Libario Bar — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-musico-uruguay-foto-1.jpg', alt: 'Chicha, Carmen y el músico — gira Uruguay — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-comuna-orgon-foto-1.jpg', alt: 'La Comuna Orgón — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-paranolimartes-foto-2.jpg', alt: 'Chicha, Carmen y Angelita en Paranolimartes — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-paranolimartes-foto-5.jpg', alt: 'Chicha, Carmen y Angelita en Paranolimartes — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-3.jpg', alt: 'Debut en Pasaje Casa del Arte — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-5.jpg', alt: 'Debut en Pasaje Casa del Arte — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-7.jpg', alt: 'Debut en Pasaje Casa del Arte — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-8.jpg', alt: 'Debut en Pasaje Casa del Arte — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-arbol-foto-1.jpg', alt: 'Chicha, Carmen y Angelita en "El Árbol" — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-estreno-colo-gens-foto-2.jpg', alt: 'Estreno — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/bs-estreno-colo-gens-foto-4.jpg', alt: 'Estreno — foto de archivo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/bs-mayo-plaza-foto-1.jpg', alt: 'Mayo en el Paseo La Plaza — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-postales-foto-1.jpg', alt: 'Postales de Chicha, Carmen y Angelita — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-ultimas-2-funciones-foto-3.jpg', alt: 'Últimas 2 funciones — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-ultimas-2-plaza-foto-5.jpg', alt: 'Últimas 2 funciones, Paseo La Plaza — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-ultimas-2-plaza-foto-3.jpg', alt: 'Últimas 2 funciones, Paseo La Plaza — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-clown-perro-foto-2.jpg', alt: 'Clown, Teatro del Perro — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-clown-perro-foto-5.jpg', alt: 'Clown, Teatro del Perro — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-variete-2014-foto-1.jpg', alt: 'Varieté de clown, Casa Semilla — foto de archivo', credit: 'Archivo personal' },
+      { src: '/img/crear/galeria/bs-variete-2014-foto-5.jpg', alt: 'Varieté de clown, Casa Semilla — foto de archivo', credit: 'Archivo personal' },
+      ],
       stageTitle: 'Teatro',
       stageCredits: [
         {
@@ -496,6 +727,28 @@ export const content: Record<Language, SiteContent> = {
         'Me interesa lo que sucede cuando la improvisación, el juego, el trabajo corporal, el clown y las herramientas de la actuación salen del entrenamiento estrictamente actoral y se ponen al servicio de otras necesidades: desarrollar presencia y expresividad, ampliar recursos de comunicación, estimular la creatividad, ganar confianza frente a otros, entrenar la escucha y relacionarse con lo inesperado.',
       statNumber: '12',
       statLabel: 'años coordinando el Programa Adolescencia — sin fotos publicables: el material muestra adolescentes en situación de vulnerabilidad.',
+      gallery: [
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-15.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-36.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-37.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-40.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/adolescentes-foto-6-blur.jpg', alt: 'Clases de teatro para adolescentes — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/adolescentes-foto-20-blur.jpg', alt: 'Clases de teatro para adolescentes — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg', alt: 'Muestra de alumnos, Marcos Paz — "Los Galponeros" — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-6.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-7.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-12.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-34.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg', alt: 'Multiespacio 1914 — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg', alt: 'FICBA, cierre Programa Adolescencia 2013 — caras desenfocadas', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-4.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-3.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
+      ],
       modalities: [
         {
           title: 'Formación y workshops',
@@ -561,12 +814,53 @@ export const content: Record<Language, SiteContent> = {
         'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui productora de arte en El amor después del amor (Netflix), administradora de producción en Chocolate para 3, directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
       body2:
         'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
-      image: {
-        src: '/img/about/maldichas-foto-1.png',
-        alt: 'Escena de Maldichas, trío que Nora produjo',
-        credit: 'Ariel Ugolino',
-        caption: 'Maldichas · Gestora cultural y productora ejecutiva · 2018–2019',
-      },
+      gallery: [
+        {
+          src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
+          alt: 'Escena del ciclo ¡Mujeres a la obra! — foto de archivo',
+          credit: 'CELCIT',
+        },
+        {
+          src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+          alt: 'Afiche del ciclo ¡Mujeres a la obra!',
+          credit: 'CELCIT',
+        },
+        {
+          src: '/img/producir/galeria/amor-despues-del-amor-poster.jpg',
+          alt: 'Póster de El amor después del amor',
+          credit: 'Netflix',
+        },
+        {
+          src: '/img/producir/galeria/planners-poster.jpg',
+          alt: 'Póster de Planners',
+          credit: 'Star+',
+        },
+        {
+          src: '/img/producir/galeria/chocolate-para-3-poster.jpg',
+          alt: 'Afiche de Chocolate para 3',
+          credit: 'Sánchez Cine',
+        },
+        {
+          src: '/img/producir/galeria/todavia-poster.jpg',
+          alt: 'Afiche de Todavía',
+          credit: 'Sánchez Cine',
+        },
+        {
+          src: '/img/producir/galeria/the-floor-poster.jpg',
+          alt: 'Póster de The Floor',
+          credit: 'Fox / Bigger Stage',
+        },
+        {
+          src: '/img/producir/galeria/st-patricks-festival-2023.jpg',
+          alt: "Multitud en el desfile del St. Patrick's Festival, Dublín 2023",
+          credit: 'Thoslee, Wikimedia Commons (CC BY-SA)',
+        },
+        {
+          src: '/img/producir/galeria/argentina-day-banner.jpg',
+          alt: 'Flyer oficial de Argentina Day, Dublín',
+          credit: 'La Clave Group',
+        },
+      ],
       stageTitle: 'Teatro',
       stageCredits: [
         {
@@ -838,25 +1132,52 @@ export const content: Record<Language, SiteContent> = {
       titleAccent: 'en mente?',
       body: 'Actúo, produzco y coordino formación artística entre Buenos Aires y Dublín. Si hay un proyecto en el que pueda sumar, escribime — respondo por correo o por Instagram.',
       emailLabel: 'Escribime',
+      photoAlt: 'Nora Filmus riendo, sentada y mirando hacia un costado, en una sesión de fotos editorial',
+      form: {
+        nameLabel: 'Nombre',
+        namePlaceholder: 'Tu nombre',
+        emailLabel: 'Correo',
+        emailPlaceholder: 'tu@correo.com',
+        messageLabel: 'Mensaje',
+        messagePlaceholder: 'Contame sobre el proyecto...',
+        captchaLabel: 'Verificación —',
+        submit: 'Enviar mensaje',
+        sending: 'Enviando...',
+        success: 'Gracias — el mensaje llegó. Te respondo pronto.',
+        error: 'Algo falló al enviar. Probá de nuevo o escribime directo por correo.',
+      },
+      wall: {
+        eyebrow: 'Dejá tu huella',
+        title: 'Firmá el programa',
+        body: 'Si llegaste hasta acá, dejá tu nombre y una línea — queda publicado en esta misma página, como una firma en el programa de sala.',
+        nameLabel: 'Nombre',
+        namePlaceholder: 'Tu nombre',
+        messageLabel: 'Mensaje',
+        messagePlaceholder: 'Una línea, nada más',
+        submit: 'Firmar',
+        sending: 'Firmando...',
+        success: 'Firmado — gracias por pasar.',
+        error: 'No se pudo guardar la firma. Probá de nuevo en un momento.',
+        empty: 'Todavía no hay firmas — sé la primera persona en dejar la tuya.',
+      },
     },
 
     about: {
       eyebrow: '36 años en artes escénicas',
       titleLead: 'Treinta y seis años',
-      titleAccent: 'arriba y detrás del escenario.',
+      titleAccent: 'en escena.',
       body1:
         'Soy actriz, docente y productora audiovisual y cultural argentino-rumana, radicada en Dublín. Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
       body2:
         'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ e INCAA. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
       cta: 'Escribime',
       cvLabel: 'Descargar CV',
-      galleryTitle: 'Del archivo',
-      /** Aclaración fija al pie del archivo — refuerza la regla 2 en pantalla. */
-      galleryNote: 'Cada pieza indica el rol que ocupé en esa producción.',
       gallery: GALLERY_ES,
     },
 
     creditVideo: { watch: 'Ver video' },
+
+    lightbox: { close: 'Cerrar', previous: 'Anterior', next: 'Siguiente' },
 
     notFound: {
       text: 'La página que buscás no existe o fue movida.',
@@ -882,20 +1203,42 @@ export const content: Record<Language, SiteContent> = {
     htmlLang: 'en',
     skipLink: 'Skip to content',
     langToggle: { label: 'Ver el sitio en español', short: 'ES' },
+    connectionError: {
+      title: "This page couldn't load",
+      body: 'It may be a weak or unstable connection. Check your connection and try again.',
+      retry: 'Retry',
+    },
+    pageTransition: { goingTo: 'Going to' },
+    siteBanner: {
+      message: "This site is a work in progress — we're updating it constantly. The final version is coming soon.",
+      dismiss: 'Dismiss notice',
+    },
 
     hero: {
       firstName: 'Nora',
       lastName: 'Filmus',
-      role: 'Actor · Producer · Theatre educator',
+      role: 'Actress · Producer · Theatre educator',
       bio: 'Thirty-six years in the performing arts, between Buenos Aires and Dublin. I act, I produce for stage and screen, and I run arts education programmes.',
       cta: 'See my work',
+      contactCta: "Let's talk",
       location: 'Dublin, Ireland',
       portraitAlt: 'Nora Filmus laughing out loud in a studio portrait, arms crossed',
       portraitCredit: 'Paula',
       credentials: ['Netflix', 'Star+', 'HBO', 'Teatro Colón', "St. Patrick's Festival"],
+      credentialsLabel: 'Selected credits',
+      menuCaptions: {
+        trayectoria: 'Thirty-six years of work, year by year.',
+        contacto: 'For projects, collaborations or enquiries.',
+      },
     },
 
-    nav: { home: 'Home', about: 'About', trayectoria: 'Timeline', contacto: 'Contact' },
+    nav: {
+      home: 'Home',
+      about: 'About',
+      trayectoria: 'Timeline',
+      contacto: 'Contact',
+      sectionNav: 'Site navigation',
+    },
 
     crear: {
       eyebrow: 'Acting',
@@ -905,12 +1248,72 @@ export const content: Record<Language, SiteContent> = {
         'I started studying theatre at fourteen with Alicia Aller, and went on training with Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas and Marcelo Subiotto, among others — I completed three years of a degree in Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years acting with the company Los Ranz, performing in venues including the Teatro Colón and the Centro Cultural Recoleta in Buenos Aires, and took part in La Comuna Orgón, directed by Marcelo Subiotto at Teatro Puerta Roja.',
       body2:
         'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Netflix, Polka and Telefé.',
-      image: {
-        src: '/img/about/rapina-foto-5.jpg',
-        alt: 'Scene from "Bañera", part of Rapiña',
-        credit: 'Marcela Russarabian',
-        caption: 'Rapiña · "Bañera" · 2017–2019',
-      },
+      gallery: [
+      { src: '/img/crear/galeria/chicha-magdalena-foto-1.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-6.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-10.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-25.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-28.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-39.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/chicha-magdalena-foto-45.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/variete-casa-semilla-foto-14.jpg', alt: 'Varieté de clown, Casa Semilla — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/variete-casa-semilla-foto-15.jpg', alt: 'Varieté de clown, Casa Semilla — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-2.jpg', alt: 'Pizarn-i-kett Más? — ensayo — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/book-actoral-foto-14.jpg', alt: 'Book actoral — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-7.jpg', alt: 'Pizarn-i-kett Más? — ensayo — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-9.jpg', alt: 'Pizarn-i-kett Más? — ensayo — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-20.jpg', alt: 'Pizarn-i-kett Más? — ensayo — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/pizarniket-ensayo-foto-27.jpg', alt: 'Pizarn-i-kett Más? — ensayo — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/rita-universos-DSC01597.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01593.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01616.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01630.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01641.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01677.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01660.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01694.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01685.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01696.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01708.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01710.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01722.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01719.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01728.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01731.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01753.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/rita-universos-DSC01743.jpg', alt: 'Rita Universos — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01465.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01517.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01514.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01520.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01522-2.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01525.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01552.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/polas-DSC01556.jpg', alt: 'Book de estudio — archive photo', credit: 'Paula' },
+      { src: '/img/crear/galeria/ph-wild-tapa-ph-wild.jpg', alt: 'Tapa editorial "Ph Wild" — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-amentia-foto-1.jpg', alt: 'Amentia, de Marcelo Subiotto — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-musico-libario-foto-1.jpg', alt: 'Chicha, Carmen y el músico — Libario Bar — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-musico-uruguay-foto-1.jpg', alt: 'Chicha, Carmen y el músico — gira Uruguay — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-comuna-orgon-foto-1.jpg', alt: 'La Comuna Orgón — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-paranolimartes-foto-2.jpg', alt: 'Chicha, Carmen y Angelita en Paranolimartes — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-paranolimartes-foto-5.jpg', alt: 'Chicha, Carmen y Angelita en Paranolimartes — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-3.jpg', alt: 'Debut en Pasaje Casa del Arte — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-5.jpg', alt: 'Debut en Pasaje Casa del Arte — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-7.jpg', alt: 'Debut en Pasaje Casa del Arte — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-debut-casa-arte-foto-8.jpg', alt: 'Debut en Pasaje Casa del Arte — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-arbol-foto-1.jpg', alt: 'Chicha, Carmen y Angelita en "El Árbol" — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-estreno-colo-gens-foto-2.jpg', alt: 'Estreno — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/bs-estreno-colo-gens-foto-4.jpg', alt: 'Estreno — archive photo', credit: 'Colo Gens' },
+      { src: '/img/crear/galeria/bs-mayo-plaza-foto-1.jpg', alt: 'Mayo en el Paseo La Plaza — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-postales-foto-1.jpg', alt: 'Postales de Chicha, Carmen y Angelita — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-ultimas-2-funciones-foto-3.jpg', alt: 'Últimas 2 funciones — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-ultimas-2-plaza-foto-5.jpg', alt: 'Últimas 2 funciones, Paseo La Plaza — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-ultimas-2-plaza-foto-3.jpg', alt: 'Últimas 2 funciones, Paseo La Plaza — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-clown-perro-foto-2.jpg', alt: 'Clown, Teatro del Perro — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-clown-perro-foto-5.jpg', alt: 'Clown, Teatro del Perro — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-variete-2014-foto-1.jpg', alt: 'Varieté de clown, Casa Semilla — archive photo', credit: 'Personal archive' },
+      { src: '/img/crear/galeria/bs-variete-2014-foto-5.jpg', alt: 'Varieté de clown, Casa Semilla — archive photo', credit: 'Personal archive' },
+      ],
       stageTitle: 'Theatre',
       stageCredits: [
         {
@@ -1015,6 +1418,28 @@ export const content: Record<Language, SiteContent> = {
         'I am particularly interested in what happens when improvisation, play, physical work, clowning and acting techniques move beyond traditional actor training: how they can help us develop presence and expressiveness, build confidence, strengthen communication and listening skills, stimulate creativity, become more comfortable with the unexpected, and discover new ways of responding and connecting with others.',
       statNumber: '12',
       statLabel: 'years coordinating Programa Adolescencia — no publishable photos: the material shows teenagers in vulnerable circumstances.',
+      gallery: [
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-15.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-36.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-37.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/vicente-lopez-foto-40.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/adolescentes-foto-6-blur.jpg', alt: 'Clases de teatro para adolescentes — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/adolescentes-foto-20-blur.jpg', alt: 'Clases de teatro para adolescentes — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg', alt: 'Muestra de alumnos, Marcos Paz — "Los Galponeros" — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-6.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-7.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-12.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/enamorar-baigorria-foto-34.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg', alt: 'Multiespacio 1914 — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg', alt: 'FICBA, cierre Programa Adolescencia 2013 — faces blurred', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-4.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-3.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
+      { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
+      ],
       modalities: [
         {
           title: 'Training & workshops',
@@ -1075,12 +1500,53 @@ export const content: Record<Language, SiteContent> = {
         'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art producer on El amor después del amor (Netflix), production administrator on Chocolate para 3, art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
       body2:
         'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
-      image: {
-        src: '/img/about/maldichas-foto-1.png',
-        alt: 'Scene from Maldichas, the trio Nora produced',
-        credit: 'Ariel Ugolino',
-        caption: 'Maldichas · Cultural manager and executive producer · 2018–2019',
-      },
+      gallery: [
+        {
+          src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
+          alt: 'Scene from the ¡Mujeres a la obra! series — archive photo',
+          credit: 'CELCIT',
+        },
+        {
+          src: '/img/about/mujeres-a-la-obra-afiche.jpg',
+          alt: 'Poster for the ¡Mujeres a la obra! series',
+          credit: 'CELCIT',
+        },
+        {
+          src: '/img/producir/galeria/amor-despues-del-amor-poster.jpg',
+          alt: 'Poster for El amor después del amor',
+          credit: 'Netflix',
+        },
+        {
+          src: '/img/producir/galeria/planners-poster.jpg',
+          alt: 'Poster for Planners',
+          credit: 'Star+',
+        },
+        {
+          src: '/img/producir/galeria/chocolate-para-3-poster.jpg',
+          alt: 'Poster for Chocolate para 3',
+          credit: 'Sánchez Cine',
+        },
+        {
+          src: '/img/producir/galeria/todavia-poster.jpg',
+          alt: 'Poster for Todavía',
+          credit: 'Sánchez Cine',
+        },
+        {
+          src: '/img/producir/galeria/the-floor-poster.jpg',
+          alt: 'Poster for The Floor',
+          credit: 'Fox / Bigger Stage',
+        },
+        {
+          src: '/img/producir/galeria/st-patricks-festival-2023.jpg',
+          alt: "Crowd at the St. Patrick's Festival parade, Dublin 2023",
+          credit: 'Thoslee, Wikimedia Commons (CC BY-SA)',
+        },
+        {
+          src: '/img/producir/galeria/argentina-day-banner.jpg',
+          alt: 'Official Argentina Day flyer, Dublin',
+          credit: 'La Clave Group',
+        },
+      ],
       stageTitle: 'Theatre',
       stageCredits: [
         {
@@ -1343,24 +1809,52 @@ export const content: Record<Language, SiteContent> = {
       titleAccent: 'in mind?',
       body: "I act, produce and run arts education programmes between Buenos Aires and Dublin. If there's a project I could be part of, get in touch — I reply by email or Instagram.",
       emailLabel: 'Get in touch',
+      photoAlt: 'Nora Filmus laughing, sitting and looking to the side, during an editorial photo session',
+      form: {
+        nameLabel: 'Name',
+        namePlaceholder: 'Your name',
+        emailLabel: 'Email',
+        emailPlaceholder: 'you@email.com',
+        messageLabel: 'Message',
+        messagePlaceholder: 'Tell me about the project...',
+        captchaLabel: 'Verification —',
+        submit: 'Send message',
+        sending: 'Sending...',
+        success: "Thanks — your message is in. I'll get back to you soon.",
+        error: 'Something went wrong sending it. Try again or email me directly.',
+      },
+      wall: {
+        eyebrow: 'Leave your mark',
+        title: 'Sign the programme',
+        body: "If you made it this far, leave your name and a line — it gets published right here, like a signature in the programme sheet.",
+        nameLabel: 'Name',
+        namePlaceholder: 'Your name',
+        messageLabel: 'Message',
+        messagePlaceholder: 'One line, nothing more',
+        submit: 'Sign',
+        sending: 'Signing...',
+        success: 'Signed — thanks for stopping by.',
+        error: 'Could not save the signature. Try again in a moment.',
+        empty: 'No signatures yet — be the first to leave yours.',
+      },
     },
 
     about: {
       eyebrow: '36 years in the performing arts',
       titleLead: 'Thirty-six years',
-      titleAccent: 'on stage and behind it.',
+      titleAccent: 'on stage.',
       body1:
         'I\'m an Argentine-Romanian actress, educator and audiovisual and cultural producer, based in Dublin. I trained at the IFT Integral Theatre School and studied Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years with the company Los Ranz, five with Marcelo Subiotto’s Colectivo Teatral Puerta Roja, and I have been part of the Boquitas Pintadas company since 2015.',
       body2:
         'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and INCAA. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the Rathe Gather Festival.',
       cta: 'Get in touch',
       cvLabel: 'Download CV',
-      galleryTitle: 'From the archive',
-      galleryNote: 'Each piece states the role I held in that production.',
       gallery: GALLERY_EN,
     },
 
     creditVideo: { watch: 'Watch video' },
+
+    lightbox: { close: 'Close', previous: 'Previous', next: 'Next' },
 
     notFound: {
       text: 'The page you are looking for does not exist or has been moved.',

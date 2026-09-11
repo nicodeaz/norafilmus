@@ -155,6 +155,523 @@
       960
     ]
   },
+  "/img/contacto/nora-contacto.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/book-actoral-foto-14.jpg": {
+    "width": 404,
+    "height": 604,
+    "widths": [
+      404
+    ]
+  },
+  "/img/crear/galeria/bs-amentia-foto-1.jpg": {
+    "width": 713,
+    "height": 676,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-arbol-foto-1.jpg": {
+    "width": 482,
+    "height": 480,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-clown-perro-foto-2.jpg": {
+    "width": 960,
+    "height": 521,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-clown-perro-foto-5.jpg": {
+    "width": 899,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-comuna-orgon-foto-1.jpg": {
+    "width": 600,
+    "height": 434,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-debut-casa-arte-foto-3.jpg": {
+    "width": 960,
+    "height": 648,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-debut-casa-arte-foto-5.jpg": {
+    "width": 960,
+    "height": 675,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-debut-casa-arte-foto-7.jpg": {
+    "width": 741,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-debut-casa-arte-foto-8.jpg": {
+    "width": 960,
+    "height": 733,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-estreno-colo-gens-foto-2.jpg": {
+    "width": 960,
+    "height": 714,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-estreno-colo-gens-foto-4.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-mayo-plaza-foto-1.jpg": {
+    "width": 299,
+    "height": 448,
+    "widths": [
+      299
+    ]
+  },
+  "/img/crear/galeria/bs-musico-libario-foto-1.jpg": {
+    "width": 884,
+    "height": 1002,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-musico-uruguay-foto-1.jpg": {
+    "width": 1600,
+    "height": 1205,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/crear/galeria/bs-paranolimartes-foto-2.jpg": {
+    "width": 700,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-paranolimartes-foto-5.jpg": {
+    "width": 764,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-postales-foto-1.jpg": {
+    "width": 800,
+    "height": 533,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-ultimas-2-funciones-foto-3.jpg": {
+    "width": 758,
+    "height": 736,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-ultimas-2-plaza-foto-3.jpg": {
+    "width": 809,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/bs-ultimas-2-plaza-foto-5.jpg": {
+    "width": 960,
+    "height": 724,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-variete-2014-foto-1.jpg": {
+    "width": 960,
+    "height": 637,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/bs-variete-2014-foto-5.jpg": {
+    "width": 960,
+    "height": 637,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-1.jpg": {
+    "width": 960,
+    "height": 717,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-10.jpg": {
+    "width": 960,
+    "height": 700,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-25.jpg": {
+    "width": 960,
+    "height": 669,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-28.jpg": {
+    "width": 960,
+    "height": 742,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-39.jpg": {
+    "width": 960,
+    "height": 783,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-45.jpg": {
+    "width": 960,
+    "height": 690,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/chicha-magdalena-foto-6.jpg": {
+    "width": 960,
+    "height": 775,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/mosquito-improvisacion-mosquito-afiche.jpg": {
+    "width": 288,
+    "height": 360,
+    "widths": [
+      288
+    ]
+  },
+  "/img/crear/galeria/ph-wild-tapa-ph-wild.jpg": {
+    "width": 800,
+    "height": 1200,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/pizarniket-ensayo-foto-2.jpg": {
+    "width": 604,
+    "height": 453,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/pizarniket-ensayo-foto-20.jpg": {
+    "width": 453,
+    "height": 604,
+    "widths": [
+      453
+    ]
+  },
+  "/img/crear/galeria/pizarniket-ensayo-foto-27.jpg": {
+    "width": 600,
+    "height": 450,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/pizarniket-ensayo-foto-7.jpg": {
+    "width": 453,
+    "height": 604,
+    "widths": [
+      453
+    ]
+  },
+  "/img/crear/galeria/pizarniket-ensayo-foto-9.jpg": {
+    "width": 604,
+    "height": 453,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01465.jpg": {
+    "width": 1409,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01514.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01517.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01520.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01522-2.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01525.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01552.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/polas-DSC01556.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rapina-rapina-foto-10.jpg": {
+    "width": 1417,
+    "height": 1063,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01593.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01597.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01616.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01630.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01641.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01660.jpg": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01677.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01685.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01694.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01696.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01708.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01710.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01719.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01722.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01728.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01731.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01743.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/rita-universos-DSC01753.jpg": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/crear/galeria/variete-casa-semilla-foto-14.jpg": {
+    "width": 637,
+    "height": 960,
+    "widths": [
+      480
+    ]
+  },
+  "/img/crear/galeria/variete-casa-semilla-foto-15.jpg": {
+    "width": 960,
+    "height": 637,
+    "widths": [
+      480,
+      960
+    ]
+  },
   "/img/crear/pizarnikett-flyer.jpg": {
     "width": 600,
     "height": 450,
@@ -209,6 +726,183 @@
       1440
     ]
   },
+  "/img/ensenar/galeria/adolescentes-foto-20-blur.jpg": {
+    "width": 960,
+    "height": 718,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/adolescentes-foto-6-blur.jpg": {
+    "width": 960,
+    "height": 639,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/bs-apertura-casa-valle-foto-3.jpg": {
+    "width": 960,
+    "height": 639,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/bs-apertura-casa-valle-foto-4.jpg": {
+    "width": 960,
+    "height": 639,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg": {
+    "width": 720,
+    "height": 603,
+    "widths": [
+      480
+    ]
+  },
+  "/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg": {
+    "width": 652,
+    "height": 850,
+    "widths": [
+      480
+    ]
+  },
+  "/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg": {
+    "width": 960,
+    "height": 641,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/enamorar-baigorria-foto-12.jpg": {
+    "width": 480,
+    "height": 640,
+    "widths": [
+      480
+    ]
+  },
+  "/img/ensenar/galeria/enamorar-baigorria-foto-34.jpg": {
+    "width": 960,
+    "height": 640,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/enamorar-baigorria-foto-6.jpg": {
+    "width": 960,
+    "height": 641,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/enamorar-baigorria-foto-7.jpg": {
+    "width": 640,
+    "height": 480,
+    "widths": [
+      480
+    ]
+  },
+  "/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg": {
+    "width": 960,
+    "height": 658,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg": {
+    "width": 726,
+    "height": 972,
+    "widths": [
+      480
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-15.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-36.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-37.jpg": {
+    "width": 960,
+    "height": 720,
+    "widths": [
+      480,
+      960
+    ]
+  },
+  "/img/ensenar/galeria/vicente-lopez-foto-40.jpg": {
+    "width": 640,
+    "height": 480,
+    "widths": [
+      480
+    ]
+  },
+  "/img/hero-fondo.jpg": {
+    "width": 1467,
+    "height": 2200,
+    "widths": [
+      480,
+      960,
+      1440
+    ]
+  },
+  "/img/hero-loop-poster.jpg": {
+    "width": 840,
+    "height": 1284,
+    "widths": [
+      480
+    ]
+  },
+  "/img/hero-transition-poster.jpg": {
+    "width": 780,
+    "height": 1170,
+    "widths": [
+      480
+    ]
+  },
   "/img/menu/improvisacion-mosquito-afiche.jpg": {
     "width": 288,
     "height": 360,
@@ -239,11 +933,60 @@
     ]
   },
   "/img/nora-portrait.webp": {
-    "width": 1268,
-    "height": 1949,
+    "width": 353,
+    "height": 541,
+    "widths": [
+      353
+    ]
+  },
+  "/img/producir/galeria/amor-despues-del-amor-poster.jpg": {
+    "width": 780,
+    "height": 1171,
+    "widths": [
+      480
+    ]
+  },
+  "/img/producir/galeria/argentina-day-banner.jpg": {
+    "width": 940,
+    "height": 470,
+    "widths": [
+      480
+    ]
+  },
+  "/img/producir/galeria/chocolate-para-3-poster.jpg": {
+    "width": 210,
+    "height": 300,
+    "widths": [
+      210
+    ]
+  },
+  "/img/producir/galeria/planners-poster.jpg": {
+    "width": 780,
+    "height": 1170,
+    "widths": [
+      480
+    ]
+  },
+  "/img/producir/galeria/st-patricks-festival-2023.jpg": {
+    "width": 1400,
+    "height": 1050,
     "widths": [
       480,
       960
+    ]
+  },
+  "/img/producir/galeria/the-floor-poster.jpg": {
+    "width": 780,
+    "height": 1170,
+    "widths": [
+      480
+    ]
+  },
+  "/img/producir/galeria/todavia-poster.jpg": {
+    "width": 595,
+    "height": 842,
+    "widths": [
+      480
     ]
   }
 }

@@ -1,0 +1,10 @@
+# A diferencia de nora-landing/mail/.htaccess, acá no hace falta permitir
+# ningún .php puntual — nada en esta carpeta es un endpoint HTTP propio,
+# todo se incluye por `require` desde `public/api/contact.php`. Deny total.
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(\.env.*|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>

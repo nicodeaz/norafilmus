@@ -1,7 +1,10 @@
 import { ArrowUp, Instagram, Linkedin, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { TRAYECTORIA_ENABLED } from '@/lib/features';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import BetaBadge from './BetaBadge';
+import { NoraStarIcon } from './icons/nora';
 import Picture from './Picture';
 import Reveal from './Reveal';
 import Seam from './Seam';
@@ -36,7 +39,10 @@ const NAV_LINK =
 
 export default function Footer() {
   const { t } = useLanguage();
+  const location = useLocation();
   const linkedPillars = t.pillars.filter((p) => p.href);
+  const isActive = (path: string) => location.pathname === path;
+  const activeClass = 'text-brand-red';
 
   const socialLinks = [
     { label: t.social.instagram, href: LINKS.instagram, icon: Instagram, external: true },
@@ -47,40 +53,88 @@ export default function Footer() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   return (
-    <footer className="relative z-10 w-full border-t border-cream/15 bg-ink">
+    // Sin `border-t` propio (sacado 2026-09-09, pedido explícito: "el último
+    // hr que hay en la home, justo antes de fin del programa"). El `Seam` de
+    // abajo ya dibuja su propia línea terminando en el colofón — este border
+    // estático era una segunda raya pegada encima, redundante.
+    <footer className="relative z-10 w-full overflow-hidden bg-ink">
+      {/* Marca de agua decorativa — set de íconos de marca (2026-09-09), ver
+          docblock de `icons/nora`. Ínfima opacidad, puramente atmosférica:
+          "el cierre del Programa lleva su propia estrella", mismo dispositivo
+          que ya usa el "12" de `Ensenar`/la fila de `ProgramIndex`, nunca
+          compite con el texto real. */}
+      <NoraStarIcon
+        aria-hidden
+        className="pointer-events-none absolute -right-16 -top-24 h-[clamp(16rem,34vw,30rem)] w-[clamp(16rem,34vw,30rem)] text-brand-red/[0.09] md:-right-20 md:-top-32"
+      />
       <Seam label={t.footer.colophon} />
       <Reveal
         as="div"
         className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 sm:px-10 md:px-12 md:py-20"
       >
-        <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-          <Picture
-            src="/img/nora-firma-roja.png"
-            alt="Nora Filmus"
-            className="h-14 w-auto"
-            sizes="180px"
-          />
+        <div className="flex flex-row items-center justify-between gap-4 sm:gap-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <Picture
+              src="/img/nora-firma-roja.png"
+              alt="Nora Filmus"
+              className="h-14 w-auto"
+              sizes="180px"
+            />
+            <BetaBadge />
+          </div>
 
-          {/* `flex-wrap` + gap asimétrico: con 6 links y `nowrap` este nav medía
-              469px en ES contra un viewport de 390 y hacía scrollear el
-              documento entero de lado (auditoría E1/H2 — el caso peor era el
-              español, que es el idioma por defecto). */}
-          <nav className="flex flex-wrap items-center gap-x-6 gap-y-1">
-            <Link to="/" className={NAV_LINK}>
+          {/* Oculto en mobile a pedido del usuario (2026-09-11): en esa
+              pantalla el footer queda solo con logo + íconos de redes en una
+              sola línea, sin el nav — el nav completo (Inicio/Sobre mí/los
+              pilares/Contacto) ya vive en `Header`, accesible desde arriba
+              en cualquier ruta. `flex-wrap` + gap asimétrico: con 6 links y
+              `nowrap` este nav medía 469px en ES contra un viewport de 390 y
+              hacía scrollear el documento entero de lado (auditoría E1/H2 —
+              el caso peor era el español, que es el idioma por defecto). */}
+          <nav className="hidden flex-wrap items-center gap-x-6 gap-y-1 md:flex">
+            <Link
+              to="/"
+              aria-current={isActive('/') ? 'page' : undefined}
+              className={`${NAV_LINK} ${isActive('/') && !location.hash ? activeClass : ''}`}
+            >
               {t.nav.home}
             </Link>
-            <Link to="/#sobre-mi" className={NAV_LINK}>
+            <Link
+              to="/#sobre-mi"
+              aria-current={isActive('/') && location.hash === '#sobre-mi' ? 'page' : undefined}
+              className={`${NAV_LINK} ${isActive('/') && location.hash === '#sobre-mi' ? activeClass : ''}`}
+            >
               {t.nav.about}
             </Link>
-            {linkedPillars.map((p) => (
-              <Link key={p.key} to={p.href!} className={NAV_LINK}>
-                {p.label}
+            {linkedPillars.map((p) => {
+              const active = isActive(p.href!);
+              return (
+                <Link
+                  key={p.key}
+                  to={p.href!}
+                  aria-current={active ? 'page' : undefined}
+                  className={`${NAV_LINK} ${active ? activeClass : ''}`}
+                >
+                  {p.label}
+                </Link>
+              );
+            })}
+            {/* Trayectoria fuera de producción hasta que esté pronta y
+                funcional (2026-09-09) — ver lib/features.ts. */}
+            {TRAYECTORIA_ENABLED && (
+              <Link
+                to="/trayectoria"
+                aria-current={isActive('/trayectoria') ? 'page' : undefined}
+                className={`${NAV_LINK} ${isActive('/trayectoria') ? activeClass : ''}`}
+              >
+                {t.nav.trayectoria}
               </Link>
-            ))}
-            <Link to="/trayectoria" className={NAV_LINK}>
-              {t.nav.trayectoria}
-            </Link>
-            <Link to="/contacto" className={NAV_LINK}>
+            )}
+            <Link
+              to="/contacto"
+              aria-current={isActive('/contacto') ? 'page' : undefined}
+              className={`${NAV_LINK} ${isActive('/contacto') ? activeClass : ''}`}
+            >
               {t.nav.contacto}
             </Link>
           </nav>

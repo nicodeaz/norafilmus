@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Image as ImageIcon, Play } from 'lucide-react';
 import type { Credit } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
 import Picture from './Picture';
+import { useLightbox } from './Lightbox';
 
 /**
  * Numeral romano en minúscula, sin tope — la lista de teatro de `Crear` ya
@@ -38,9 +40,9 @@ export type CreditListVariant = 'cast' | 'notebook' | 'dossier';
  *
  * - `cast` (Crear, default): números romanos en itálica — el "programa de
  *   sala" original, sin cambios.
- * - `notebook` (Enseñar): el mismo índice pero en `font-signature`
- *   (manuscrita) — lee como una anotación a mano, coherente con el "cuaderno
- *   de trabajo" que es el Acto II.
+ * - `notebook` (Enseñar): el mismo índice en serif itálica — lee como una
+ *   anotación editorial, coherente con el "cuaderno de trabajo" sin reutilizar
+ *   la fuente de firma fuera de la marca.
  * - `dossier` (Producir): número arábigo con cero a la izquierda entre
  *   corchetes, en `font-mono` (la stack monoespacio del sistema, no una
  *   fuente nueva) — lee como planilla/expediente de producción.
@@ -55,7 +57,7 @@ function IndexMarker({ index, variant }: { index: number; variant: CreditListVar
   }
   if (variant === 'notebook') {
     return (
-      <span className="font-signature text-lg leading-none text-cream/50">
+      <span className="font-body text-lg italic leading-none text-cream/50">
         {toRoman(index + 1)}.
       </span>
     );
@@ -70,8 +72,13 @@ function IndexMarker({ index, variant }: { index: number; variant: CreditListVar
  * carga y que un click abriera los tres paneles a la vez (auditoría E1/H1).
  * `work + years` sí es único y, a diferencia del índice, sobrevive a un
  * reordenamiento de la lista en `content.ts`.
+ *
+ * Exportado (2026-09-06): `GALLERY_ES`/`GALLERY_EN` en `content.ts` arman el
+ * `href` del slider de `AboutMe` con este mismo formato (`work::years`,
+ * codificado), y este componente lee `location.hash` para abrir y scrollear
+ * al crédito que matchea al aterrizar — ver el `useEffect` más abajo.
  */
-const creditId = (c: Credit) => `${c.work}::${c.years}`;
+export const creditId = (c: Credit) => `${c.work}::${c.years}`;
 
 /**
  * Lista de créditos con formato de "cast list" de programa de teatro —
@@ -101,6 +108,25 @@ export default function CreditList({
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const { t } = useLanguage();
+  const { open: openLightbox } = useLightbox();
+  const location = useLocation();
+  const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+
+  // Deep-link desde el slider de `AboutMe` (2026-09-06): si el hash matchea
+  // un crédito DE ESTA lista puntual, lo abre y le hace scroll. Corre en
+  // cada cambio de hash/idioma — si el idioma cambia con el hash puesto y el
+  // crédito tradujo su `work` (solo Pizarn-i-kett), simplemente no matchea
+  // más y no pasa nada, no rompe.
+  useEffect(() => {
+    if (!location.hash) return;
+    const targetId = decodeURIComponent(location.hash.slice(1));
+    const match = items.find((c) => creditId(c) === targetId);
+    if (!match) return;
+    setOpenId(targetId);
+    requestAnimationFrame(() => {
+      itemRefs.current[targetId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [location.hash, items]);
 
   return (
     <div>
@@ -109,8 +135,15 @@ export default function CreditList({
         {items.map((c, i) => {
           const id = creditId(c);
           const isOpen = openId === id;
+          const hasImages = Boolean(c.images?.length);
           return (
-            <li key={id} className="border-t border-cream/10 last:border-b">
+            <li
+              key={id}
+              ref={(el) => {
+                itemRefs.current[id] = el;
+              }}
+              className="border-t border-cream/10 last:border-b"
+            >
               <button
                 type="button"
                 onClick={() => setOpenId(isOpen ? null : id)}
@@ -127,6 +160,15 @@ export default function CreditList({
                   {c.work}
                 </span>
                 <span className="ml-auto shrink-0 font-label text-xs text-cream/50">{c.years}</span>
+                {(hasImages || c.video) && (
+                  <span
+                    aria-hidden
+                    className="flex shrink-0 items-center gap-1 text-brand-red/80"
+                  >
+                    {hasImages && <ImageIcon className="h-3.5 w-3.5" />}
+                    {c.video && <Play className="h-3.5 w-3.5" />}
+                  </span>
+                )}
               </button>
 
               {/* Grid-rows trick: anima alto sin medir con JS; con
@@ -139,28 +181,55 @@ export default function CreditList({
               >
                 <div className="overflow-hidden">
                   <div className="ml-6 border-l-2 border-brand-red/60 pb-4 pl-4">
+                    {/* Cualquier foto del sitio se puede ampliar (2026-09-06,
+                        pedido explícito del usuario) — el botón abre el
+                        lightbox global con TODAS las fotos de este crédito
+                        puntual, así ←/→ navega entre ellas sin salir del
+                        crédito. */}
                     {c.images?.length === 1 && (
-                      <Picture
-                        src={c.images[0].src}
-                        alt={c.images[0].alt}
-                        sizes="(min-width: 768px) 20rem, 80vw"
-                        loading="lazy"
-                        decoding="async"
-                        className="mb-3 w-full max-w-[14rem] rounded object-cover"
-                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openLightbox(
+                            c.images!.map((img) => ({ src: img.src, alt: img.alt, label: c.work })),
+                            0
+                          )
+                        }
+                        className="mb-3 block w-full max-w-[14rem] outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+                      >
+                        <Picture
+                          src={c.images[0].src}
+                          alt={c.images[0].alt}
+                          sizes="(min-width: 768px) 20rem, 80vw"
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full rounded object-cover transition-opacity duration-300 hover:opacity-80"
+                        />
+                      </button>
                     )}
                     {c.images && c.images.length > 1 && (
                       <div className="mb-3 grid max-w-md grid-cols-3 gap-1.5">
-                        {c.images.map((img) => (
-                          <Picture
+                        {c.images.map((img, imgIndex) => (
+                          <button
                             key={img.src}
-                            src={img.src}
-                            alt={img.alt}
-                            sizes="120px"
-                            loading="lazy"
-                            decoding="async"
-                            className="aspect-[3/4] w-full rounded object-cover"
-                          />
+                            type="button"
+                            onClick={() =>
+                              openLightbox(
+                                c.images!.map((im) => ({ src: im.src, alt: im.alt, label: c.work })),
+                                imgIndex
+                              )
+                            }
+                            className="outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+                          >
+                            <Picture
+                              src={img.src}
+                              alt={img.alt}
+                              sizes="120px"
+                              loading="lazy"
+                              decoding="async"
+                              className="aspect-[3/4] w-full rounded object-cover transition-opacity duration-300 hover:opacity-80"
+                            />
+                          </button>
                         ))}
                       </div>
                     )}

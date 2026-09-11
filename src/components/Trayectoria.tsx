@@ -1,22 +1,50 @@
-import { useMemo, useRef, useState } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'motion/react';
 import type { Decade, TimelineCategory, TimelineEntry } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
+import { useLightbox } from './Lightbox';
 import Picture from './Picture';
 import Reveal from './Reveal';
 
 type FilterKey = 'todos' | TimelineCategory;
 type Side = 'left' | 'right';
-const DECADES: Decade[] = ['1990s', '2000s', '2010s', '2020s'];
+// Orden descendente — el usuario pidió (2026-09-08) que el timeline arranque
+// en el presente y vaya hacia atrás, no al revés. `content.ts` sigue
+// curado en orden ascendente (1990→hoy, más fácil de mantener), así que acá
+// se invierte tanto el orden de décadas como el de los hitos dentro de cada
+// una — no se toca el dato fuente.
+const DECADES: Decade[] = ['2020s', '2010s', '2000s', '1990s'];
+// Año de CIERRE de cada década ya completa — 2026-09-08, corrigiendo el
+// "año de arranque" (2026-09-06) que tenía sentido leyendo 1990→hoy pero
+// confundía en el orden invertido: el divisor "2020" aparecía primero,
+// antes que los hitos de 2026/2025/2024 que en realidad se leen ahí. Para
+// las tres décadas cerradas el cierre es fijo (1999/2009/2019); para la
+// década en curso (2020s) no hay un cierre fijo todavía — se calcula en
+// `useDecadeEndYears` a partir del año más reciente presente en los datos.
+const DECADE_END_YEAR: Record<Exclude<Decade, '2020s'>, string> = {
+  '1990s': '1999',
+  '2000s': '2009',
+  '2010s': '2019',
+};
 
 /**
  * "El programa" — Trayectoria, la línea de tiempo completa. Rediseñada
  * 2026-09-04 a pedido explícito del usuario: antes cada década era un
  * acordeón con la lista de hitos apilada en una sola columna de texto — acá
- * es una **espina vertebral** de verdad, de 1990 al presente, con los hitos
- * alternando a la izquierda y a la derecha de la línea y, cuando hay una
- * foto real disponible, la foto sale junto al hito.
+ * es una **espina vertebral** de verdad, con los hitos alternando a la
+ * izquierda y a la derecha de la línea y, cuando hay una foto real
+ * disponible, la foto sale junto al hito. Orden invertido 2026-09-08 a
+ * pedido del usuario: arranca en el presente (2020s) y va hacia atrás hasta
+ * 1990 — `DECADES` y los hitos de cada grupo se recorren en reversa, el dato
+ * fuente de `content.ts` sigue curado en orden ascendente.
  *
  * **Solo un puñado de los 39 hitos tiene `images`** — no es un déficit del
  * diseño, es la regla 1 de `content.ts` ("todo dato es verificable"): cada
@@ -45,6 +73,34 @@ const DECADES: Decade[] = ['1990s', '2000s', '2010s', '2020s'];
  * "llenándose" pero sin nada que marque el punto exacto de avance — con
  * décadas largas (2020s tiene 17 hitos) la línea rellena se leía como una
  * barra de progreso más, no como algo recorriéndose en el momento.
+ *
+ * Divisores de grupo, sin "2020s" (2026-09-06): el usuario pidió no ver el
+ * bucket crudo. El rótulo gigante es un año, derivado de la década (no del
+ * primer hito filtrado, para que no cambie según el filtro activo).
+ * 2026-09-08: ese año pasó de ser el de ARRANQUE de la década a el de
+ * CIERRE (`DECADE_END_YEAR` + `computeCurrentDecadeEndYear`) — con el orden
+ * ya invertido (presente→pasado), el numeral que se encuentra primero al
+ * entrar a cada bloque tiene que ser el año por el que se lo está leyendo
+ * (el más reciente), no el arranque técnico de la década. Para 2020s, que
+ * sigue en curso, ese año se calcula del dato real (año más alto presente
+ * en `trayectoria.items`) en vez de un fijo — así no queda desalineado del
+ * calendario real a medida que se agreguen hitos más nuevos.
+ *
+ * **Fotos "flotantes" (2026-09-09)** — el usuario pidió un tratamiento tipo
+ * "parallax floating" (referencia: componente `Floating`/`FloatingElement`
+ * de 21st.dev/@danielpetho) para las fotos del timeline. No se portó esa
+ * arquitectura tal cual: ese componente registra N elementos absolutos en
+ * un contexto compartido y los mueve todos juntos según la posición del
+ * mouse sobre un contenedor del tamaño del viewport — pensado para un
+ * collage de hero, no para fotos sueltas dentro de una lista larga que
+ * scrollea. `TimelinePhoto` (abajo) adapta el mecanismo real —
+ * `useMotionValue`/`useSpring` de `motion`, misma librería, sin hook
+ * nuevo— a escala de una sola foto: cada thumbnail sigue al cursor con un
+ * desplazamiento sutil (±6px) mientras el mouse está encima y vuelve a su
+ * lugar con un spring al salir. El click a ampliar (`openLightbox`) y el
+ * orden más-reciente-primero ya existían antes de este pedido — son la
+ * espina invertida (2026-09-08, ver arriba) y el lightbox que ya usa
+ * `Act.tsx`, reusado tal cual acá.
  */
 export default function Trayectoria() {
   const { t } = useLanguage();
@@ -77,9 +133,26 @@ export default function Trayectoria() {
     const filtered = trayectoria.items.filter((i) => filter === 'todos' || i.category === filter);
     return DECADES.map((decade) => ({
       decade,
-      items: filtered.filter((i) => i.decade === decade),
+      // .reverse() invierte el orden ascendente en que están curados en
+      // content.ts, así cada década también se lee del hito más reciente al
+      // más viejo, consistente con el orden de décadas de arriba.
+      items: filtered.filter((i) => i.decade === decade).reverse(),
     })).filter((g) => g.items.length > 0);
   }, [trayectoria.items, filter]);
+
+  // Año de cierre de la década en curso — sobre el dataset SIN filtrar (el
+  // mismo criterio que ya regía DECADE_END_YEAR: el divisor no cambia según
+  // el filtro activo). Un solo regex sobre 39 hitos, no vale la pena cachear
+  // fuera del render.
+  const currentDecadeEndYear = useMemo(() => {
+    const years = trayectoria.items
+      .filter((i) => i.decade === '2020s')
+      .flatMap((i) => Array.from(i.year.matchAll(/\d{4}/g), (m) => Number(m[0])));
+    return years.length ? String(Math.max(...years)) : '2020';
+  }, [trayectoria.items]);
+
+  const decadeEndYear = (decade: Decade) =>
+    decade === '2020s' ? currentDecadeEndYear : DECADE_END_YEAR[decade];
 
   // Corrido a través de todas las décadas — no se reinicia en cada grupo, así
   // el lado nunca se repite en el borde entre una década y la siguiente.
@@ -178,7 +251,7 @@ export default function Trayectoria() {
                 <div key={decade} className={cn(gi !== 0 && 'mt-6 md:mt-10')}>
                   <div className="relative flex items-center gap-3 py-8 pl-10 md:justify-center md:py-10 md:pl-0">
                     <span className="relative z-10 bg-ink font-display text-4xl uppercase leading-none text-cream sm:text-5xl md:px-4 md:text-6xl">
-                      {decade}
+                      {decadeEndYear(decade)}
                     </span>
                     <span className="font-label text-xs text-cream/50">{items.length}</span>
                   </div>
@@ -202,6 +275,7 @@ export default function Trayectoria() {
 
 function TimelineRow({ item, side }: { item: TimelineEntry; side: Side }) {
   const mirrored = side === 'right';
+  const { open: openLightbox } = useLightbox();
   const photoCredits = item.images?.length
     ? Array.from(new Set(item.images.map((img) => img.credit)))
     : [];
@@ -226,18 +300,17 @@ function TimelineRow({ item, side }: { item: TimelineEntry; side: Side }) {
           <>
             <div className={cn('mt-4 flex flex-wrap gap-3', mirrored && 'md:justify-end')}>
               {item.images.map((img, i) => (
-                <Picture
+                <TimelinePhoto
                   key={img.src}
                   src={img.src}
                   alt={img.alt}
-                  sizes="(min-width: 768px) 8rem, 30vw"
-                  loading="lazy"
-                  decoding="async"
-                  pictureClassName="block"
-                  className={cn(
-                    'aspect-[3/4] w-20 border-[3px] border-cream/15 object-cover sm:w-24',
-                    i % 2 === 0 ? '-rotate-2' : 'rotate-2'
-                  )}
+                  rotate={i % 2 === 0 ? '-rotate-2' : 'rotate-2'}
+                  onClick={() =>
+                    openLightbox(
+                      item.images!.map((im) => ({ src: im.src, alt: im.alt, label: item.title })),
+                      i
+                    )
+                  }
                 />
               ))}
             </div>
@@ -246,5 +319,69 @@ function TimelineRow({ item, side }: { item: TimelineEntry; side: Side }) {
         )}
       </div>
     </li>
+  );
+}
+
+/**
+ * Una foto del timeline con paralaje de cursor — ver docblock de arriba
+ * ("Fotos flotantes"). `x`/`y` son `MotionValue`s crudos que se leen del
+ * puntero; `useSpring` los suaviza (el mismo patrón que ya usa `motion` en
+ * el resto del sitio, ej. `ScrollProgress`) en vez de animar directo, así
+ * el regreso al soltar el mouse frena con inercia en vez de saltar a 0.
+ * `reduced` corta el efecto entero: sin `onPointerMove` ni transform, la
+ * imagen queda estática (mismo criterio que el resto del sitio con
+ * `prefers-reduced-motion`).
+ */
+function TimelinePhoto({
+  src,
+  alt,
+  rotate,
+  onClick,
+}: {
+  src: string;
+  alt: string;
+  rotate: string;
+  onClick: () => void;
+}) {
+  const reduced = useReducedMotion();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 200, damping: 20, mass: 0.4 });
+  const springY = useSpring(y, { stiffness: 200, damping: 20, mass: 0.4 });
+
+  function handlePointerMove(e: ReactPointerEvent<HTMLButtonElement>) {
+    if (reduced) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set(((e.clientX - rect.left) / rect.width - 0.5) * 12);
+    y.set(((e.clientY - rect.top) / rect.height - 0.5) * 12);
+  }
+
+  function handlePointerLeave() {
+    x.set(0);
+    y.set(0);
+  }
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      style={reduced ? undefined : { x: springX, y: springY }}
+      className="outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+    >
+      <Picture
+        src={src}
+        alt={alt}
+        sizes="(min-width: 768px) 8rem, 30vw"
+        loading="lazy"
+        decoding="async"
+        pictureClassName="block"
+        className={cn(
+          'aspect-[3/4] w-20 border-[3px] border-cream/15 object-cover transition-opacity duration-300 hover:opacity-80 sm:w-24',
+          rotate
+        )}
+      />
+    </motion.button>
   );
 }

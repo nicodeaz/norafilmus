@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
+# Fuera de producción hasta que esté pronta y funcional (2026-09-09) —
+# ver lib/features.ts. La ruta ya no está linkeada en ningún lado del
+# sitio; este Disallow es una red extra contra un link viejo cacheado.
+Disallow: /trayectoria
 
 Sitemap: https://norafilmus.com/sitemap.xml

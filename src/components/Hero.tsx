@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Instagram, Linkedin, Mail } from 'lucide-react';
 import { EASE_REVEAL, easeInOutSine, easeInQuad, easeOutQuad } from '@/lib/ease';
 import { TRAYECTORIA_ENABLED } from '@/lib/features';
-import { useSlowConnection } from '@/lib/hooks/use-connection';
 import { cn } from '@/lib/utils';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import AboutMe from './AboutMe';
+import BetaBadge from './BetaBadge';
 import { ButtonLink } from './Button';
 import LanguageToggle from './LanguageToggle';
 import Picture from './Picture';
@@ -28,9 +28,37 @@ const CREDENTIAL_LOGOS: Record<string, { src: string; width: number; height: num
   },
 };
 
-// Ver docblock "Transición de foco..." (2026-09-10).
-const TRANSITION_VIDEO_SRC = '/video/hero-transition.mp4';
-const TRANSITION_FALLBACK_DURATION = 5.04;
+// Ver docblock "Un solo video, no dos..." (2026-09-11) — reemplaza los
+// antiguos hero-loop.mp4 + hero-transition.mp4 por un único archivo
+// concatenado (mismo encuadre, misma sesión: el frame final del loop y el
+// frame inicial de la transición son casi idénticos, así que el corte en el
+// límite es imperceptible). 122 y 121 son la cantidad de frames real de cada
+// clip origen a 24fps (medido con ffprobe antes de concatenar) — no un
+// número aproximado.
+//
+// **Bug real, encontrado el mismo día de armar el archivo (2026-09-11):**
+// la primera versión de `hero-scene.mp4` se re-codificó sin fijar el
+// intervalo de keyframes — el default de libx264 (`-g 250`) es más largo
+// que el video ENTERO (243 frames), así que terminó con **un solo keyframe,
+// en t=0**. El usuario reportó "hago scroll, la imagen queda fija, después
+// de unos segundos se actualiza" — exactamente el síntoma de seekear un
+// video sin keyframes cercanos: cada `currentTime = t` que escribe
+// `render()` obligaba a decodificar TODO desde el principio hasta el punto
+// pedido, y con el scroll pidiendo decenas de seeks por segundo la cola se
+// acumulaba varios segundos. Confirmado con `ffprobe -skip_frame nokey`
+// (1 sola línea de salida en el archivo roto) y con seeks aleatorios
+// medidos por `performance.now()` (2-18ms una vez corregido, contra
+// varios segundos antes). Se re-codificó con `-g 12 -keyint_min 12
+// -sc_threshold 0` (keyframe cada ~0,5s, 21 en total) — sube el archivo de
+// 1,6MB a 2,65MB, un costo real pero necesario: sin keyframes frecuentes,
+// un video pensado para scrubbearse por scroll es directamente inutilizable,
+// sin importar cuán bien esté el resto del mecanismo. Cualquier futuro
+// video de este sitio pensado para `currentTime` manual (no reproducción
+// lineal) tiene que fijar un GOP chico a propósito, nunca confiar en el
+// default del encoder.
+const HERO_VIDEO_SRC = '/video/hero-scene.mp4';
+const LOOP_DURATION = 122 / 24;
+const TRANSITION_DURATION = 121 / 24;
 const TRANSITION_EXTRA_VH = 100;
 
 // ── Auditoría de fluidez (2026-09-10) — ver docblock "Auditoría..."
@@ -53,8 +81,6 @@ const SMOOTH_SNAP_EPSILON = 0.0004;
 const SMOOTH_JUMP_THRESHOLD = 0.3;
 /** Medio frame a 24fps: por debajo de esto, `currentTime` no se toca. */
 const VIDEO_SEEK_EPSILON = 1 / 48;
-/** Tramo donde el loop se funde con el clip de transición. */
-const PANEL_CROSSFADE_END = 0.08;
 /**
  * Tercera vuelta sobre esta condición, y la última — se saca del todo
  * (2026-09-11). Historia real, porque vale la pena entender por qué se
@@ -618,16 +644,123 @@ const CROSSFADE_MIDPOINT = 0.5;
  * reproduciendo de verdad en un navegador real (límite de siempre con video
  * en este entorno) — la mecánica y los números están confirmados, pero el
  * "se siente bien" final lo tiene que dar el usuario.
+ *
+ * **El rail de `SectionNav` se ve desde el principio en desktop (2026-09-11),
+ * el contenido corre un poco a la derecha para hacerle lugar.** Pedido
+ * explícito: "en la home, resoluciones de escritorio, hacemos que el menú se
+ * vea desde el principio... movete un poco el contenedor del hero con texto a
+ * la derecha". El rail vertical de `SectionNav.tsx` vivía oculto en `/` hasta
+ * pasar el Hero (mismo criterio que `Header`, para no duplicar el
+ * wordmark/toggle que el propio Hero ya trae) — ahora se muestra siempre en
+ * desktop (`lg:`, ver su docblock), así que compite por el mismo borde
+ * izquierdo que ya usaba `topBarRef`/`bodyRef` (`px-6 sm:px-10 md:px-12`). Se
+ * agregó `lg:pl-28` a esos dos bloques (ubicación+toggle arriba, wordmark+
+ * bio+credenciales abajo) — no a la banda de pie (los íconos de contacto van
+ * centrados, no pegados al borde, así que no colisionan). El rail mide,
+ * desde el borde real de pantalla, `left-6` (24px) + punto + gap + el label
+ * del ítem activo siempre expandido (hasta 8rem) — `lg:pl-28` (112px) da
+ * margen de sobra sin exagerar el corrimiento ("un poco", no una columna
+ * nueva).
+ *
+ * **Legibilidad en mobile — de halo blanco a scrim con blur (2026-09-11/12).**
+ * Primero fue `.text-shadow-legible` (un `text-shadow` blanco alrededor del
+ * glifo); se sacó a pedido explícito ("saca el text shadow de los textos en
+ * la home") y se reemplazó por `.text-legible-blur` (`src/index.css`,
+ * `backdrop-filter: blur(3px)`, sin fondo de color — "apenas blur, que sea
+ * legible el texto, no quiero que contraste con todo"), `rounded-lg` en
+ * cada uso salvo el toggle de idioma (`rounded-full`, es un control) —
+ * mismo alcance: el toggle de idioma, la fila de rol y la bio del Hero,
+ * para el tramo donde ese texto pisa el panel de video en mobile (medido
+ * con Playwright a 390px, sin `max-w-*` por debajo de `md`). Mismo
+ * tratamiento en `AboutMe.tsx` modo `overlay` (ver su docblock) — ahí
+ * queda solo en bio/`figcaption`, eyebrow y `h2` van sin blur.
+ *
+ * **Probado un chip por palabra (`BlurWords.tsx`) el 2026-09-12 y
+ * revertido el mismo día** — pedido explícito ("que el blur salga de cada
+ * palabra") con un `flex flex-wrap` por palabra en vez del `<p>` de texto
+ * corrido de siempre. El usuario lo probó y pidió volver atrás en la misma
+ * sesión: además de que la animación de scroll Hero→AboutMe se sintió
+ * rota, el texto se leyó "justificado" (el flex-wrap con gap fijo entre
+ * palabras no es `text-align: justify` real, pero a simple vista lee
+ * distinto de un párrafo normal — líneas de largo parejo, espaciado
+ * mecánico). No volver a intentar esta variante sin que el usuario lo
+ * pida de nuevo — un chip por bloque (lo que hay ahora) es lo validado.
+ *
+ * **Un solo video, no dos — el "segundo video" que nunca se reproducía
+ * (2026-09-11/12), tras varias sesiones parchando síntomas sin éxito.** El
+ * reporte real del usuario: "no se ejecuta el segundo video, queda la
+ * imagen fija" (Safari Y Chrome de un iPhone — mismo motor WebKit los dos).
+ * La arquitectura anterior tenía DOS elementos `<video>`: uno en loop
+ * (`hero-loop.mp4`, confiable, autoplay normal) y uno de transición
+ * (`hero-transition.mp4`) que **nunca llegaba a reproducirse de verdad** —
+ * solo se lo "cebaba" con un `play()` seguido de un `pause()` inmediato
+ * (`prime()`, ver abajo lo que queda de esa función en el historial de git),
+ * y recién si ese cebado confirmaba éxito se le permitía subir de opacidad y
+ * recibir `currentTime` por scroll. El cebado era exactamente el eslabón
+ * frágil: lo bloqueaba Bajo Consumo (Low Power Mode no deja correr `play()`
+ * sin gesto real), competía con el `currentTime` que el propio scroll
+ * escribía en el mismo instante, y en general dependía de que un `<video>`
+ * jamás reproducido aceptara pintar un frame vía seek — que es precisamente
+ * lo que WebKit se niega a hacer (comportamiento real de la spec, no un bug
+ * de Safari: un decoder que nunca arrancó no tiene nada que pintar). De ahí
+ * la sucesión de parches de sesiones anteriores (fallback de imagen "nunca
+ * más negro", reintento por gesto, aislar el seek en try/catch) — todos
+ * atacaban el síntoma, ninguno la causa.
+ *
+ * La solución no es un cebado más prolijo: es que no haga falta cebar nada.
+ * `hero-loop.mp4` y `hero-transition.mp4` se concatenaron (ffmpeg, mismo
+ * códec/resolución/fps normalizados, `scripts` no lo automatiza — se corrió
+ * a mano una vez en un scratchpad) en un único archivo,
+ * `/video/hero-scene.mp4` (10,125s, 243 frames a 24fps: 122 del loop +
+ * 121 de la transición, medido con ffprobe). Un solo `<video>` que arranca
+ * en autoplay apenas carga la página: para cuando el usuario llega a la
+ * parte de transición, ese decoder lleva rato pintando frames reales de
+ * verdad — seekear más adelante en un video que ya está vivo no dispara el
+ * bug de WebKit, porque ya pintó al menos un frame por las buenas.
+ *
+ * **Mecánica nueva, más simple que la anterior:**
+ * - En reposo (`p === 0`), el video reproduce normal desde `currentTime=0`;
+ *   un listener de `timeupdate` lo resetea a `0` en cuanto llega a
+ *   `LOOP_DURATION` — un loop manual del PRIMER tramo nada más, ya que el
+ *   atributo `loop` de HTML loopearía el archivo entero (loop + transición).
+ * - Apenas `p > 0` (arrancó el scroll), se pausa el video y se toma control
+ *   total de `currentTime = LOOP_DURATION + p * TRANSITION_DURATION` — igual
+ *   que antes, pero sobre el mismo elemento que ya viene reproduciendo, no
+ *   sobre uno nuevo sin cebar. Al volver a `p === 0` se resume el `play()`
+ *   normal y el loop manual retoma solo.
+ * - Sin crossfade entre dos videos (no hace falta: es uno solo, no hay nada
+ *   que fundir) — se borra `PANEL_CROSSFADE_END` y toda la opacidad cruzada
+ *   que antes vivía en `render()`.
+ * - El respaldo "nunca más negro" se simplifica a una sola bandera
+ *   (`videoReadyRef`, se pone en `true` para siempre en el primer `onPlaying`
+ *   real): mientras siga en `false`, dos capas de `<Picture>` (poster del
+ *   loop o de la transición, según la fase) quedan debajo cubriendo — ya no
+ *   hace falta un `scrubReadyRef` aparte ni el cebado con try/catch que
+ *   competía con el propio scroll.
+ *
+ * Verificado por frame extraído con `ffprobe`/`ffmpeg` (no reproducible en
+ * el navegador automatizado de este entorno, ver skill `performance`): el
+ * frame justo antes del corte (t=4.9s) y justo después (t=5.1s) son
+ * prácticamente el mismo encuadre — el corte no se nota — y el frame a
+ * mitad de la transición (t=7s) muestra el push-in avanzando como se
+ * esperaba. **No verificado todavía**: el gesto real de scroll en un
+ * navegador real con el video reproduciendo de verdad — el usuario debería
+ * confirmar que el "segundo video" ahora sí se ve, en particular en el
+ * iPhone donde se reportó el bug original.
  */
 export default function Hero({ className }: HeroProps) {
   const { t } = useLanguage();
+  // Sigue usado por el marquee de credenciales, más abajo (se apaga con
+  // reduced-motion, un ajuste chico y aislado). Pedido explícito del usuario
+  // (2026-09-12): "no quiero ninguna regla que no muestre el video o la
+  // transición — siempre quiero verlos, aunque el loader tarde un poco más".
+  // Antes, `showStaticPanel`/`enableTransition` (ver abajo) se apagaban con
+  // `prefers-reduced-motion` O ahorro de datos/2G — reportó que desde su
+  // iPhone no veía ni el video ni la transición, lo más probable con
+  // "Reducir movimiento" activado en Accesibilidad. Se sacó esa condición
+  // del video/transición del Hero por completo (sigue respetándose en el
+  // resto del sitio, como este mismo marquee).
   const reduced = useReducedMotion();
-  const slowConnection = useSlowConnection();
-  // Poca conectividad (ahorro de datos / 2G) — mismo criterio que
-  // `reduced`: se sirve el poster estático en vez de bajar los ~520KB de
-  // `hero-loop.mp4` (2026-09-09, "que poca conectividad no rompa todo el
-  // sitio"). Ver lib/hooks/use-connection.ts.
-  const showStaticPanel = reduced || slowConnection;
   const credentialLogos = t.hero.credentials
     .map((name) => ({ name, logo: CREDENTIAL_LOGOS[name] }))
     .filter((credential): credential is { name: string; logo: (typeof CREDENTIAL_LOGOS)[string] } =>
@@ -647,20 +780,30 @@ export default function Hero({ className }: HeroProps) {
   ];
 
   // ── Transición de foco (2026-09-10, scroll-scrub amortiguado) — ver docblock
-  const enableTransition = !reduced && !slowConnection;
+  // Pedido explícito del usuario (2026-09-12): siempre encendida, sin
+  // apagarse con `prefers-reduced-motion` ni ahorro de datos — antes era
+  // `!reduced && !slowConnection`. Queda como constante (no un booleano
+  // hardcodeado en cada punto de uso) para no tener que tocar el resto del
+  // mecanismo, que sigue leyendo esta variable en todos lados.
+  const enableTransition = true;
 
   // La superposición ya NO depende del tamaño de viewport (ver el docblock
   // de arriba, "Tercera vuelta..." — cualquier umbral deja a alguien
-  // afuera). Las únicas razones reales para el modo `flow` son
-  // `prefers-reduced-motion` y ahorro de datos, las mismas que ya apagan
-  // `enableTransition`.
+  // afuera). Tampoco depende ya de `prefers-reduced-motion`/ahorro de datos
+  // (ver arriba) — sigue siendo simplemente un alias de `enableTransition`.
   const overlayAbout = enableTransition;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const loopVideoRef = useRef<HTMLVideoElement>(null);
-  const scrubVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // Ver docblock "Un solo video, no dos..." (2026-09-11/12) — reemplazan
+  // `loopVideoRef`/`scrubVideoRef`/`scrubReadyRef`/`transitionFallbackRef`
+  // de la versión con dos `<video>` separados.
+  const loopFallbackRef = useRef<HTMLDivElement>(null);
+  const transitionFallbackRef = useRef<HTMLDivElement>(null);
+  const videoReadyRef = useRef(false);
+  const videoModeRef = useRef<'loop' | 'scrub'>('loop');
   const topBarRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const footerFadeRef = useRef<HTMLDivElement>(null);
@@ -672,6 +815,79 @@ export default function Hero({ className }: HeroProps) {
   const [aboutInert, setAboutInert] = useState(true);
   const heroInertRef = useRef(false);
   const aboutInertRef = useRef(true);
+
+  // Confirma que el video pintó al menos un frame DE VERDAD (evento
+  // `playing`, no "ya le pedimos que arranque") — una vez en `true` queda
+  // así para siempre: el mismo decoder ya demostró que puede pintar, así
+  // que un seek posterior (el scrub de más abajo) no va a mostrar negro. Es
+  // la única bandera de respaldo que hace falta ahora — ver docblock.
+  const handleVideoPlaying = () => {
+    videoReadyRef.current = true;
+    if (videoRef.current) videoRef.current.style.opacity = '1';
+    if (loopFallbackRef.current) loopFallbackRef.current.style.opacity = '0';
+    if (transitionFallbackRef.current) transitionFallbackRef.current.style.opacity = '0';
+  };
+
+  // Reportado por el usuario (2026-09-11): en mobile el panel se quedaba en
+  // la foto fija con el ícono nativo de play — el `autoplay` del HTML no
+  // arrancó. Bajo Consumo (Low Power Mode) en iOS bloquea el autoplay SIN
+  // gesto del usuario, pero NO bloquea `play()` disparado por una
+  // interacción real (toque/click/tecla) — de ahí que el primer gesto real
+  // del visitante (en cualquier parte de la página, no hace falta que sea
+  // sobre el panel) reintente `.play()` mientras el video siga sin
+  // confirmar que puede pintar algo.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let cancelled = false;
+    let attempts = 0;
+
+    function tryPlay() {
+      attempts += 1;
+      video!.play().catch(() => {
+        if (cancelled || attempts >= 3) return;
+        window.setTimeout(tryPlay, 300);
+      });
+    }
+    tryPlay();
+
+    function onGesture() {
+      if (!videoReadyRef.current) tryPlay();
+    }
+    window.addEventListener('touchstart', onGesture, { passive: true });
+    window.addEventListener('pointerdown', onGesture, { passive: true });
+    window.addEventListener('keydown', onGesture);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('touchstart', onGesture);
+      window.removeEventListener('pointerdown', onGesture);
+      window.removeEventListener('keydown', onGesture);
+    };
+  }, []);
+
+  // Loop manual del primer tramo (`0 → LOOP_DURATION`): el atributo `loop`
+  // de HTML loopearía el archivo ENTERO (loop + transición pegados), así
+  // que hay que cortarlo a mano en el límite exacto. Solo actúa mientras
+  // `videoModeRef` siga en `'loop'` — durante el scroll el video está
+  // pausado (ver `render()` más abajo) y no emite `timeupdate`, así que
+  // este listener nunca compite con el seek que hace el scroll.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    function onTimeUpdate() {
+      if (videoModeRef.current !== 'loop') return;
+      if (video!.currentTime >= LOOP_DURATION - VIDEO_SEEK_EPSILON) {
+        try {
+          video!.currentTime = 0;
+        } catch {
+          // Silencioso a propósito — mismo motivo que el seek de `render()`.
+        }
+      }
+    }
+    video.addEventListener('timeupdate', onTimeUpdate);
+    return () => video.removeEventListener('timeupdate', onTimeUpdate);
+  }, []);
 
   useEffect(() => {
     if (!enableTransition) {
@@ -726,18 +942,64 @@ export default function Hero({ className }: HeroProps) {
       if (panelRef.current) {
         panelRef.current.style.transform = `translate3d(${-travel * shiftPx}px,0,0)`;
       }
-      if (loopVideoRef.current) {
-        loopVideoRef.current.style.opacity = String(Math.max(0, 1 - p / PANEL_CROSSFADE_END));
-      }
-      const video = scrubVideoRef.current;
+      // Ver docblock "Un solo video, no dos..." — `p > 0` es "arrancó el
+      // scroll", sin importar cuán poco: ahí se pausa el video y se toma
+      // control de `currentTime`; en `p === 0` se lo suelta de vuelta a
+      // reproducción normal y el loop manual (efecto de `timeupdate`, más
+      // arriba) retoma solo. El cambio de modo es edge-triggered (compara
+      // contra `videoModeRef`) para no llamar `play()`/`pause()` en cada
+      // frame mientras `p` se mueve dentro de la misma zona.
+      const inScrub = p > 0;
+      const video = videoRef.current;
       if (video) {
-        video.style.opacity = String(Math.min(1, p / PANEL_CROSSFADE_END));
-        const duration = video.duration || TRANSITION_FALLBACK_DURATION;
-        const t = p * duration;
-        // Un `seek` por frame con saltos grandes es la fuente real del
-        // tartamudeo del clip: con el progreso ya amortiguado los saltos son
-        // chicos, y por debajo de medio frame no vale la pena pedir otro.
-        if (Math.abs(video.currentTime - t) > VIDEO_SEEK_EPSILON) video.currentTime = t;
+        if (inScrub && videoModeRef.current !== 'scrub') {
+          videoModeRef.current = 'scrub';
+          video.pause();
+        } else if (!inScrub && videoModeRef.current !== 'loop') {
+          videoModeRef.current = 'loop';
+          // Vuelve a 0 ANTES de reproducir — si se dejara el `currentTime`
+          // donde quedó el scrub (adentro del tramo de transición), se vería
+          // un flash de esa toma hasta que el `timeupdate` de más arriba lo
+          // corrigiera en el próximo tick.
+          try {
+            video.currentTime = 0;
+          } catch {
+            // Silencioso a propósito — mismo motivo que el seek de abajo.
+          }
+          video.play().catch(() => {});
+        }
+        // Aislado en su propio try/catch (bug real, 2026-09-11): escribir
+        // `currentTime` mientras el navegador tiene el video en un estado
+        // transitorio (seeking, o un `play()` en curso) puede tirar
+        // `InvalidStateError` en WebKit. Sin este aislamiento, ese throw
+        // salía de `render()` sin ejecutar nada de lo que sigue (hero/
+        // AboutMe) y — peor — mataba el `rAF` de `frame()` para siempre (ver
+        // ahí abajo): toda la composición se congelaba a mitad de camino.
+        // El seek es el único paso realmente frágil de todo `render()`; el
+        // resto (transform del panel, opacidad de hero/about) no debe
+        // depender de que este paso puntual funcione.
+        if (inScrub) {
+          try {
+            const t = LOOP_DURATION + p * TRANSITION_DURATION;
+            // Un `seek` por frame con saltos grandes es la fuente real del
+            // tartamudeo del clip: con el progreso ya amortiguado los
+            // saltos son chicos, y por debajo de medio frame no vale la
+            // pena pedir otro.
+            if (Math.abs(video.currentTime - t) > VIDEO_SEEK_EPSILON) video.currentTime = t;
+          } catch {
+            // Silencioso a propósito — ver comentario arriba.
+          }
+        }
+      }
+      // Respaldo "nunca más negro" (ver docblock, 2026-09-12): mientras el
+      // video no confirmó que puede pintar (`videoReadyRef`), una de las dos
+      // fotos de abajo queda opaca según la fase — una vez confirmado, las
+      // dos quedan en 0 para siempre (`handleVideoPlaying` ya las apagó).
+      if (!videoReadyRef.current) {
+        if (loopFallbackRef.current) loopFallbackRef.current.style.opacity = inScrub ? '0' : '1';
+        if (transitionFallbackRef.current) {
+          transitionFallbackRef.current.style.opacity = inScrub ? '1' : '0';
+        }
       }
 
       // Cruce secuencial (el Hero termina de apagarse y recién ahí aparece
@@ -778,15 +1040,26 @@ export default function Hero({ className }: HeroProps) {
       const dt = lastTs ? Math.min(ts - lastTs, 64) : 16.67;
       lastTs = ts;
       const diff = target - current;
-      if (Math.abs(diff) < SMOOTH_SNAP_EPSILON) {
+      const snapped = Math.abs(diff) < SMOOTH_SNAP_EPSILON;
+      if (snapped) {
         current = target;
+      } else {
+        current += diff * (1 - Math.pow(1 - SCROLL_SMOOTHING, dt / 16.67));
+      }
+      // Red de seguridad, además del try/catch propio del seek de video
+      // dentro de `render()`: si algo ahí adentro tirara de todas formas, no
+      // debe matar este `rAF` — es exactamente lo que congeló la transición
+      // entera el 2026-09-11 (ver el comentario en `render()`).
+      try {
         render(current);
+      } catch {
+        // Silencioso a propósito.
+      }
+      if (snapped) {
         running = false;
         lastTs = 0;
         return;
       }
-      current += diff * (1 - Math.pow(1 - SCROLL_SMOOTHING, dt / 16.67));
-      render(current);
       rafId = requestAnimationFrame(frame);
     }
 
@@ -877,44 +1150,52 @@ export default function Hero({ className }: HeroProps) {
           style={enableTransition ? { willChange: 'transform' } : undefined}
           className="absolute inset-y-0 right-0 w-[62%] overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)] sm:w-[52%] sm:[mask-image:linear-gradient(to_right,transparent,black_16%,black_84%,transparent)] sm:[-webkit-mask-image:linear-gradient(to_right,transparent,black_16%,black_84%,transparent)] md:w-[46%] md:[mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)] md:[-webkit-mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)] lg:w-[40%]"
         >
-          {showStaticPanel ? (
-            <Picture
-              src="/img/hero-loop-poster.jpg"
-              alt=""
-              sizes="46vw"
-              fetchPriority="high"
-              loading="eager"
-              decoding="async"
-              pictureClassName="absolute inset-0 block h-full w-full"
-              className="h-full w-full object-cover object-[62%_18%]"
-            />
-          ) : (
-            <>
-              <video
-                ref={loopVideoRef}
-                className="absolute inset-0 h-full w-full object-cover object-[62%_18%]"
-                src="/video/hero-loop.mp4"
-                poster="/img/hero-loop-poster.jpg"
-                preload="auto"
-                autoPlay
-                loop
-                muted
-                playsInline
+          <>
+            {/* Dos capas de respaldo (imagen real, liviana, AVIF/WebP vía
+                `<Picture>`) — SIEMPRE una de las dos visible mientras el
+                video no confirmó que puede pintar (`videoReadyRef`, ver
+                docblock "Un solo video, no dos..."). Van PRIMERO en el DOM
+                (capa de más atrás): si el video nunca se vuelve visible,
+                una de estas dos fotos queda como el estado final en vez de
+                un hueco negro — la del loop mientras `p=0`, la de la
+                transición mientras `p>0`. */}
+            <div ref={loopFallbackRef} aria-hidden className="absolute inset-0" style={{ opacity: 1 }}>
+              <Picture
+                src="/img/hero-loop-poster.jpg"
+                alt=""
+                sizes="46vw"
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
+                pictureClassName="absolute inset-0 block h-full w-full"
+                className="h-full w-full object-cover object-[62%_18%]"
               />
-              {enableTransition && (
-                <video
-                  ref={scrubVideoRef}
-                  aria-hidden
-                  style={{ opacity: 0 }}
-                  className="absolute inset-0 h-full w-full object-cover object-[62%_18%]"
-                  src={TRANSITION_VIDEO_SRC}
-                  preload="auto"
-                  muted
-                  playsInline
-                />
-              )}
-            </>
-          )}
+            </div>
+            <div ref={transitionFallbackRef} aria-hidden className="absolute inset-0" style={{ opacity: 0 }}>
+              <Picture
+                src="/img/hero-transition-poster.jpg"
+                alt=""
+                sizes="46vw"
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
+                pictureClassName="absolute inset-0 block h-full w-full"
+                className="h-full w-full object-cover object-[62%_18%]"
+              />
+            </div>
+            <video
+              ref={videoRef}
+              aria-hidden
+              style={{ opacity: 0 }}
+              className="absolute inset-0 h-full w-full object-cover object-[62%_18%]"
+              src={HERO_VIDEO_SRC}
+              preload="auto"
+              autoPlay
+              muted
+              playsInline
+              onPlaying={handleVideoPlaying}
+            />
+          </>
           {/* Velos — legibilidad del pie (banda de pilares) y del borde superior. */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/25" />
           {/* Crédito de la foto fuente — regla 3 de content.ts. */}
@@ -934,31 +1215,77 @@ export default function Hero({ className }: HeroProps) {
         <div
           ref={topBarRef}
           inert={heroInert}
-          className="relative z-30 flex w-full flex-col gap-4 px-6 pt-6 sm:px-10 md:px-12"
+          className="relative z-30 flex w-full flex-col gap-4 px-6 pt-6 sm:px-10 md:px-12 lg:pl-28"
         >
         <div className="flex w-full items-center justify-between">
-          <span className="font-label text-[11px] uppercase tracking-[0.25em] text-cream/50">
+          <span className="text-legible-blur rounded-lg px-1.5 py-0.5 font-label text-[11px] uppercase tracking-[0.25em] text-cream/50">
             {t.hero.location}
           </span>
-          <LanguageToggle />
+          <LanguageToggle className="text-legible-blur rounded-full" />
         </div>
       </div>
 
-      {/* ── Cuerpo: nombre a escala de afiche + bloque de texto ─────────── */}
-      {/* `justify-start` + un pt chico y no `justify-center`: centrado dejaba
-          la franja superior del viewport al 11% de ocupación (medido). */}
+      {/* ── Cuerpo: nombre a escala de afiche + bloque de texto ───────────
+          `justify-center` (2026-09-11, pedido explícito: "centrar el
+          container del logo, el slider, el botón") — reemplaza al
+          `justify-start`+`pt` que hubo acá desde el rediseño de afiche del
+          18/8 ("centrado dejaba la franja superior al 11% de ocupación").
+          Esa medición es de una composición vieja (sin el panel de video a
+          la derecha ni el rail de `SectionNav` a la izquierda, ver más
+          arriba) — con el layout de hoy, el bloque quedaba pegado arriba con
+          un vacío grande abajo, y encima desalineado del rail (fijo al 50%
+          vertical de pantalla). Centrarlo alinea las dos piezas.
+
+          `items-center text-center` (mismo turno, pedido de seguida: "centrar
+          el contenido de este div") — hasta acá solo se había centrado el
+          BLOQUE en el eje vertical; el contenido adentro (logo, rol, bio,
+          CTA, slider de credenciales) seguía pegado al borde izquierdo por el
+          `align-items: stretch` default de flex. Mismo tratamiento que ya usa
+          `AboutMe.tsx` en modo capa (`items-center text-center`, ver su
+          docblock "Todo centrado").
+
+          **Solo desde `md` (2026-09-11, pedido explícito: "versiones de
+          teléfono que aparezca a la izquierda y en de escritorio centrado")**
+          — en mobile no hay rail de `SectionNav` con el que alinearse (esa
+          pieza es `lg:flex`) ni el vacío horizontal que la centrada resuelve
+          en pantallas anchas, así que vuelve al `items-start text-left`
+          original ahí; centrado recién de `md` para arriba. */}
       <div
         ref={bodyRef}
         inert={heroInert}
-        className="relative z-30 flex flex-grow flex-col justify-start px-6 pt-[3vh] sm:px-10 md:max-w-[54%] md:px-12 md:pt-[2vh] lg:max-w-[58%]"
+        className="relative z-30 flex flex-grow flex-col items-start justify-center px-6 text-left sm:px-10 md:max-w-[54%] md:items-center md:px-12 md:text-center lg:max-w-[58%] lg:pl-28"
       >
+        {/* Sombra + halo del logo (2026-09-11, pedido explícito): el PNG no
+            se toca, todo el efecto es `filter: drop-shadow()` sobre el
+            `<img>` mismo vía la clase `.hero-logo-frame` (`src/index.css`)
+            — respeta el alfa real de la firma, a diferencia de un
+            `box-shadow` que dibujaría un rectángulo. La entrada suma un
+            canal de `blur` al fade/slide que ya tenía (`y` bajó de 24 a 18,
+            duración de 0.7 a 1.1s, mismo `EASE_REVEAL` que ya es el
+            cubic-bezier(0.22,1,0.36,1) pedido). `pointer-events-auto` +
+            `group` acá (el h1 es decorativo, no gana semántica interactiva
+            — es solo para que el hover CSS de `.hero-logo-frame` pueda
+            leerse: nada más se apoya en este bloque, no hay riesgo de tapar
+            otro control). */}
         <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: EASE_REVEAL, delay: 0.55 }}
-          className="pointer-events-none relative z-10"
+          initial={{ opacity: 0, y: 18, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 1.1, ease: EASE_REVEAL, delay: 0.55 }}
+          className="group relative z-10 pointer-events-auto"
         >
-          <TiltLogo reduced={!!reduced} />
+          <Picture
+            src="/img/nora-firma-roja.png"
+            alt="Nora Filmus"
+            className="hero-logo-frame w-[clamp(220px,52vw,680px)]"
+            sizes="680px"
+          />
+          {/* Etiqueta de estado del sitio (2026-09-11, pedido explícito):
+              "esta versión sea BETA" — colgada del borde del logo como un
+              corner tag, mismo dispositivo que Header/Footer pero acá sin
+              fila propia para no sumar un renglón más al bloque del Hero,
+              que ya audita alto disponible con cuidado (ver docblock del
+              cruce Hero→AboutMe más abajo). */}
+          <BetaBadge className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/2" />
         </motion.h1>
 
         <motion.div
@@ -967,9 +1294,9 @@ export default function Hero({ className }: HeroProps) {
           transition={{ duration: 0.6, ease: EASE_REVEAL, delay: 0.75 }}
           className="relative z-30 mt-6 md:mt-8"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-start gap-3 md:justify-center">
             <span className="h-px w-8 shrink-0 bg-brand-red" aria-hidden />
-            <p className="font-label text-[11px] uppercase tracking-[0.2em]">
+            <p className="text-legible-blur rounded-lg px-1.5 py-0.5 font-label text-[11px] font-bold uppercase tracking-[0.2em]">
               {roleParts.map((part, i) => (
                 <span key={part}>
                   {i > 0 && <span className="text-brand-red/50"> · </span>}
@@ -977,73 +1304,99 @@ export default function Hero({ className }: HeroProps) {
                 </span>
               ))}
             </p>
+            <span className="h-px w-8 shrink-0 bg-brand-red" aria-hidden />
           </div>
 
-          {/* Bio y CTA en fila (desde md): el bloque se ensancha bajo el
-              titular en vez de quedar como una columna angosta a la
-              izquierda, que era parte del vacío medido. */}
-          <div className="mt-4 flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10">
+          {/* Bio y CTA en columna, siempre (2026-09-11, pedido explícito: "el
+              botón de sobre mí en la línea siguiente, no pegado a la
+              descripción") — antes pasaban a fila desde `md`, con el botón al
+              lado del párrafo; ahora el CTA cae siempre debajo, con su propio
+              margen. */}
+          <div className="mt-4 flex flex-col items-start gap-6 md:items-center">
             {/* `text-lead` (auditoría 2026-08-31, design-system): antes vivía en
                 `text-sm` de font-label, la misma voz que un label de 11px — para
                 el único párrafo de bio del Hero hacía falta un escalón propio,
                 no compartir tamaño con "DUBLÍN, IRLANDA". */}
-            <p className="max-w-sm font-label text-lead text-cream/80">{t.hero.bio}</p>
-            {/* Fase 2 (2026-08-28): antes apuntaba a `#sobre-mi` pese a decir
-                "Ver trayectoria" — un desvío que sobrevivió porque `/trayectoria`
-                no existía como página propia hasta la Fase 1. Ya existe.
-                Variante `primary` (auditoría 2026-08-31): es la única acción del
-                Hero — en `secondary` (borde fino) perdía contra el rojo saturado
-                del wordmark que la rodea.
-                2026-09-09: mientras Trayectoria está fuera de producción (ver
-                `TRAYECTORIA_ENABLED`), el CTA vuelve a apuntar a `#sobre-mi` —
-                mismo destino que tenía antes de que existiera la página. El
-                label cambia con el destino (reusa `t.nav.about`, sin agregar
-                copy nueva a content.ts): repetir "Ver trayectoria" apuntando a
-                la bio sería el mismo desvío que ya se corrigió una vez. */}
-            <ButtonLink
-              to={TRAYECTORIA_ENABLED ? '/trayectoria' : '/#sobre-mi'}
-              variant="primary"
-              size="md"
-              className="shrink-0"
-            >
-              {TRAYECTORIA_ENABLED ? t.hero.cta : t.nav.about}
-            </ButtonLink>
+            <p className="text-legible-blur max-w-sm rounded-lg px-1.5 py-0.5 font-label text-lead text-cream/80">
+              {t.hero.bio}
+            </p>
+            {/* Dos botones (2026-09-12, pedido explícito: "el botón de sobre
+                mí no hace nada... quiero poner uno que diga hablemos") — antes
+                era un solo CTA acá. El primero se queda igual que estaba
+                (mismo destino/label, ver comentario debajo); el segundo
+                ("Hablemos"/"Let's talk") es nuevo, siempre apunta a
+                `/contacto` — una vía de conversión directa que no depende de
+                `TRAYECTORIA_ENABLED`. `variant="secondary"` para no competir
+                con el primero (que sigue en `primary`, rojo sólido). */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Fase 2 (2026-08-28): antes apuntaba a `#sobre-mi` pese a decir
+                  "Ver trayectoria" — un desvío que sobrevivió porque `/trayectoria`
+                  no existía como página propia hasta la Fase 1. Ya existe.
+                  Variante `primary` (auditoría 2026-08-31): es la única acción del
+                  Hero — en `secondary` (borde fino) perdía contra el rojo saturado
+                  del wordmark que la rodea.
+                  2026-09-09: mientras Trayectoria está fuera de producción (ver
+                  `TRAYECTORIA_ENABLED`), el CTA vuelve a apuntar a `#sobre-mi` —
+                  mismo destino que tenía antes de que existiera la página. El
+                  label cambia con el destino (reusa `t.nav.about`, sin agregar
+                  copy nueva a content.ts): repetir "Ver trayectoria" apuntando a
+                  la bio sería el mismo desvío que ya se corrigió una vez.
+                  Verificado con scroll programático (Playwright contra un build
+                  de producción, 2026-09-12): el click navega a `/#sobre-mi`,
+                  `scrollY` avanza hasta el marcador y `AboutMe` cruza a opacidad
+                  1 — funciona en desktop, mobile y navegando desde otra página
+                  (`/crear` → `/#sobre-mi`). */}
+              <ButtonLink
+                to={TRAYECTORIA_ENABLED ? '/trayectoria' : '/#sobre-mi'}
+                variant="primary"
+                size="md"
+                className="shrink-0"
+              >
+                {TRAYECTORIA_ENABLED ? t.hero.cta : t.nav.about}
+              </ButtonLink>
+              <ButtonLink to="/contacto" variant="secondary" size="md" className="shrink-0">
+                {t.hero.contactCta}
+              </ButtonLink>
+            </div>
           </div>
         </motion.div>
 
-        {/* Fila de credenciales: logos monocromos, fija.
-            **2026-09-10**: dejó de ser un slider en loop infinito — el
-            usuario lo pidió fijo, sin las tiras de `backdrop-blur` en los
-            bordes (ver docblock viejo en el historial de git si hace falta
-            recuperar el mecanismo del slider). Ahora es una fila estática
-            que envuelve (`flex-wrap`) en vez de desbordar/animar.
-            **Centrada en mobile, mismo día** (pedido explícito): el resto del
-            Hero queda alineado a la izquierda a propósito (afiche), pero acá
-            la fila envuelve en 2-3 líneas en pantallas angostas y quedaba con
-            un borde irregular pegado a la izquierda — `justify-center` desde
-            mobile, vuelve a `justify-start` en `md` (fila de una sola línea,
-            no hace falta centrar lo que ya no envuelve). */}
+        {/* Fila de credenciales: slider infinito, de vuelta (2026-09-11).
+            El 2026-09-10 se había pedido pasar a fila fija; el usuario ahora
+            pidió volver al slider — mismo mecanismo del marquee de `AboutMe`
+            (duplicar el array, `x: ['0%','-50%']` en loop lineal) y de la
+            versión que hubo acá antes del 10/9. Con `prefers-reduced-motion`
+            no corre y la fila cae a `overflow-x-auto` (scroll manual) en vez
+            de animar — mismo criterio de H4 (auditoría 2026-08-18). */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 1.05 }}
-          className="mt-10 w-full max-w-xl border-t border-cream/10 pt-5 md:mt-14"
+          className="relative mt-10 w-full max-w-xl border-t border-cream/10 pt-5 md:mt-14 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
-          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 md:justify-start">
-            {credentialLogos.map(({ name, logo }) => (
-              <li key={name} className="flex shrink-0 items-center">
-                <img
-                  src={logo.src}
-                  alt={name}
-                  width={logo.width}
-                  height={logo.height}
-                  loading="eager"
-                  decoding="async"
-                  className="h-5 w-auto object-contain opacity-60 sm:h-6"
-                />
-              </li>
-            ))}
-          </ul>
+          <div className={cn('w-full', reduced ? 'overflow-x-auto' : 'overflow-hidden')}>
+            <motion.ul
+              className="flex w-max items-center gap-x-8"
+              animate={reduced ? undefined : { x: ['0%', '-50%'] }}
+              transition={reduced ? undefined : { duration: 18, ease: 'linear', repeat: Infinity }}
+            >
+              {(reduced ? credentialLogos : [...credentialLogos, ...credentialLogos]).map(
+                ({ name, logo }, i) => (
+                  <li key={`${name}-${i}`} className="flex shrink-0 items-center">
+                    <img
+                      src={logo.src}
+                      alt={name}
+                      width={logo.width}
+                      height={logo.height}
+                      loading={i < credentialLogos.length ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className="h-5 w-auto object-contain opacity-60 sm:h-6"
+                    />
+                  </li>
+                )
+              )}
+            </motion.ul>
+          </div>
         </motion.div>
       </div>
 
@@ -1062,7 +1415,11 @@ export default function Hero({ className }: HeroProps) {
           transition={{ duration: 0.5, delay: 0.95 }}
           className="relative z-30 w-full border-t border-cream/10 px-6 py-3 sm:px-10 md:px-12"
         >
-          <div className="flex items-center justify-center">
+          {/* Íconos a ~2× (2026-09-11, pedido explícito, primero se probó 3×
+              y el usuario pidió bajarlo): 20px→40px, la caja de touch target
+              crece con ellos (44px ya era piso de accesibilidad, no techo —
+              sigue cumpliéndose de sobra). */}
+          <div className="flex items-center justify-center gap-3">
             {socialLinks.map(({ label, href, icon: Icon, external }) => (
               <a
                 key={label}
@@ -1070,9 +1427,9 @@ export default function Hero({ className }: HeroProps) {
                 {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 aria-label={label}
                 title={label}
-                className="inline-flex h-11 w-11 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red"
+                className="inline-flex h-14 w-14 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red"
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-10 w-10" strokeWidth={1.5} />
               </a>
             ))}
           </div>
@@ -1112,56 +1469,3 @@ export default function Hero({ className }: HeroProps) {
   );
 }
 
-/**
- * Efecto 3D del wordmark (2026-09-09, pedido explícito del usuario). No es
- * un `rotate3d` decorativo fijo — es un tilt real que sigue al cursor
- * (`perspective` en el contenedor + `rotateX`/`rotateY` en la imagen,
- * suavizado con `useSpring`, mismo patrón que ya usa `TimelinePhoto` en
- * `Trayectoria.tsx`): el wordmark responde como un objeto físico con
- * volumen, no un póster plano. Sin sombra — `design-system` no usa
- * `box-shadow` como recurso — la sensación de profundidad la da
- * exclusivamente la perspectiva/rotación, no un shadow debajo.
- *
- * El `<motion.h1>` que lo envuelve sigue `pointer-events-none` (es texto
- * decorativo, no interactivo) — este componente reactiva `pointer-events`
- * solo en su propia caja para poder leer el mouse, sin volver clickeable
- * nada del resto del Hero.
- */
-function TiltLogo({ reduced }: { reduced: boolean }) {
-  const rotateXRaw = useMotionValue(0);
-  const rotateYRaw = useMotionValue(0);
-  const rotateX = useSpring(rotateXRaw, { stiffness: 150, damping: 16, mass: 0.5 });
-  const rotateY = useSpring(rotateYRaw, { stiffness: 150, damping: 16, mass: 0.5 });
-
-  function handlePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
-    if (reduced) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width - 0.5;
-    const py = (e.clientY - rect.top) / rect.height - 0.5;
-    rotateYRaw.set(px * 18);
-    rotateXRaw.set(-py * 14);
-  }
-
-  function handlePointerLeave() {
-    rotateXRaw.set(0);
-    rotateYRaw.set(0);
-  }
-
-  return (
-    <div
-      className="pointer-events-auto inline-block"
-      style={{ perspective: 900 }}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-    >
-      <motion.div style={reduced ? undefined : { rotateX, rotateY }}>
-        <Picture
-          src="/img/nora-firma-roja.png"
-          alt="Nora Filmus"
-          className="w-[clamp(220px,52vw,680px)]"
-          sizes="680px"
-        />
-      </motion.div>
-    </div>
-  );
-}

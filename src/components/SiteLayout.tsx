@@ -4,8 +4,11 @@ import Preloader from './Preloader';
 import Grain from './Grain';
 import ScrollProgress from './ScrollProgress';
 import Header from './Header';
+import SectionNav from './SectionNav';
 import Footer from './Footer';
 import PageCurtain from './PageCurtain';
+import VersionBadge from './VersionBadge';
+import { LightboxProvider } from './Lightbox';
 
 /**
  * Chrome compartido de sitio — Fase 1 (arquitectura de rutas, 2026-08-28).
@@ -21,6 +24,30 @@ import PageCurtain from './PageCurtain';
  * versión ("eliminar completamente el telón"), no la idea de una obertura en
  * sí. Pedido explícito de vuelta: "quiero usar un loader en todo el sitio,
  * quiero que el loader sea la n y la f".
+ *
+ * **`IntroCinematic` se sumó 2026-09-09 y se sacó 2026-09-10** — el usuario
+ * la vio integrada y pidió sacarla ("no queda muy bien"). `SiteLayout` volvió
+ * a montar siempre `Preloader` — sin la rama condicional que decidía entre
+ * los dos. El componente (`IntroCinematic.tsx`) y su clip
+ * (`/video/intro-cinematic.mp4`) se borraron enteros en la limpieza del
+ * 2026-09-12 — nunca se retomaron; están en el historial de git si hace falta
+ * recuperarlos.
+ *
+ * **`SiteBanner` se sumó 2026-09-09 y se sacó 2026-09-11** (pedido explícito:
+ * "sacar el banner que decía que estamos subiendo versiones continuamente").
+ * `SiteBanner.tsx` se borró entero en la limpieza del 2026-09-12 por el mismo
+ * motivo que `IntroCinematic` — si el sitio necesita otro aviso temporal en
+ * el futuro, conviene escribirlo de cero contra el chrome actual en vez de
+ * reflotar este.
+ *
+ * **`SectionNav` se suma 2026-09-11** — reemplaza al nav horizontal que vivía
+ * dentro de `Header` (ver su docblock): rail vertical en desktop, rueda fija
+ * al pie en mobile. Comparte con `Header` el mismo criterio de aparición
+ * (`useRevealPastHero`), así que las dos piezas de chrome entran/salen
+ * juntas.
+ *
+ * **`VersionBadge` se suma 2026-09-11** — número de versión fijo en la
+ * esquina inferior derecha, chico, ver su propio docblock.
  */
 export default function SiteLayout() {
   const [loading, setLoading] = useState(true);
@@ -37,13 +64,15 @@ export default function SiteLayout() {
   }, [location.pathname, location.hash]);
 
   return (
-    <>
+    <LightboxProvider>
       {loading && <Preloader onComplete={handleLoaded} />}
       <Grain />
       <ScrollProgress />
       <Header />
+      <SectionNav />
       <PageCurtain />
       <Footer />
-    </>
+      <VersionBadge />
+    </LightboxProvider>
   );
 }

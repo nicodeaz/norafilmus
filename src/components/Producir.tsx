@@ -1,7 +1,7 @@
-import { ClipboardList } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Act from './Act';
 import CreditList from './CreditList';
+import { NoraClapperboardIcon } from './icons/nora';
 
 /**
  * Acto III — Producir, el pilar productora, último de los tres. Fuente:
@@ -19,17 +19,26 @@ import CreditList from './CreditList';
  *   un borrador de CV anterior. Acá se cuenta como trabajo de equipo de
  *   producción; el crédito de actriz para el mismo título vive en el Acto I.
  *
- * Foto ancla: `los-golpes-de-clara-foto-2.jpg`, una toma de función distinta
- * del afiche (`los-golpes-de-clara-afiche.jpg`) que ya usa el mosaico del
- * Hero — ese afiche sigue vivo, pero adentro del acordeón de "Los golpes de
- * Clara", no repetido acá arriba. `align="right"` para que el Acto III no
- * sea un espejo idéntico del Acto I.
+ * Foto ancla → slider vertical (2026-09-12): la foto única (que para
+ * cuando se escribió esta entrada ya era Maldichas, `maldichas-foto-1.png`
+ * — ver CLAUDE.md, "Integración de las respuestas de Nora") se reemplazó
+ * por `producir.gallery`, la selección del usuario en "Casting del Archivo"
+ * (ver memoria `casting-del-archivo-artifact`). El pilar productora es el
+ * que menos material fotográfico real tiene en todo el archivo — la
+ * selección final quedó en solo 2 fotos, las mismas dos de ¡Mujeres a la
+ * obra! que ya usa `producir.stageCredits[0].images` (afiche + foto-4); no
+ * se reprocesaron archivos nuevos, el slider reusa esos dos `src` ya
+ * optimizados tal cual. `align="right"` para que el Acto III no sea un
+ * espejo idéntico del Acto I.
  *
- * Fase 3 (2026-08-28) — diferenciación visual real: ícono `ClipboardList`
- * junto al eyebrow (planilla de producción, no máscaras de teatro) y las
- * tres `CreditList` en variante `dossier` (índice `[01]` en monoespacio en
- * vez del romano en itálica de Crear) — lee como expediente/planilla, no
- * como programa de sala.
+ * Fase 3 (2026-08-28) — diferenciación visual real: ícono junto al eyebrow
+ * (planilla de producción, no máscaras de teatro) y las tres `CreditList`
+ * en variante `dossier` (índice `[01]` en monoespacio en vez del romano en
+ * itálica de Crear) — lee como expediente/planilla, no como programa de
+ * sala. El `ClipboardList` genérico de lucide se reemplazó (2026-09-09) por
+ * `NoraClapperboardIcon` del set de marca (`icons/nora`): una claqueta con
+ * "NF" tizado en la pizarra — cubre cine/TV y teatro a la vez, y lleva el
+ * monograma en vez de ser un ícono de oficina genérico.
  *
  * Más fotos por crédito (2026-09-04) — mismo criterio que Crear: los
  * créditos de ¡Mujeres a la obra! y Los golpes de Clara traen varias fotos
@@ -45,11 +54,12 @@ export default function Producir() {
       id="producir"
       numeral="III"
       align="right"
-      icon={<ClipboardList className="h-4 w-4" />}
+      icon={<NoraClapperboardIcon className="h-4 w-4" />}
       eyebrow={producir.eyebrow}
       titleLead={producir.titleLead}
       titleAccent={producir.titleAccent}
-      image={producir.image}
+      gallery={producir.gallery}
+      texture="dossier"
       childrenFullWidth
       body={
         <>

@@ -22,11 +22,20 @@ const STORAGE_KEY = 'nora-lang';
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
 /**
- * Mismo patrón que `nora-landing` (proyecto hermano), con dos agregados:
- * la elección se persiste en localStorage y el `lang` del <html> se
- * actualiza — el sitio vive en Dublín y una parte del público lo lee en
- * inglés, así que buscadores y lectores de pantalla tienen que saber en qué
- * idioma está la página que están viendo.
+ * Mismo patrón que `nora-landing` (proyecto hermano), con agregados: la
+ * elección se persiste en localStorage, y el `lang` del <html> se actualiza
+ * (el sitio vive en Dublín y una parte del público lo lee en inglés, así que
+ * buscadores y lectores de pantalla tienen que saber en qué idioma está la
+ * página).
+ *
+ * Hubo una detección por región (`/api/geo`, Edge Function de Vercel que leía
+ * `x-vercel-ip-country`) entre 2026-09-06 y el pivot de hosting a Apache/PHP
+ * del 2026-09-07 (ver CLAUDE.md) — Apache no expone un header equivalente sin
+ * un módulo GeoIP que este hosting no tiene, y sumar una IP-API de terceros
+ * para reemplazarlo fue una decisión ya descartada explícitamente en su
+ * momento. Se sacó entera; el idioma inicial vuelve a depender solo de
+ * `navigator.language` (heurística de `getInitialLang`) hasta que el visitante
+ * lo cambia a mano con el toggle.
  */
 function getInitialLang(): Language {
   if (typeof window === 'undefined') return 'es';
@@ -34,8 +43,9 @@ function getInitialLang(): Language {
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === 'es' || stored === 'en') return stored;
 
-  // Sin preferencia guardada: el español es el default (es la voz de Nora),
-  // salvo que el navegador declare explícitamente que no lee español.
+  // Sin preferencia guardada: se usa el idioma del navegador — el español es
+  // el default salvo que el navegador declare explícitamente que no lee
+  // español.
   return window.navigator.language?.toLowerCase().startsWith('es') ? 'es' : 'en';
 }
 

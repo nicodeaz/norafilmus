@@ -1,0 +1,81 @@
+# Nora Filmus — Apache config para hosting compartido/VPS con mod_rewrite.
+# Vive en public/ a propósito: Vite copia todo lo de public/ tal cual a
+# dist/ en cada build, así este archivo nunca se pierde ni hay que
+# recordar copiarlo a mano después de un `npm run build`.
+#
+# El sitio es un SPA (Vite + React Router, sin SSR): cada ruta real
+# (/crear, /ensenar, /producir, /trayectoria, /contacto) tiene su propia
+# carpeta con un index.html propio (scripts/generate-page-shells.mjs,
+# para que cada una tenga su <title>/description reales sin necesitar
+# servidor), así que Apache las sirve directo — el fallback de acá abajo
+# solo entra a tallar en rutas que NO existen como archivo/carpeta real
+# (typos, links viejos), para que React Router muestre el 404 propio del
+# sitio en vez del 404 crudo de Apache.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Forzar HTTPS. Esto NO instala el certificado SSL — asume que el
+  # hosting ya tiene uno activo (AutoSSL/Let's Encrypt en cPanel, o el que
+  # provea el server). Sin certificado activo esta regla solo produce un
+  # loop de redirección o un error de conexión, no "activa" SSL por sí sola.
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # www → sin www (ajustar/borrar si el dominio real usa www).
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+  RewriteBase /
+
+  # No tocar archivos ni carpetas reales (assets con hash, /img, /cv,
+  # /crear/index.html, etc. — todos existen de verdad en el disco).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Cualquier otra cosa → index.html, para que React Router decida (rutas
+  # con hash del lightbox/créditos incluidas, ej. /crear#Rapiña::2017–2019).
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# Sin esto, un Apache viejo puede servir los derivados de imagen del
+# pipeline (scripts/optimize-images.mjs) con un Content-Type genérico.
+<IfModule mod_mime.c>
+  AddType image/avif .avif
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# Compresión — texto y SVG (las imágenes reales ya van comprimidas como
+# AVIF/WebP, recomprimirlas no ahorra nada).
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml application/xml
+</IfModule>
+
+# Cache — el año de `max-age` para JS/CSS de build vive en `assets/.htaccess`
+# (public/assets/.htaccess, Vite pone esos archivos con hash en el nombre —
+# ej. index-a1b2c3.js — así que son inmutables de verdad). Acá abajo va
+# todo lo demás: imágenes del pipeline y HTML, con cache más corto porque
+# el nombre de archivo NO cambia si la imagen se reemplaza (ver skill
+# `performance` del repo) — hay que poder invalidarlas sin esperar un año.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType image/avif "access plus 7 days"
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+</IfModule>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# No listar contenido de carpetas sin index.html.
+Options -Indexes

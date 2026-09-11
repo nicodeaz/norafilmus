@@ -21,12 +21,15 @@ const OUT = path.join(ROOT, 'public', 'sitemap.xml');
 const SITE_URL = 'https://norafilmus.com';
 const LASTMOD = new Date().toISOString().slice(0, 10);
 
+// `/trayectoria` fuera de esta lista a propósito (2026-09-09): la ruta está
+// deshabilitada en producción (`TRAYECTORIA_ENABLED`, ver `lib/features.ts`)
+// hasta que esté pronta y funcional — no tiene sentido indexarla mientras
+// devuelve 404. Agregarla de vuelta cuando se reactive la ruta.
 const ROUTES = [
   { path: '/', changefreq: 'monthly', priority: '1.0' },
   { path: '/crear', changefreq: 'monthly', priority: '0.8' },
   { path: '/ensenar', changefreq: 'monthly', priority: '0.8' },
   { path: '/producir', changefreq: 'monthly', priority: '0.8' },
-  { path: '/trayectoria', changefreq: 'monthly', priority: '0.7' },
   { path: '/contacto', changefreq: 'yearly', priority: '0.5' },
 ];
 

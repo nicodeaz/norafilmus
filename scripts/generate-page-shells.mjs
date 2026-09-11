@@ -50,12 +50,10 @@ const PAGES = [
     description:
       'Detrás de escena, en teatro y en pantalla: Maldichas, ¡Mujeres a la obra!, y equipos de producción para Netflix, HBO y Star+.',
   },
-  {
-    route: '/trayectoria',
-    title: 'Trayectoria — Nora Filmus',
-    description:
-      'Treinta y seis años, un solo hilo: la cronología completa de Nora Filmus en actuación, docencia y producción, desde 1990 hasta hoy.',
-  },
+  // `/trayectoria` fuera de esta lista a propósito (2026-09-09): la ruta
+  // está deshabilitada en producción hasta que esté pronta y funcional (ver
+  // `lib/features.ts`) — generar un shell con title/description reales para
+  // una ruta que devuelve 404 la haría más fácil de descubrir, no menos.
   {
     route: '/contacto',
     title: 'Contacto — Nora Filmus',

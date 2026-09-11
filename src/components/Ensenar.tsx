@@ -28,15 +28,32 @@ import CreditList from './CreditList';
  * apenas visible detrás del "12" — el Acto sin foto es el que más se presta a
  * leerse como una página de cuaderno en vez de un afiche.
  *
+ * Slider vertical (2026-09-12): `aside` (el "12" en tipografía) queda
+ * reemplazado por `gallery` — ver el docblock de `content.ts` en `ensenar` y
+ * memoria `casting-del-archivo-artifact`. `Act.tsx` prioriza `gallery` sobre
+ * `aside` cuando los dos están presentes, así que no hace falta sacar la
+ * prop `aside` del componente para que el slider gane: alcanza con pasar
+ * `gallery={ensenar.gallery}` acá. `numeralDiscreto`/`texture="notebook"` se
+ * quedan igual — eran para que el numeral "II" no compitiera con el "12",
+ * y siguen aplicando aunque el "12" ya no se vea (el numeral de por sí ya
+ * pasó a ser chico en este Acto, no hace falta revertirlo).
+ *
  * Texto madre de Nora (2026-08-31): `body1`/`body2` del Acto pasaron de
  * narrar el historial del Programa Adolescencia en prosa (redundante con
  * `coordCredits`/`teachCredits` de abajo, que ya lo listan completo) a
  * explicar el "por qué" de su práctica — mismo criterio que ya sigue el resto
- * del sitio de separar narrativa (`body`) de detalle (`CreditList`). Debajo
- * de `body` se agregan dos bloques nuevos, ambos a ancho completo:
- * `modalities` (las tres formas en que trabaja — Talleres, 1:1, Grupos y
- * organizaciones), antes de los créditos, y `approach` ("Mi mirada") como
- * remate editorial después de ellos — mismo lugar que ocuparía un colofón.
+ * del sitio de separar narrativa (`body`) de detalle (`CreditList`). El
+ * remate "Mi mirada" (`approach*` en `content.ts`) que cerraba el Acto se
+ * sacó a pedido del usuario (2026-09-10) — los campos siguen en
+ * `SiteContent` sin usarse acá por si se retoma en otro lugar del sitio.
+ *
+ * Las tres tarjetas de modalidad (Talleres, 1:1, Grupos y organizaciones) se
+ * mudaron a Home el mismo día y volvieron acá minutos después (2026-09-12,
+ * pedido explícito, primero "sacarlos de ensenar", después "vuelve a la
+ * sección enseñar como antes") — quedan otra vez a ancho completo, antes de
+ * los créditos, con su tratamiento original (sin ícono ni caja, solo el
+ * índice en `font-signature` + texto corrido). `HomeModalities.tsx` (el
+ * componente que las mostraba en Home) se borró entero.
  */
 export default function Ensenar() {
   const { t } = useLanguage();
@@ -57,8 +74,10 @@ export default function Ensenar() {
           <p className="mt-4">{ensenar.body2}</p>
         </>
       }
+      texture="notebook"
       numeralDiscreto
       childrenFullWidth
+      gallery={ensenar.gallery}
       aside={
         // Sin caja: el "12" ES el material de este acto, no una tarjeta al
         // costado. Va a escala de titular y el numeral "II" queda chico
@@ -109,16 +128,6 @@ export default function Ensenar() {
           items={ensenar.recognitionCredits}
           variant="notebook"
         />
-      </div>
-
-      {/* "Mi mirada" — remate del Acto, no un cuarto crédito: regla roja a la
-          izquierda (mismo dispositivo que ya usa el cierre del lightbox de
-          Presente y el colofón del Footer) y la línea final en
-          `font-signature`, eco de la firma del Hero. */}
-      <div className="mt-12 max-w-2xl border-l-2 border-brand-red pl-6 md:mt-16">
-        <p className="font-label text-xs uppercase tracking-[0.25em] text-brand-red">{ensenar.approachTitle}</p>
-        <p className="mt-4 text-body font-body leading-relaxed text-cream/80">{ensenar.approachBody}</p>
-        <p className="mt-4 font-signature text-2xl text-cream">{ensenar.approachClosing}</p>
       </div>
     </Act>
   );

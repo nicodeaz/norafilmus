@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import type { ActGalleryPhoto } from '@/src/i18n/content';
+import { useLightbox } from './Lightbox';
 import Picture from './Picture';
 import Reveal from './Reveal';
+import VerticalPhotoSlider from './VerticalPhotoSlider';
 
 interface ActImage {
   src: string;
@@ -20,6 +23,13 @@ interface ActProps {
   body: ReactNode;
   /** Foto ancla del acto — nunca el mismo archivo que ya usa el mosaico del Hero para este pilar. */
   image?: ActImage;
+  /**
+   * Slider vertical infinito con toda la selección de archivo del Acto
+   * (2026-09-12) — gana contra `image` cuando ambos están presentes: `image`
+   * sigue existiendo en el tipo por si algún Acto futuro vuelve a necesitar
+   * una sola foto curada, pero Crear/Producir ya pasan `gallery`, no `image`.
+   */
+  gallery?: ActGalleryPhoto[];
   /**
    * Reemplaza el lugar de la foto cuando no hay una (ej. Enseñar, regla 4 —
    * nada de fotos de menores identificables). No es un placeholder vacío:
@@ -44,6 +54,8 @@ interface ActProps {
   numeralDiscreto?: boolean;
   /** Alterna de qué lado bleedea el numeral/foto — da variedad entre actos consecutivos. */
   align?: 'left' | 'right';
+  /** Textura de página sutil: afiche, cuaderno o dossier. */
+  texture?: 'poster' | 'notebook' | 'dossier';
   /**
    * Ícono junto al eyebrow — Fase 3 (2026-08-28): un marcador chico y legible
    * por Acto (Crear/Enseñar/Producir), más barato y confiable que diferenciar
@@ -79,20 +91,34 @@ export default function Act({
   titleAccent,
   body,
   image,
+  gallery,
   aside,
   children,
   childrenFullWidth = false,
   numeralDiscreto = false,
   align = 'left',
+  texture = 'poster',
   icon,
 }: ActProps) {
   const mirrored = align === 'right';
+  const { open: openLightbox } = useLightbox();
 
   return (
     // py bajó de 24/36 a 16/24: sumado al de la sección vecina daba 288px de
     // negro muerto en cada borde. Lo que se recorta acá lo ocupa `<Seam>`,
     // que ahora vive en esas costuras (E3 / H7).
-    <section id={id} className="relative w-full overflow-hidden bg-ink py-16 md:py-24">
+    <section
+      id={id}
+      className="relative w-full overflow-hidden bg-ink py-16 md:py-24"
+      style={{
+        backgroundImage:
+          texture === 'notebook'
+            ? 'repeating-linear-gradient(to bottom, transparent, transparent 47px, rgba(245,239,230,0.025) 48px)'
+            : texture === 'dossier'
+              ? 'repeating-linear-gradient(to right, transparent, transparent 119px, rgba(245,239,230,0.018) 120px)'
+              : undefined,
+      }}
+    >
       {/* Luz de escena: un óvalo de cream al 3 % detrás del numeral. Le da
           profundidad al ink plano —que la auditoría marcó como el 100 % de la
           superficie bajo el Hero (H13)— sin agregar un color a la paleta, y
@@ -148,7 +174,16 @@ export default function Act({
               {numeral}
             </span>
 
-            {image ? (
+            {gallery && gallery.length > 0 ? (
+              <div
+                className={cn(
+                  'relative mt-[4.5rem] max-w-xs md:mt-[6.5rem]',
+                  mirrored ? 'mr-[3.5rem] md:mr-[5.5rem]' : 'ml-[3.5rem] md:ml-[5.5rem]'
+                )}
+              >
+                <VerticalPhotoSlider photos={gallery} sectionLabel={eyebrow} />
+              </div>
+            ) : image ? (
               <Reveal
                 as="figure"
                 className={cn(
@@ -156,18 +191,24 @@ export default function Act({
                   mirrored ? 'mr-[3.5rem] md:mr-[5.5rem]' : 'ml-[3.5rem] md:ml-[5.5rem]'
                 )}
               >
-                <Picture
-                  src={image.src}
-                  alt={image.alt}
-                  sizes="(min-width: 768px) 24rem, 70vw"
-                  loading="lazy"
-                  decoding="async"
-                  pictureClassName="block"
-                  className={cn(
-                    'w-full -rotate-2 border-[6px] border-cream/10 object-cover shadow-[0_20px_60px_rgba(0,0,0,0.5)]',
-                    mirrored && 'rotate-2'
-                  )}
-                />
+                <button
+                  type="button"
+                  onClick={() => openLightbox([{ src: image.src, alt: image.alt, label: image.caption }])}
+                  className="block w-full outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+                >
+                  <Picture
+                    src={image.src}
+                    alt={image.alt}
+                    sizes="(min-width: 768px) 24rem, 70vw"
+                    loading="lazy"
+                    decoding="async"
+                    pictureClassName="block"
+                    className={cn(
+                      'w-full -rotate-2 border-[6px] border-cream/10 object-cover transition-opacity duration-300 hover:opacity-80',
+                      mirrored && 'rotate-2'
+                    )}
+                  />
+                </button>
                 <figcaption className="mt-3 font-label text-[11px] leading-snug text-cream/50">
                   <span className="block text-cream/60">{image.caption}</span>
                   <span className="block text-cream/50">Foto: {image.credit}</span>

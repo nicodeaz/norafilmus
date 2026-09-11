@@ -1,30 +1,29 @@
 #!/usr/bin/env node
 /**
- * Genera `public/img/og-image.jpg` (1200×630, el tamaño estándar que
- * Facebook/LinkedIn/WhatsApp/Slack esperan para la tarjeta de un link) —
- * SUPERPROMPT.md §05. Antes `og:image` apuntaba directo a
- * `nora-portrait.webp` (retrato vertical recortado): la mayoría de los
- * lectores de OG recortan cualquier imagen que no venga ~1200×630 desde el
- * centro, así que un retrato vertical quedaba cortado por la mitad de la
- * cara en la tarjeta.
+ * Genera `public/img/og-image.jpg` (1200×630) — SUPERPROMPT.md §05.
  *
- * Compone: fondo ink de marca + el retrato (flush a la derecha, altura
- * completa) + el logo real (firma manuscrita "Nora / Filmus.",
- * `nora-firma-roja.png`) + rol + un hairline rojo — el mismo dispositivo
- * tipográfico (regla + rótulo) que ya usan `Seam`/`Act`/los rieles de
- * `AboutMe` en el sitio, no un motivo nuevo.
+ * **Rehecho 2026-09-09** para que la tarjeta de link se parezca al Hero real
+ * del sitio de hoy, no a una composición aparte inventada para compartir:
+ * mismo panel de foto flush-right con feather horizontal hacia `ink` (calco
+ * del `mask-image` que usa `Hero.tsx` para el panel de video), mismo bloque
+ * de texto a la izquierda con hairline roja + una sola línea de rol (el
+ * mismo dispositivo tipográfico que el Hero pone debajo del wordmark). La
+ * versión anterior agregaba una segunda línea de texto (label uppercase de
+ * credenciales + subtítulo de "36 años...") — pedido explícito: "que se
+ * parezca más a la home... pero más minimal y menos texto". Se saca esa
+ * segunda línea entera, no se la achica.
  *
- * **2026-09-06 — reemplazó al wordmark dibujado en Impact.** La versión
- * anterior armaba "Nora"/"FILMUS" a mano con `<text>` en fuente Impact
- * porque el renderer de SVG de este build de sharp/libvips (librsvg) no
- * soporta `@font-face` con woff2 embebido (falla en silencio, cae a un serif
- * del sistema). Eso quedó desalineado de la marca real desde que el sitio
- * adoptó la firma manuscrita como logo oficial en Hero/Header/Footer
- * (2026-08-30, ver CLAUDE.md "Logo manuscrito en todo el sitio"). Componer
- * el PNG del logo (con alfa real) evita el problema de fuentes por completo
- * — no hay texto de marca que renderizar, solo la imagen. El texto chico
- * (rol, tagline) se queda en Arial vía SVG, que sí renderiza bien en este
- * entorno (ya estaba probado).
+ * La foto es `hero-loop-poster.jpg` (el poster del video del Hero, mismo
+ * origen/fotógrafa que el retrato viejo) en vez de `nora-portrait.webp`: es
+ * literalmente el frame que ve cualquiera que entra al sitio ahora mismo, así
+ * que la tarjeta de compartir deja de mostrar una composición vieja
+ * (retrato de estudio sin fondo) que ya no es la primera imagen del sitio.
+ * Casi el mismo aspecto que el recorte 1200×630 necesita (840×1284 ≈
+ * 420×630), así que el `cover` recorta muy poco.
+ *
+ * El logo sigue siendo el PNG con alfa real (no texto en SVG) por el mismo
+ * motivo que la versión anterior: el librsvg de este sharp/libvips no
+ * soporta `@font-face` con woff2 embebido.
  *
  * Uso: node scripts/generate-og-image.mjs
  */
@@ -33,7 +32,7 @@ import { stat } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
-const PORTRAIT = path.join(ROOT, 'public', 'img', 'nora-portrait.webp');
+const PHOTO = path.join(ROOT, 'public', 'img', 'hero-loop-poster.jpg');
 const LOGO = path.join(ROOT, 'public', 'img', 'nora-firma-roja.png');
 const OUT = path.join(ROOT, 'public', 'img', 'og-image.jpg');
 
@@ -43,65 +42,55 @@ const INK = '#0F0E0D';
 const CREAM = '#F5EFE6';
 const RED = '#E53935';
 
-async function main() {
-  const portrait = sharp(PORTRAIT);
-  const portraitMeta = await portrait.metadata();
-  const portraitHeight = HEIGHT;
-  const portraitWidth = Math.round((portraitMeta.width / portraitMeta.height) * portraitHeight);
-  // PNG y no JPEG a propósito: el retrato es un recorte con transparencia y
-  // JPEG no tiene canal alfa — sharp lo aplanaba contra negro puro, así que
-  // sobre el fondo ink (#0F0E0D) quedaba un rectángulo negro visible alrededor
-  // de la figura. En PNG el alfa llega intacto al composite.
-  const portraitBuf = await portrait
-    .resize({ height: portraitHeight })
-    .png()
-    .toBuffer();
-  const portraitX = WIDTH - portraitWidth;
+// Mismo ratio de ancho que el panel de video del Hero en desktop (~40-46%
+// del viewport) — acá un poco más angosto porque el canvas es bajo y ancho,
+// no una pantalla completa.
+const PANEL_WIDTH = 460;
 
-  // Logo a un ancho fijo generoso (afiche, no ícono chico) — la altura sale
-  // de su proporción real (1133×636).
-  const logoWidth = 560;
+async function main() {
+  const photoBuf = await sharp(PHOTO)
+    .resize({ width: PANEL_WIDTH, height: HEIGHT, fit: 'cover', position: 'top' })
+    .toBuffer();
+  const photoX = WIDTH - PANEL_WIDTH;
+
+  const logoWidth = 460;
   const logo = sharp(LOGO);
   const logoMeta = await logo.metadata();
   const logoHeight = Math.round((logoMeta.height / logoMeta.width) * logoWidth);
   const logoBuf = await logo.resize({ width: logoWidth }).png().toBuffer();
-  const logoX = 70;
-  const logoY = 70;
+  const logoX = 80;
+  // Centrado verticalmente contra el bloque logo+hairline+rol como conjunto,
+  // no pegado arriba — mismo aire que tiene el wordmark del Hero real.
+  const logoY = 190;
 
-  const railY = logoY + logoHeight + 6;
-  const labelY = railY + 46;
-  const subtitleY = labelY + 40;
+  const railY = logoY + logoHeight + 34;
+  const roleY = railY + 42;
 
-  // Degradé para que el texto de la izquierda tenga contraste incluso donde
-  // se superpone con el borde del retrato (el retrato es flush-right, pero
-  // en anchos de texto largos el borde queda cerca).
   const svg = `
 <svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+    <!-- Feather horizontal del panel de foto hacia el ink — mismo recurso
+         que el mask-image del panel de video en Hero.tsx, nunca un borde
+         duro. -->
+    <linearGradient id="feather" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="${INK}" stop-opacity="1" />
-      <stop offset="75%" stop-color="${INK}" stop-opacity="0.55" />
-      <stop offset="100%" stop-color="${INK}" stop-opacity="0" />
+      <stop offset="55%" stop-color="${INK}" stop-opacity="0" />
     </linearGradient>
   </defs>
-  <!-- Sin rect de fondo del tamaño del canvas entero acá a propósito: el ink
-       de base ya lo pone el create() de sharp más abajo. Este SVG es solo el
-       degradé de contraste + el texto, compuesto ENCIMA del retrato ya
-       compuesto (un rect opaco acá tapaba el retrato entero — bug real que
-       se encontró al revisar el primer render, no una decisión). -->
-  <rect x="${portraitX - 260}" width="${WIDTH - portraitX + 260}" height="${HEIGHT}" fill="url(#fade)" />
+  <rect x="${photoX - 40}" width="${PANEL_WIDTH + 40}" height="${HEIGHT}" fill="url(#feather)" />
 
-  <!-- Hairline roja + rótulo: mismo dispositivo que Seam/Act/AboutMe. -->
-  <rect x="${logoX + 2}" y="${railY}" width="46" height="4" fill="${RED}" />
-  <text x="${logoX + 2}" y="${labelY}" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="${RED}">ACTRIZ · PRODUCTORA · PEDAGOGA TEATRAL</text>
-  <text x="${logoX + 2}" y="${subtitleY}" font-family="Arial, sans-serif" font-size="22" fill="${CREAM}" fill-opacity="0.7">36 años en artes escénicas — Buenos Aires · Dublín</text>
+  <!-- Hairline roja + una sola línea de rol — mismo dispositivo que el
+       Hero pone debajo del wordmark, sin la segunda línea de subtítulo que
+       tenía la versión anterior de esta tarjeta. -->
+  <rect x="${logoX + 2}" y="${railY}" width="40" height="3" fill="${RED}" />
+  <text x="${logoX + 2}" y="${roleY}" font-family="Arial, sans-serif" font-size="26" letter-spacing="1" fill="${CREAM}" fill-opacity="0.85">Actriz · Productora · Pedagoga teatral</text>
 </svg>`;
 
   await sharp({
     create: { width: WIDTH, height: HEIGHT, channels: 3, background: INK },
   })
     .composite([
-      { input: portraitBuf, left: portraitX, top: 0 },
+      { input: photoBuf, left: photoX, top: 0 },
       { input: Buffer.from(svg), left: 0, top: 0 },
       { input: logoBuf, left: logoX, top: logoY },
     ])

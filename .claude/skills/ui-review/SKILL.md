@@ -10,6 +10,7 @@ No des un cambio de UI por terminado sin pasar esta lista. Es la versión aplica
 ## Diseño y sistema
 
 - [ ] ¿Todo color/tipografía/tamaño usado es un token de `src/index.css`, no un valor suelto? (ver `design-system`)
+- [ ] Si se usa un ícono de `icons/nora/` (set de marca): ¿se fijó solo el alto (`h-N w-auto`) en vez de `h-N w-N`? Varios tienen `viewBox` no cuadrado y se aplastan ilegibles con un tamaño forzado (ver `design-system`/`component-library`).
 - [ ] ¿El componente reusa una primitiva existente (`Reveal`, `CreditList`, `Act`, `Seam`, `Button`) en vez de reimplementar el patrón? (ver `component-library`)
 - [ ] ¿La composición no repite exactamente la de la sección anterior sin motivo? (ver `premium-ui`)
 - [ ] ¿El contraste del texto nuevo se midió contra 4.5:1, no se asumió?

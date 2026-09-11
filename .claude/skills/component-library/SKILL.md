@@ -21,12 +21,35 @@ Regla general: **antes de escribir un componente nuevo, revisá si alguno de est
 
 - **`PillarMenu.tsx`** — lista numerada 01/02/03 con mosaico opcional. Dos orientaciones: `vertical` (con mosaico, fuera del Hero) e `inline` (banda horizontal sin mosaico, el Hero). Atado al tipo `Pillar` de `content.ts` (imagen/crédito opcionales). No lo fuerces para listas que no tienen esa forma — para eso existe `ProgramIndex`.
 - **`ProgramIndex.tsx`** — filas de índice a ancho completo, numeradas, con descriptor opcional y flecha de hover. Es el patrón para "lista de destinos a igual peso" cuando los ítems NO comparten la forma `Pillar`. No lo fusiones con `PillarMenu` — son composiciones distintas a propósito (ver docblock del archivo).
-- **`Act.tsx`** — primitiva de los 3 Actos (Crear/Enseñar/Producir): numeral romano que sangra + foto con marco (o `aside` cuando no hay foto, como Enseñar) + columna de texto. Props relevantes: `align` (de qué lado sangra), `aside` (reemplazo de la foto), `childrenFullWidth` (créditos a las 12 columnas en vez de la columna de texto), `numeralDiscreto` (numeral chico, usado en Enseñar para no competir con el "12"), `icon` (lucide, junto al eyebrow).
+- **`Act.tsx`** — primitiva de los 3 Actos (Crear/Enseñar/Producir): numeral romano que sangra + foto con marco (o `aside` cuando no hay foto, como Enseñar) + columna de texto. Props relevantes: `align` (de qué lado sangra), `aside` (reemplazo de la foto), `childrenFullWidth` (créditos a las 12 columnas en vez de la columna de texto), `numeralDiscreto` (numeral chico, usado en Enseñar para no competir con el "12"), `icon` (junto al eyebrow — Crear y Producir usan íconos de marca de `icons/nora`, Enseñar todavía usa `GraduationCap` de lucide, ver sección de íconos abajo).
 
 ## Media
 
 - **`Picture.tsx`** + `getImageSources()` — el único punto de entrada para imágenes procesadas por el pipeline (`scripts/optimize-images.mjs`, AVIF+WebP en 480/960/1440w). Nunca un `<img src="/img/...">` suelto para una foto que pasó por el pipeline — o pasás por `<Picture>` o, si necesitás el `<picture>` crudo (como el mosaico de `PillarMenu`, que recorta con `object-position` calculado), usás `getImageSources()` directo.
 - **`BackgroundDots.tsx`**, **`Grain.tsx`** — texturas de fondo, cada una un solo propósito, ambas `aria-hidden`, ninguna con `mix-blend-mode` (rompería el `sticky` del Hero — ver nota en `Grain.tsx`).
+
+## Íconos de marca (`src/components/icons/nora/`)
+
+Set de 12 componentes SVG propios (2026-09-09, ver `design-system` para el criterio de cuándo usar esto vs. `lucide-react`) — generados con Seedream 5.0 (fal.ai) a partir de un prompt con la silueta reconocible de Nora (flequillo recto + anteojos rectangulares), vectorizados con `potrace`/`svgo`. Importar desde `./icons/nora` (barrel `index.ts`). Todos son `fill="currentColor"`, ninguno tiene tamaño fijo por default — siempre pasar `className` con el alto (`h-N`) y `w-auto` si el `viewBox` no es cuadrado (ver el gotcha en `design-system`).
+
+**Ojo:** `ProgramIndex.tsx` (donde vivían varios de estos como watermark de fila) se sacó de `Home` el 2026-09-09 a pedido del usuario — el componente sigue en el repo sin uso (ver docblock de `App.tsx`), así que esos usos de la tabla de abajo hoy no se ven en el sitio en vivo, aunque el código siga ahí.
+
+| Componente | Qué representa | Uso actual |
+|---|---|---|
+| `NoraMasksIcon` | Máscaras de comedia/tragedia con el flequillo y anteojos de Nora | Eyebrow de `Crear.tsx`, watermark de fila "Crear" en `ProgramIndex` (sin uso, ver arriba) |
+| `NoraCurtainIcon` | Cortina de teatro con medallón de estrella | Sin uso todavía |
+| `NoraSpotlightIcon` | Reflector iluminando una silueta parada | Watermark de fila "Enseñar" en `ProgramIndex` (sin uso, ver arriba) |
+| `NoraTicketIcon` | Entrada de teatro con "NORA FILMUS" impreso | Sin uso todavía |
+| `NoraProgramIcon` | Programa de mano atado con cinta, monograma "NF" | Sin uso todavía |
+| `NoraSignatureIcon` | Pluma trazando la firma "Nora" | Botón de "Firmar" en `SignatureWall.tsx` |
+| `NoraStarIcon` | Estrella de cinco puntas con destellos (ovación) | Watermark grande del `Footer`, watermark de fila "Trayectoria" en `ProgramIndex` (sin uso, ver arriba) |
+| `NoraClapperboardIcon` | Claqueta de cine con "NF" tizado en la pizarra | Eyebrow de `Producir.tsx`, watermark de fila "Producir" en `ProgramIndex` (sin uso, ver arriba) |
+| `NoraMenuIcon` | Tres líneas horizontales, sutilmente asimétricas | Sin uso todavía — pensado para un trigger de menú si el sitio suma uno |
+| `NoraWorkshopIcon` | Círculo de siluetas de taller, Nora facilitando desde afuera | Tarjeta "Training & workshops" en `Ensenar.tsx` |
+| `NoraOneToOneIcon` | Dos siluetas de perfil frente a frente, Nora + una genérica | Tarjeta "1:1 creative & performance training" en `Ensenar.tsx` |
+| `NoraGroupsIcon` | Grupo de 3 siluetas genéricas agrupadas (equipo/huddle) | Tarjeta "Groups, teams & organisations" en `Ensenar.tsx` |
+
+Los 4 que aparecen como "watermark de fila" en `ProgramIndex.tsx` son grandes y de opacidad baja (`text-brand-red/[0.14]`, hasta `lg:h-80 lg:w-80`) — entran deslizándose desde la derecha en hover/focus del `<Link>` de esa fila, `aria-hidden` y `pointer-events-none` porque son puramente decorativos, nunca el único indicador de estado. Antes de agregar un uso nuevo de estos íconos, revisar la tabla de arriba — 3 de los 9 (`Curtain`, `Ticket`, `Program`) están generados pero sin lugar todavía, capaz uno de esos resuelve el próximo pedido sin generar nada nuevo.
 
 ## Interacción
 

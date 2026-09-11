@@ -1,0 +1,13 @@
+{
+    "name": "norafilmus/mail",
+    "description": "Transactional email for norafilmus.com (contact form) — same mechanism as nora-landing/mail",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

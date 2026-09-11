@@ -240,6 +240,22 @@ import Picture from './Picture';
  * quedó como estaba: el riel exterior sigue en `overflow-x-hidden
  * overflow-y-visible` (con `overflow-hidden` a secas la ficha escalada se
  * recorta arriba/abajo contra el borde del propio riel).
+ *
+ * **Legibilidad en mobile — de halo blanco a scrim con blur (2026-09-11/12).**
+ * Bio y `figcaption` llevan `.text-legible-blur` (`src/index.css`,
+ * `backdrop-filter: blur()` transparente, sin fondo de color, solo
+ * `overlay && ...`) con `rounded-lg` — ver el docblock de `Hero.tsx` para
+ * el detalle de por qué cambió el mecanismo. **Eyebrow y `h2` sin blur**
+ * (2026-09-12, pedido explícito: "el titulo y el encabezado del titulo
+ * sin blur") — quedan como texto directo sobre el video, sin scrim.
+ *
+ * **Ojo, probado y revertido el mismo día:** se intentó una variante
+ * palabra-por-palabra (`BlurWords.tsx`, chip individual con `rounded-lg`
+ * por cada palabra en vez de un scrim por bloque, aplicada también al
+ * `h2`) a pedido explícito. El usuario la probó y pidió volver atrás en
+ * la misma sesión — ver el docblock de `Hero.tsx` ("Probado un chip por
+ * palabra...") para el detalle de por qué. No reintentar sin que lo pida
+ * de nuevo.
  */
 interface AboutMeProps {
   /**
@@ -278,12 +294,23 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
       )}
       inert={inert}
     >
+        {/* `mt-6 sm:mt-0` en modo capa (2026-09-12, pedido explícito: "quiero
+            agregarle margin top al about me en el celular ya que queda muy
+            pegado arriba todo") — el bloque vive centrado con `justify-center`
+            dentro del `sticky` de 100svh; en mobile eso lo dejaba pegado al
+            borde superior (a menudo bajo el notch/status bar). Solo hasta
+            `sm` (640px): de ahí para arriba ya había aire de sobra. 24px, no
+            más — el presupuesto de alto ya es ajustado por debajo de ~800px
+            de viewport (ver el prop `overlay` más abajo, "un portátil de 13"
+            30px"), así que un margen mayor recortaría contenido en phones
+            bajos como el iPhone 8 (375×667, medido: -31px de por sí sin este
+            margen ya recortaba ~10px por lado). */}
         <div
           ref={contentRef}
           className={cn(
             'relative flex w-full flex-col items-center px-6 text-center sm:px-10 md:px-12',
             overlay
-              ? 'ml-auto md:max-w-[54%] lg:max-w-[58%]'
+              ? 'ml-auto mt-6 sm:mt-0 md:max-w-[54%] lg:max-w-[58%]'
               : 'mx-auto max-w-3xl'
           )}
         >
@@ -342,7 +369,7 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
             className={cn(
               'font-label text-cream/80',
               overlay
-                ? 'mt-[clamp(0.25rem,1svh,0.5rem)] max-w-lg space-y-[clamp(0.125rem,0.4svh,0.25rem)] text-[clamp(0.8125rem,0.3vw+1.5svh,1.0625rem)]/[1.45]'
+                ? 'text-legible-blur mt-[clamp(0.25rem,1svh,0.5rem)] max-w-lg space-y-[clamp(0.125rem,0.4svh,0.25rem)] rounded-lg px-1.5 py-0.5 text-[clamp(0.8125rem,0.3vw+1.5svh,1.0625rem)]/[1.45]'
                 : 'mt-2 max-w-md space-y-1 text-lead'
             )}
           >
@@ -403,7 +430,12 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
                         overlay ? 'h-[clamp(3.5rem,11svh,7rem)]' : 'h-24 sm:h-28'
                       )}
                     />
-                    <figcaption className="mt-2 font-label text-[10px] leading-snug text-cream/50">
+                    <figcaption
+                      className={cn(
+                        'mt-2 font-label text-[10px] leading-snug text-cream/50',
+                        overlay && 'text-legible-blur rounded-lg px-1 py-0.5'
+                      )}
+                    >
                       <span className="block text-cream/70">{item.work}</span>
                       <span className="block text-brand-red">{item.role}</span>
                       {item.credit ? (
