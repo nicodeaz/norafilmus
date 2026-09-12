@@ -39,6 +39,28 @@ interface VerticalPhotoSliderProps {
  * arriba/abajo (mismo dispositivo que ya usan los sliders horizontales del
  * Hero/AboutMe) son los que dan la lectura de "programa de teatro", no cada
  * foto individual.
+ *
+ * **Mobile: tira horizontal swipeable, no el marquee vertical (2026-09-12),
+ * pedido explícito ("ocupan mucho lugar y tampoco se puede navegar en
+ * ellos").** Dos problemas reales del marquee vertical por debajo de `md`:
+ * 1. **Alto fijo de 26rem (416px)** en una columna angosta (`max-w-xs` en
+ *    `Act.tsx`) es una cantidad enorme de scroll vertical solo para la
+ *    galería, en una página que ya es larga en mobile.
+ * 2. **El pause-on-hover no existe en touch.** El marquee nunca se detiene
+ *    en un teléfono, así que tocar una foto puntual para abrir el lightbox
+ *    es perseguir un blanco móvil — de ahí "no se puede navegar".
+ *
+ * La solución no es agregarle lógica de pausa por touch al marquee: es un
+ * componente DISTINTO por debajo de `md`, `overflow-x-auto` con
+ * `snap-x`/`scroll-smooth` nativo del navegador — cero JS de scroll propio
+ * (mismo criterio de siempre: nada de reimplementar lo que el navegador ya
+ * da gratis). Cada foto es un botón `shrink-0` de ancho fijo, quieto hasta
+ * que el usuario lo desliza con el dedo — tocar una foto puntual vuelve a
+ * ser preciso porque nada se mueve solo. Alto bajado a 9.5rem (152px, contra
+ * 416px) — el mismo material de archivo, mucho menos scroll para llegar al
+ * resto del Acto. De `md` para arriba sigue el marquee vertical de siempre,
+ * sin cambios (ahí el hover-to-pause sí existe y el alto no compite tanto
+ * con el resto de la página).
  */
 export default function VerticalPhotoSlider({
   photos,
@@ -57,45 +79,85 @@ export default function VerticalPhotoSlider({
   const duration = Math.max(photos.length * 2.6, 18);
 
   return (
-    <Reveal
-      as="div"
-      className={cn(
-        'relative h-[26rem] overflow-hidden border-[6px] border-cream/10 md:h-[32rem]',
-        '[mask-image:linear-gradient(to_bottom,transparent,black_6%,black_94%,transparent)]',
-        '[-webkit-mask-image:linear-gradient(to_bottom,transparent,black_6%,black_94%,transparent)]',
-        className
-      )}
-    >
-      <div
-        className={cn('flex flex-col gap-2', !reduced && 'animate-marquee-vertical')}
-        style={{ '--marquee-duration': `${duration}s` } as CSSProperties}
+    <>
+      {/* Mobile: tira horizontal, scroll nativo — ver docblock. */}
+      <Reveal
+        as="div"
+        className={cn(
+          'relative snap-x snap-proximity overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden',
+          '[mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]',
+          '[-webkit-mask-image:linear-gradient(to_right,transparent,black_4%,black_96%,transparent)]',
+          className
+        )}
       >
-        {loop.map((photo, i) => (
-          <button
-            key={`${photo.src}-${i}`}
-            type="button"
-            onClick={() =>
-              openLightbox(
-                photos.map((p) => ({ src: p.src, alt: p.alt, label: `${sectionLabel} — Foto: ${p.credit}` })),
-                i % photos.length
-              )
-            }
-            className="block w-full shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
-            tabIndex={i < photos.length ? 0 : -1}
-            aria-hidden={i >= photos.length}
-          >
-            <Picture
-              src={photo.src}
-              alt={photo.alt}
-              sizes="(min-width: 768px) 24rem, 70vw"
-              loading={i < 4 ? 'eager' : 'lazy'}
-              decoding="async"
-              pictureClassName="block"
-              className="h-44 w-full object-cover transition-opacity duration-300 hover:opacity-80 md:h-56"
-            />
-          </button>
-        ))}
-      </div>
-    </Reveal>
+        <div className="flex w-max gap-2">
+          {photos.map((photo, i) => (
+            <button
+              key={photo.src}
+              type="button"
+              onClick={() =>
+                openLightbox(
+                  photos.map((p) => ({ src: p.src, alt: p.alt, label: `${sectionLabel} — Foto: ${p.credit}` })),
+                  i
+                )
+              }
+              className="block shrink-0 snap-center border-[6px] border-cream/10 outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+            >
+              <Picture
+                src={photo.src}
+                alt={photo.alt}
+                sizes="112px"
+                loading={i < 4 ? 'eager' : 'lazy'}
+                decoding="async"
+                pictureClassName="block"
+                className="h-[9.5rem] w-28 object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      </Reveal>
+
+      {/* Desktop: marquee vertical infinito de siempre, sin cambios. */}
+      <Reveal
+        as="div"
+        className={cn(
+          'relative hidden h-[32rem] overflow-hidden border-[6px] border-cream/10 md:block',
+          '[mask-image:linear-gradient(to_bottom,transparent,black_6%,black_94%,transparent)]',
+          '[-webkit-mask-image:linear-gradient(to_bottom,transparent,black_6%,black_94%,transparent)]',
+          className
+        )}
+      >
+        <div
+          className={cn('flex flex-col gap-2', !reduced && 'animate-marquee-vertical')}
+          style={{ '--marquee-duration': `${duration}s` } as CSSProperties}
+        >
+          {loop.map((photo, i) => (
+            <button
+              key={`${photo.src}-${i}`}
+              type="button"
+              onClick={() =>
+                openLightbox(
+                  photos.map((p) => ({ src: p.src, alt: p.alt, label: `${sectionLabel} — Foto: ${p.credit}` })),
+                  i % photos.length
+                )
+              }
+              className="block w-full shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand-red"
+              tabIndex={i < photos.length ? 0 : -1}
+              aria-hidden={i >= photos.length}
+            >
+              <Picture
+                src={photo.src}
+                alt={photo.alt}
+                sizes="24rem"
+                loading={i < 4 ? 'eager' : 'lazy'}
+                decoding="async"
+                pictureClassName="block"
+                className="h-56 w-full object-cover transition-opacity duration-300 hover:opacity-80"
+              />
+            </button>
+          ))}
+        </div>
+      </Reveal>
+    </>
   );
 }

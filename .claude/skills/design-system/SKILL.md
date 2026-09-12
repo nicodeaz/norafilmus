@@ -65,16 +65,9 @@ Padding vertical de sección (post-E3/E4, ya bajado de los valores originales de
 
 ## Iconografía
 
-Dos fuentes, cada una con un rol fijo — desde 2026-09-09 esto ya no es "lucide únicamente":
+**Solo `lucide-react`, en todo el sitio.** Existió un set de marca propia en `src/components/icons/nora/` (9 SVGs generados con Seedream/fal.ai, vectorizados con potrace+svgo) entre 2026-09-09 y 2026-09-12 — el usuario pidió sacarlo entero del sitio, así que todos sus puntos de uso volvieron a íconos genéricos de lucide (`Drama`, `ClipboardList`, `PenLine`, etc.). No reflotar ese set sin que se pida de nuevo — está en el historial de git si hace falta.
 
-- **`lucide-react`** — íconos **funcionales genéricos**: cerrar, flecha, menú, chevrons, redes sociales, mail, play, send. Universales, reconocibles sin pensar, nunca se tocan por esto. Tamaño estándar `h-4 w-4`/`h-5 w-5`, siempre dentro de una caja de impacto de 44px mínimo si es interactivo (ver skill `accessibility`).
-- **`src/components/icons/nora/`** — 9 íconos de **marca propia** (`NoraMasksIcon`, `NoraCurtainIcon`, `NoraSpotlightIcon`, `NoraTicketIcon`, `NoraProgramIcon`, `NoraSignatureIcon`, `NoraStarIcon`, `NoraClapperboardIcon`, `NoraMenuIcon`), generados con Seedream 5.0 (fal.ai, modelo de imagen — no confundir con Seedance, que es video) a partir de un prompt con la silueta reconocible de Nora (flequillo recto + anteojos rectangulares), vectorizados con `potrace` + optimizados con `svgo` (herramientas de un solo uso en un scratchpad, no son dependencias del proyecto). Cada componente es `SVGProps<SVGSVGElement>` con `fill="currentColor"` — el color se controla 100% por clase de Tailwind (`text-brand-red`, `text-cream`, `text-cream/40`), sin archivos separados por color. Ver inventario completo y qué representa cada uno en `component-library`.
-
-**Cuándo usar cuál:** `lucide-react` sigue siendo la base para cualquier ícono funcional nuevo. El set de marca es para **momentos donde el sitio tiene que sentirse específicamente "de Nora"**, no genérico — eyebrows de los Actos, acentos decorativos grandes, botones de acciones con identidad propia (firmar, por ejemplo). No es una migración: no reemplaza a lucide en todos lados, es una decisión puntual por lugar.
-
-**Gotcha real de aspect ratio:** a diferencia de los 24×24 cuadrados de lucide, varios íconos de `icons/nora` tienen un `viewBox` muy ancho o muy angosto (`NoraMasksIcon` es 828×464, `NoraSignatureIcon` es 969×402). Forzar `className="h-4 w-4"` en uno de estos los aplasta ilegibles. La regla: **fijar solo el alto y dejar `w-auto`** (`h-5 w-auto`, no `h-5 w-5`) para que el ícono mantenga su proporción real — revisar el `viewBox` del componente antes de usarlo en un lugar chico.
-
-Los íconos funcionales (los de lucide) siguen sin ser decorativos sueltos — nunca sin un propósito de affordance. Los de `icons/nora` sí pueden ser puramente decorativos (marcas de agua grandes, `aria-hidden`) cuando el lugar lo pide — esa es la diferencia real entre las dos fuentes.
+Tamaño estándar `h-4 w-4`/`h-5 w-5`, siempre dentro de una caja de impacto de 44px mínimo si es interactivo (ver skill `accessibility`). Los íconos nunca son decorativos sueltos sin un propósito de affordance, salvo un `aria-hidden` explícito puntual (ej. junto a un eyebrow).
 
 ## Grid y breakpoints
 

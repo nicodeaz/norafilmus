@@ -4,7 +4,6 @@ import { TRAYECTORIA_ENABLED } from '@/lib/features';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import BetaBadge from './BetaBadge';
-import { NoraStarIcon } from './icons/nora';
 import Picture from './Picture';
 import Reveal from './Reveal';
 import Seam from './Seam';
@@ -58,19 +57,14 @@ export default function Footer() {
     // abajo ya dibuja su propia línea terminando en el colofón — este border
     // estático era una segunda raya pegada encima, redundante.
     <footer className="relative z-10 w-full overflow-hidden bg-ink">
-      {/* Marca de agua decorativa — set de íconos de marca (2026-09-09), ver
-          docblock de `icons/nora`. Ínfima opacidad, puramente atmosférica:
-          "el cierre del Programa lleva su propia estrella", mismo dispositivo
-          que ya usa el "12" de `Ensenar`/la fila de `ProgramIndex`, nunca
-          compite con el texto real. */}
-      <NoraStarIcon
-        aria-hidden
-        className="pointer-events-none absolute -right-16 -top-24 h-[clamp(16rem,34vw,30rem)] w-[clamp(16rem,34vw,30rem)] text-brand-red/[0.09] md:-right-20 md:-top-32"
-      />
+      {/* La marca de agua decorativa de acá (`NoraStarIcon`, set de íconos de
+          marca generado con IA) se sacó 2026-09-12 — el usuario pidió sacar
+          todo ese set del sitio. Sin reemplazo: el footer no necesita un
+          flourish de fondo para funcionar. */}
       <Seam label={t.footer.colophon} />
       <Reveal
         as="div"
-        className="mx-auto flex max-w-7xl flex-col gap-10 px-6 py-16 sm:px-10 md:px-12 md:py-20"
+        className="mx-auto flex max-w-7xl flex-col gap-10 px-6 pb-28 pt-16 sm:px-10 md:px-12 md:py-20"
       >
         <div className="flex flex-row items-center justify-between gap-4 sm:gap-8">
           <div className="flex min-w-0 items-center gap-3">

@@ -129,6 +129,18 @@ export default function Ensenar() {
           variant="notebook"
         />
       </div>
+
+      <div className="mt-12 border-t border-cream/10 pt-10 md:mt-16 md:pt-12">
+        <h3 className="font-label text-label uppercase tracking-[0.2em] text-brand-red">
+          {ensenar.approachTitle}
+        </h3>
+        <p className="mt-4 max-w-3xl text-body font-body leading-relaxed text-cream/80">
+          {ensenar.approachBody}
+        </p>
+        <p className="mt-5 font-display text-display-m uppercase leading-none text-cream">
+          {ensenar.approachClosing}
+        </p>
+      </div>
     </Act>
   );
 }

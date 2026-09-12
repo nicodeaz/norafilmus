@@ -155,14 +155,6 @@
       960
     ]
   },
-  "/img/contacto/nora-contacto.jpg": {
-    "width": 1333,
-    "height": 2000,
-    "widths": [
-      480,
-      960
-    ]
-  },
   "/img/crear/galeria/book-actoral-foto-14.jpg": {
     "width": 404,
     "height": 604,
@@ -726,22 +718,6 @@
       1440
     ]
   },
-  "/img/ensenar/galeria/adolescentes-foto-20-blur.jpg": {
-    "width": 960,
-    "height": 718,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/ensenar/galeria/adolescentes-foto-6-blur.jpg": {
-    "width": 960,
-    "height": 639,
-    "widths": [
-      480,
-      960
-    ]
-  },
   "/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg": {
     "width": 960,
     "height": 720,
@@ -764,20 +740,6 @@
     "widths": [
       480,
       960
-    ]
-  },
-  "/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg": {
-    "width": 720,
-    "height": 603,
-    "widths": [
-      480
-    ]
-  },
-  "/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg": {
-    "width": 652,
-    "height": 850,
-    "widths": [
-      480
     ]
   },
   "/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg": {
@@ -818,38 +780,7 @@
       480
     ]
   },
-  "/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg": {
-    "width": 960,
-    "height": 658,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg": {
-    "width": 726,
-    "height": 972,
-    "widths": [
-      480
-    ]
-  },
-  "/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg": {
-    "width": 960,
-    "height": 720,
-    "widths": [
-      480,
-      960
-    ]
-  },
   "/img/ensenar/galeria/vicente-lopez-foto-15.jpg": {
-    "width": 960,
-    "height": 720,
-    "widths": [
-      480,
-      960
-    ]
-  },
-  "/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg": {
     "width": 960,
     "height": 720,
     "widths": [

@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Instagram, Linkedin, Mail } from 'lucide-react';
 import { EASE_REVEAL, easeInOutSine, easeInQuad, easeOutQuad } from '@/lib/ease';
-import { TRAYECTORIA_ENABLED } from '@/lib/features';
 import { cn } from '@/lib/utils';
-import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import AboutMe from './AboutMe';
 import BetaBadge from './BetaBadge';
@@ -373,12 +370,14 @@ const CROSSFADE_MIDPOINT = 0.5;
  *   usuario controla el avance con la rueda, no el framerate del video. Es
  *   justo lo que la primera versión de esta feature hacía y lo que la
  *   segunda (autoplay bloqueado) sacó — y lo que el usuario pidió de vuelta.
- * - `topBarRef`/`bodyRef`/`footerFadeRef.style.opacity`: el wordmark/bio/
+ * - `topBarRef`/`bodyRef.style.opacity` (antes sumaba un tercero,
+ *   `footerFadeRef`, para la banda de contacto del pie — borrada del todo
+ *   2026-09-12, ver más abajo "Sin banda de contacto..."): el wordmark/bio/
  *   credenciales/menú (todo lo que hoy vive a la izquierda) se desvanece en
  *   progress 0→0.35 — sin esto, cuando el panel llega a la izquierda
  *   quedaría DEBAJO del texto (ese bloque tiene `z-30`, el panel no tiene
  *   z-index propio) y el reposicionamiento no se vería. Pasado ese punto
- *   (`contentHidden`, sí por `setState` — ver abajo) esos tres bloques
+ *   (`contentHidden`, sí por `setState` — ver abajo) esos dos bloques
  *   también llevan `inert` (mismo patrón que `Header.tsx`/H3 de la auditoría
  *   de producción) para que no queden focusables invisibles.
  * - `panelOnLeft` (bandera discreta en progress 0.5, por `setState`): flipea
@@ -747,6 +746,27 @@ const CROSSFADE_MIDPOINT = 0.5;
  * navegador real con el video reproduciendo de verdad — el usuario debería
  * confirmar que el "segundo video" ahora sí se ve, en particular en el
  * iPhone donde se reportó el bug original.
+ *
+ * **Sin banda de contacto al pie, en ningún tamaño (2026-09-12).** Pedido
+ * en dos partes, mismo día: primero sacar los íconos de Instagram/LinkedIn/
+ * mail SOLO en mobile (la rueda de `SectionNav`, siempre visible desde ese
+ * cambio, competía por el mismo tramo de pantalla — ver su docblock), después
+ * "en la versión de escritorio quiero sacar los iconos de las redes del
+ * hero" — la banda entera (`footerFadeRef`, el `motion.div` con
+ * `socialLinks`) se borra del componente, no solo se oculta. El contacto
+ * social sigue disponible en `Footer.tsx`, que ya lo muestra al pie de
+ * cualquier página — el Hero deja de duplicarlo.
+ *
+ * **Un velo plano extra, solo mobile (2026-09-12), pedido explícito:
+ * "oscurecer un poco las fotos de Nora para que se pueda ver el texto".**
+ * El velo de siempre (`bg-gradient-to-t from-ink via-transparent to-ink/25`)
+ * deja el CENTRO del panel sin oscurecer a propósito (para que el video/foto
+ * se vea nítido ahí) — pero en mobile el layout es una sola columna y el
+ * wordmark/rol caen justo en ese centro transparente, sobre la parte más
+ * clara de la foto (pared de ladrillo, cara). Un `bg-ink/35 md:hidden` parejo
+ * encima del velo de siempre (no un degradé nuevo, que reintroduciría la
+ * misma zona transparente) sube el contraste sin tocar nada en desktop,
+ * donde el texto vive en su propia columna y no compite con la foto.
  */
 export default function Hero({ className }: HeroProps) {
   const { t } = useLanguage();
@@ -769,15 +789,19 @@ export default function Hero({ className }: HeroProps) {
 
   // `hero.role` es "Actriz · Productora · Pedagoga teatral" (ES) / "Actress ·
   // Producer · Theatre educator" (EN) — mismo orden en los dos idiomas.
-  // Pedido explícito (2026-09-10): 1° y 3° en `cream`, solo el del medio
-  // ("Productora"/"Producer") se queda en `brand-red`.
+  // Pedido explícito (2026-09-12): ya no es un rojo fijo en el del medio —
+  // el rojo va rotando de a uno, en orden, en loop (siempre hay exactamente
+  // uno en `brand-red`, los demás en `cream`). Con `prefers-reduced-motion`
+  // se queda fijo en el primero, sin rotar.
   const roleParts = t.hero.role.split(' · ');
-
-  const socialLinks = [
-    { label: t.social.instagram, href: LINKS.instagram, icon: Instagram, external: true },
-    { label: t.social.linkedin, href: LINKS.linkedin, icon: Linkedin, external: true },
-    { label: t.social.email, href: LINKS.email, icon: Mail, external: false },
-  ];
+  const [activeRoleIndex, setActiveRoleIndex] = useState(0);
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => {
+      setActiveRoleIndex((prev) => (prev + 1) % roleParts.length);
+    }, 2200);
+    return () => clearInterval(id);
+  }, [reduced, roleParts.length]);
 
   // ── Transición de foco (2026-09-10, scroll-scrub amortiguado) — ver docblock
   // Pedido explícito del usuario (2026-09-12): siempre encendida, sin
@@ -806,7 +830,6 @@ export default function Hero({ className }: HeroProps) {
   const videoModeRef = useRef<'loop' | 'scrub'>('loop');
   const topBarRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const footerFadeRef = useRef<HTMLDivElement>(null);
   const aboutContentRef = useRef<HTMLDivElement>(null);
   // `inert` de cada lado. Son banderas discretas (atributo, no interpolable)
   // y por eso sí pasan por `setState` — guardadas con un ref para no
@@ -1010,7 +1033,6 @@ export default function Hero({ className }: HeroProps) {
       const heroOpacity = 1 - easeInQuad(Math.min(Math.max(p / heroFadeEnd, 0), 1));
       if (topBarRef.current) topBarRef.current.style.opacity = String(heroOpacity);
       if (bodyRef.current) bodyRef.current.style.opacity = String(heroOpacity);
-      if (footerFadeRef.current) footerFadeRef.current.style.opacity = String(heroOpacity);
 
       let aboutOpacity = 1;
       if (overlayAbout && aboutContentRef.current) {
@@ -1198,6 +1220,17 @@ export default function Hero({ className }: HeroProps) {
           </>
           {/* Velos — legibilidad del pie (banda de pilares) y del borde superior. */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/25" />
+          {/* Velo extra, SOLO mobile (2026-09-12, pedido explícito: "oscurecer
+              un poco las fotos de Nora para que se pueda ver el texto").
+              Solo en mobile el panel de foto/video pisa el mismo tramo de
+              pantalla que el wordmark/rol (el layout es una sola columna, no
+              dos como en desktop) — el velo de arriba deja el CENTRO del
+              panel sin oscurecer (`via-transparent`), que es justo donde caía
+              el wordmark. Un tinte plano parejo (no otro degradé, que
+              reintroduciría la misma zona transparente) resuelve el
+              contraste sin tocar el tratamiento de desktop, donde el texto
+              vive en su propia columna y no compite con la foto. */}
+          <div className="pointer-events-none absolute inset-0 bg-ink/35 md:hidden" />
           {/* Crédito de la foto fuente — regla 3 de content.ts. */}
           <span className="pointer-events-none absolute bottom-2 right-1 font-label text-[9px] uppercase tracking-[0.15em] text-cream/50 [writing-mode:vertical-rl]">
             Foto: {t.hero.portraitCredit}
@@ -1276,8 +1309,14 @@ export default function Hero({ className }: HeroProps) {
           <Picture
             src="/img/nora-firma-roja.png"
             alt="Nora Filmus"
-            className="hero-logo-frame w-[clamp(220px,52vw,680px)]"
-            sizes="680px"
+            // `md:` más chico (2026-09-12, pedido explícito: "achicar un
+            // poco el logo en la versión escritorio, ocupa mucho espacio")
+            // — el clamp de mobile (hasta 680px) se dejaba crecer sin techo
+            // propio para desktop, así que a partir de 768px terminaba
+            // siempre pegado al tope. `34vw`/500px da un logo notoriamente
+            // más chico sin tocar mobile.
+            className="hero-logo-frame w-[clamp(220px,52vw,680px)] md:w-[clamp(280px,34vw,500px)]"
+            sizes="(min-width: 768px) 500px, 52vw"
           />
           {/* Etiqueta de estado del sitio (2026-09-11, pedido explícito):
               "esta versión sea BETA" — colgada del borde del logo como un
@@ -1300,7 +1339,14 @@ export default function Hero({ className }: HeroProps) {
               {roleParts.map((part, i) => (
                 <span key={part}>
                   {i > 0 && <span className="text-brand-red/50"> · </span>}
-                  <span className={i === 1 ? 'text-brand-red' : 'text-cream'}>{part}</span>
+                  <span
+                    className={cn(
+                      'transition-colors duration-700',
+                      i === activeRoleIndex ? 'text-brand-red' : 'text-cream'
+                    )}
+                  >
+                    {part}
+                  </span>
                 </span>
               ))}
             </p>
@@ -1329,30 +1375,13 @@ export default function Hero({ className }: HeroProps) {
                 `TRAYECTORIA_ENABLED`. `variant="secondary"` para no competir
                 con el primero (que sigue en `primary`, rojo sólido). */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Fase 2 (2026-08-28): antes apuntaba a `#sobre-mi` pese a decir
-                  "Ver trayectoria" — un desvío que sobrevivió porque `/trayectoria`
-                  no existía como página propia hasta la Fase 1. Ya existe.
-                  Variante `primary` (auditoría 2026-08-31): es la única acción del
-                  Hero — en `secondary` (borde fino) perdía contra el rojo saturado
-                  del wordmark que la rodea.
-                  2026-09-09: mientras Trayectoria está fuera de producción (ver
-                  `TRAYECTORIA_ENABLED`), el CTA vuelve a apuntar a `#sobre-mi` —
-                  mismo destino que tenía antes de que existiera la página. El
-                  label cambia con el destino (reusa `t.nav.about`, sin agregar
-                  copy nueva a content.ts): repetir "Ver trayectoria" apuntando a
-                  la bio sería el mismo desvío que ya se corrigió una vez.
-                  Verificado con scroll programático (Playwright contra un build
-                  de producción, 2026-09-12): el click navega a `/#sobre-mi`,
-                  `scrollY` avanza hasta el marcador y `AboutMe` cruza a opacidad
-                  1 — funciona en desktop, mobile y navegando desde otra página
-                  (`/crear` → `/#sobre-mi`). */}
               <ButtonLink
-                to={TRAYECTORIA_ENABLED ? '/trayectoria' : '/#sobre-mi'}
+                to="/#sobre-mi"
                 variant="primary"
                 size="md"
                 className="shrink-0"
               >
-                {TRAYECTORIA_ENABLED ? t.hero.cta : t.nav.about}
+                {t.hero.cta}
               </ButtonLink>
               <ButtonLink to="/contacto" variant="secondary" size="md" className="shrink-0">
                 {t.hero.contactCta}
@@ -1400,42 +1429,6 @@ export default function Hero({ className }: HeroProps) {
         </motion.div>
       </div>
 
-      {/* ── Banda de pie: pilares (solo mobile) + contacto ────────────────
-          Los pilares se fueron a la barra superior en desktop (ver arriba)
-          — acá vuelven, pero SOLO en mobile y solo los 3 pilares (no
-          Trayectoria/Contacto, que en la barra de arriba se agregan para
-          desktop): "quiero que tenga solo tres ítems como antes". El
-          wrapper exterior (sin `animate` propio) es el que lleva el
-          desvanecimiento por scroll — la entrada al montar sigue viviendo en
-          el `motion.div` interior, sin pisarse entre sí (ver docblock). */}
-      <div ref={footerFadeRef} inert={heroInert}>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.95 }}
-          className="relative z-30 w-full border-t border-cream/10 px-6 py-3 sm:px-10 md:px-12"
-        >
-          {/* Íconos a ~2× (2026-09-11, pedido explícito, primero se probó 3×
-              y el usuario pidió bajarlo): 20px→40px, la caja de touch target
-              crece con ellos (44px ya era piso de accesibilidad, no techo —
-              sigue cumpliéndose de sobra). */}
-          <div className="flex items-center justify-center gap-3">
-            {socialLinks.map(({ label, href, icon: Icon, external }) => (
-              <a
-                key={label}
-                href={href}
-                {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                aria-label={label}
-                title={label}
-                className="inline-flex h-14 w-14 items-center justify-center text-cream/60 transition-colors duration-300 hover:text-brand-red"
-              >
-                <Icon className="h-10 w-10" strokeWidth={1.5} />
-              </a>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
       {/* `AboutMe` superpuesto (`absolute inset-0`, ver su propio
           componente), invisible hasta que el scroll handler de arriba le
           sube la opacidad — no es un hijo normal-flow que aparece
@@ -1468,4 +1461,3 @@ export default function Hero({ className }: HeroProps) {
     </>
   );
 }
-

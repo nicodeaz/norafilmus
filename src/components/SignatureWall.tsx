@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { PenLine } from 'lucide-react';
 import { useCaptcha } from '@/lib/hooks/use-captcha';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { Button } from './Button';
 import CaptchaField from './CaptchaField';
 import { TextField } from './FormField';
-import { NoraSignatureIcon } from './icons/nora';
 import Reveal from './Reveal';
 
 interface Signature {
@@ -32,10 +32,9 @@ type Status = 'idle' | 'sending' | 'success' | 'error';
  * la única fuente del sitio reservada para contenido de firma real, no copy
  * suelto (ver `design-system`); acá es exactamente ese caso de uso.
  *
- * El botón de envío lleva `NoraSignatureIcon` (2026-09-09, reemplaza al
- * `PenLine` genérico de lucide) — del set de íconos de marca (`icons/nora`):
- * una pluma trazando la firma real "Nora", el mismo gesto que representa la
- * acción del botón.
+ * El botón de envío lleva `PenLine` de lucide. Pasó brevemente (2026-09-09 a
+ * 2026-09-12) por `NoraSignatureIcon`, un ícono de marca generado con IA; el
+ * usuario pidió sacar todo ese set del sitio, así que vuelve al genérico.
  */
 export default function SignatureWall() {
   const { t } = useLanguage();
@@ -140,7 +139,7 @@ export default function SignatureWall() {
               onChange={setAnswer}
             />
             <Button type="submit" disabled={!captcha || status === 'sending'}>
-              <NoraSignatureIcon className="h-4 w-auto" aria-hidden />
+              <PenLine className="h-4 w-4" aria-hidden />
               {status === 'sending' ? wall.sending : wall.submit}
             </Button>
           </div>

@@ -1,19 +1,10 @@
-import { Suspense, useEffect, useState, type ComponentType } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useLocation, useOutlet } from 'react-router-dom';
 import { TRAYECTORIA_ENABLED } from '@/lib/features';
 import type { SiteContent } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import ErrorBoundary from './ErrorBoundary';
-import {
-  NoraClapperboardIcon,
-  NoraCurtainIcon,
-  NoraMasksIcon,
-  NoraSignatureIcon,
-  NoraSpotlightIcon,
-  NoraStarIcon,
-  NoraTicketIcon,
-} from './icons/nora';
 
 /** Cuánto queda la pantalla tapada del todo antes de reabrir, en ms. */
 const HOLD_MS = 200;
@@ -27,24 +18,7 @@ const NUMERAL: Record<string, string> = {
   '/producir': 'III',
 };
 
-/**
- * Ícono por destino — el mismo set de marca (`icons/nora`) que ya usan
- * `ProgramIndex`/`Highlights` para Crear/Enseñar/Producir/Trayectoria; Home,
- * "Sobre mí" y Contacto suman los tres íconos del set que no tenían un lugar
- * fijo todavía (cortina = apertura, firma = biografía personal, entrada =
- * contacto), sin inventar ningún ícono nuevo.
- */
-const DESTINATION_ICON: Record<string, ComponentType<{ className?: string }>> = {
-  home: NoraCurtainIcon,
-  about: NoraSignatureIcon,
-  crear: NoraMasksIcon,
-  ensenar: NoraSpotlightIcon,
-  producir: NoraClapperboardIcon,
-  trayectoria: NoraStarIcon,
-  contacto: NoraTicketIcon,
-};
-
-/** Resuelve qué se está por mostrar (label + ícono) a partir de la ruta+hash de destino. */
+/** Resuelve qué se está por mostrar (label) a partir de la ruta+hash de destino. */
 function resolveDestination(pathname: string, hash: string, t: SiteContent) {
   if (pathname === '/') {
     return hash === '#sobre-mi'
@@ -111,6 +85,12 @@ function resolveDestination(pathname: string, hash: string, t: SiteContent) {
  * sigue siendo el loader de la obertura inicial (`Preloader.tsx`, sin
  * tocar) — ese es un momento de marca de una sola vez por sesión, este es
  * navegación repetida donde importa más la orientación que el logo del sitio.
+ *
+ * **Sin ícono de destino (2026-09-12), pedido explícito: "quiero sacar los
+ * iconos que creamos de todo el sitio".** `DESTINATION_ICON` (los 7 íconos
+ * del set de marca generado con IA, uno por sección) se borra entero — el
+ * texto "Yendo a {label}" (con el numeral de Acto cuando aplica) ya identifica
+ * el destino por sí solo, sin depender de un ícono para eso.
  */
 export default function PageCurtain() {
   const location = useLocation();
@@ -152,7 +132,6 @@ export default function PageCurtain() {
 
   const numeral = NUMERAL[location.pathname];
   const destination = resolveDestination(location.pathname, location.hash, t);
-  const DestinationIcon = destination ? DESTINATION_ICON[destination.key] : null;
 
   return (
     <>
@@ -173,9 +152,6 @@ export default function PageCurtain() {
             className="pointer-events-none fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-ink/70 backdrop-blur-2xl"
             aria-hidden
           >
-            {DestinationIcon && (
-              <DestinationIcon className="h-[clamp(56px,11vw,88px)] w-[clamp(56px,11vw,88px)] text-brand-red" />
-            )}
             {destination && (
               <span className="flex flex-col items-center gap-1.5">
                 <span className="font-label text-[11px] uppercase tracking-[0.35em] text-cream/70">

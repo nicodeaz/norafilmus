@@ -55,31 +55,16 @@
   border-radius: 2px;
 }
 
-/* Marquee del archivo en AboutMe — antes corría con `motion.div`/`animate`
-   (JS tween por keyframes, repite en cada render y compite por el hilo
-   principal con el scroll handler de `Hero.tsx`). Una animación CSS pura
-   la corre el compositor, sin JS ni re-render — misma curva (translateX
-   0 → -50%, lineal, infinita). `prefers-reduced-motion` la apaga acá mismo,
-   sin depender de `useReducedMotion()` para el propio movimiento (el hook
-   se sigue usando en el componente solo para decidir si duplicar los
-   items y si el riel es scrolleable a mano). */
-@keyframes marquee {
-  to {
-    transform: translateX(-50%);
-  }
-}
+/* El marquee del archivo en `AboutMe.tsx` pasó de esta animación CSS
+   (`.animate-marquee`, `translateX` por keyframes) a un riel navegable con
+   auto-scroll manejado en JS (`scrollLeft` vía `requestAnimationFrame`,
+   2026-09-12, pedido explícito: "navegable de izquierda a derecha pero
+   también que pase solo cuando nadie lo mueve" — un `translateX` por CSS no
+   se presta a pausarse/retomarse en respuesta a un arrastre real). Ver el
+   docblock de `AboutMe.tsx` ("De marquee CSS puro a auto-scroll navegable")
+   para el mecanismo completo. Esta regla queda sin uso, se borra.
 
-.animate-marquee {
-  animation: marquee 34s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
-}
-
-/* Slider vertical infinito de `VerticalPhotoSlider.tsx` (2026-09-12) — mismo
+   Slider vertical infinito de `VerticalPhotoSlider.tsx` (2026-09-12) — mismo
    recurso que el marquee de arriba (CSS puro, translateY en vez de X, sin JS
    por frame) para la galería de archivo de los Actos Crear/Producir. Pausa
    en hover/foco (`navegable`, no solo ambiental) y respeta reduced-motion

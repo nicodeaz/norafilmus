@@ -1,7 +1,7 @@
+import { ClipboardList } from 'lucide-react';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import Act from './Act';
 import CreditList from './CreditList';
-import { NoraClapperboardIcon } from './icons/nora';
 
 /**
  * Acto III — Producir, el pilar productora, último de los tres. Fuente:
@@ -35,10 +35,9 @@ import { NoraClapperboardIcon } from './icons/nora';
  * (planilla de producción, no máscaras de teatro) y las tres `CreditList`
  * en variante `dossier` (índice `[01]` en monoespacio en vez del romano en
  * itálica de Crear) — lee como expediente/planilla, no como programa de
- * sala. El `ClipboardList` genérico de lucide se reemplazó (2026-09-09) por
- * `NoraClapperboardIcon` del set de marca (`icons/nora`): una claqueta con
- * "NF" tizado en la pizarra — cubre cine/TV y teatro a la vez, y lleva el
- * monograma en vez de ser un ícono de oficina genérico.
+ * sala. `ClipboardList` de lucide — pasó brevemente (2026-09-09 a
+ * 2026-09-12) por `NoraClapperboardIcon`, un ícono de marca generado con IA;
+ * el usuario pidió sacar todo ese set del sitio, así que vuelve al genérico.
  *
  * Más fotos por crédito (2026-09-04) — mismo criterio que Crear: los
  * créditos de ¡Mujeres a la obra! y Los golpes de Clara traen varias fotos
@@ -54,7 +53,7 @@ export default function Producir() {
       id="producir"
       numeral="III"
       align="right"
-      icon={<NoraClapperboardIcon className="h-4 w-4" />}
+      icon={<ClipboardList className="h-4 w-4" />}
       eyebrow={producir.eyebrow}
       titleLead={producir.titleLead}
       titleAccent={producir.titleAccent}

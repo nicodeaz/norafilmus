@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Mail } from 'lucide-react';
+import { FileText, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -256,6 +257,67 @@ import Picture from './Picture';
  * la misma sesión — ver el docblock de `Hero.tsx` ("Probado un chip por
  * palabra...") para el detalle de por qué. No reintentar sin que lo pida
  * de nuevo.
+ *
+ * **Fichas del marquee más grandes en desktop (2026-09-12), pedido
+ * explícito: "en la versión web podemos agrandar más los elementos del
+ * slider de about me".** El clamp de `11svh` (techo 7rem/112px) se calibró
+ * para el peor caso de altura corta (ver "un portátil de 13", 30px" más
+ * arriba) — en un desktop alto (900px+) esa fórmula igual se queda cerca
+ * del piso, sin usar el aire vertical real disponible. `md:` suma un
+ * segundo clamp (`12svh`, techo 8rem/128px) que solo compite en viewports
+ * anchos — el mobile (donde el presupuesto de alto es el más ajustado) no
+ * se toca. Verificado con Playwright en 1440×900 y en el caso corto ya
+ * documentado (874×807): sin recorte nuevo contra el `overflow-hidden` del
+ * `sticky`.
+ *
+ * **De marquee CSS puro a auto-scroll navegable (2026-09-12), pedido
+ * explícito: "navegable de izquierda a derecha pero también que pase solo
+ * cuando nadie lo mueve".** El riel deja de ser un `<div>` con
+ * `.animate-marquee` (`translateX` por keyframes) DENTRO de un contenedor
+ * `overflow-hidden` — ahora el contenedor mismo es `overflow-x-auto`
+ * (scrollbar oculta por CSS) y un `useEffect` escribe `scrollLeft` a mano
+ * vía `requestAnimationFrame`, a la misma velocidad que tenía el CSS
+ * (`scrollWidth/2` cada 34s, igual que antes). Mismo truco de loop infinito
+ * que ya usaba el CSS: la galería sigue duplicada
+ * (`[...gallery, ...gallery]`) y al llegar a la mitad del `scrollWidth` se
+ * resta esa mitad — como el contenido se repite, el salto es invisible.
+ *
+ * "Navegable" = arrastre con mouse (`pointerdown`/`pointermove` manual,
+ * solo para `pointerType === 'mouse'` — mouse no tiene gesto nativo de
+ * arrastre-para-scrollear) + scroll nativo de touch/trackpad/rueda (el
+ * navegador ya lo da gratis en un `overflow-x-auto`, no hace falta JS
+ * propio ahí). Cualquier interacción (`pointerdown`, `wheel`) pausa el
+ * auto-scroll al toque; al soltar/parar, un timeout de 1,5s lo retoma
+ * (`scheduleResume`) — "pasa solo cuando nadie lo mueve". Un `click`
+ * capturado en el contenedor cancela la navegación del `<Link>` si hubo
+ * arrastre real (`moved`), para que arrastrar no dispare por accidente el
+ * link de la ficha que quedó debajo del cursor al soltar.
+ *
+ * **Por qué esto no reintroduce el bug de "se tranca con el scroll"
+ * (2026-09-11, ver arriba):** ese bug era un tween de Framer Motion
+ * (`animate({x:...})`) escribiendo `style.transform` con su propio motor de
+ * interpolación, compitiendo por el hilo principal con el scroll handler de
+ * `Hero.tsx`. Acá no hay ninguna librería de animación de por medio — es una
+ * sola escritura de `scrollLeft` por frame, con `dt` (tiempo real entre
+ * frames, no frames fijos) para que la velocidad no dependa del refresh
+ * rate, exactamente el mismo patrón que ya usa `Hero.tsx` para su propio
+ * scroll-scrub. `ResizeObserver` (no medir en cada frame) recalcula la mitad
+ * del ancho si cambia (cambio de idioma, fuentes que terminan de cargar).
+ *
+ * Fichas más grandes de nuevo (mismo pedido, "items mas grandes también"):
+ * el clamp de `md:` sube de 8rem/128px a 9rem/144px de techo (`12.5svh`,
+ * subido apenas desde el `12svh` de la vuelta anterior). Un primer intento
+ * en `15svh`/10rem recortaba 6px contra el `overflow-hidden` del `sticky`
+ * en el caso corto ya documentado (874×807, medido con
+ * `getBoundingClientRect`) — bajado a esto, más conservador, porque ADEMÁS
+ * ese mismo caso ya venía con poco margen por una fila de CTA que ahora
+ * ocupa dos líneas ("Download CV" sumado por otra sesión) en vez de una:
+ * quedan ~13-20px de recorte en 874×807 que no vienen de este cambio — la
+ * fila de CTA es la que rompió el presupuesto, no el tamaño de las fichas
+ * (ver aviso al usuario, no se tocó esa fila acá).
+ * `.animate-marquee` queda sin uso en `src/index.css` — se borra (la
+ * variante `-vertical`, que sigue usando `VerticalPhotoSlider.tsx`, no se
+ * toca).
  */
 interface AboutMeProps {
   /**
@@ -281,6 +343,126 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
   const { t } = useLanguage();
   const { about } = t;
   const reduced = useReducedMotion();
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll navegable — ver docblock ("De marquee CSS puro a
+  // auto-scroll navegable"). Sin esto en reduced-motion: el riel sigue
+  // siendo `overflow-x-auto` (navegable a mano por scroll nativo), solo no
+  // avanza solo.
+  useEffect(() => {
+    if (reduced) return;
+    const el = trackRef.current;
+    if (!el) return;
+
+    // Mismo ritmo que tenía `.animate-marquee` (34s en recorrer la mitad
+    // duplicada del riel, ver `src/index.css` antes de este cambio).
+    const DURATION_MS = 34000;
+    const RESUME_DELAY_MS = 1500;
+
+    let rafId = 0;
+    let lastTs = 0;
+    let half = el.scrollWidth / 2;
+    let paused = false;
+    let dragging = false;
+    let dragStartX = 0;
+    let dragStartScroll = 0;
+    let moved = false;
+    let resumeTimer: number | undefined;
+
+    const ro = new ResizeObserver(() => {
+      half = el.scrollWidth / 2;
+    });
+    ro.observe(el);
+
+    function frame(ts: number) {
+      const dt = lastTs ? Math.min(ts - lastTs, 64) : 16.67;
+      lastTs = ts;
+      if (!paused && half > 0) {
+        el!.scrollLeft += (half / DURATION_MS) * dt;
+        if (el!.scrollLeft >= half) el!.scrollLeft -= half;
+      }
+      rafId = requestAnimationFrame(frame);
+    }
+    rafId = requestAnimationFrame(frame);
+
+    function pauseNow() {
+      paused = true;
+      window.clearTimeout(resumeTimer);
+    }
+    // "Pasa solo cuando nadie lo mueve": el timeout se reprograma en cada
+    // interacción — recién retoma tras `RESUME_DELAY_MS` de quietud real.
+    function scheduleResume() {
+      window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        // Normaliza a la primera mitad ANTES de retomar el auto-scroll —
+        // como el contenido está duplicado, restar `half` cae en el mismo
+        // punto visual, sin salto.
+        if (half > 0 && el!.scrollLeft >= half) el!.scrollLeft -= half;
+        paused = false;
+      }, RESUME_DELAY_MS);
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      pauseNow();
+      // El mouse no tiene gesto nativo de "arrastrar para scrollear" — se
+      // simula a mano. Touch/pen ya scrollean nativo en `overflow-x-auto`,
+      // no hace falta tomar control del `scrollLeft` ahí.
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      dragging = true;
+      moved = false;
+      dragStartX = e.clientX;
+      dragStartScroll = el!.scrollLeft;
+      // Puede tirar en casos borde (el puntero ya no está activo) — no debe
+      // impedir que el arrastre funcione igual, mismo criterio que el
+      // try/catch del seek de video en `Hero.tsx`.
+      try {
+        el!.setPointerCapture(e.pointerId);
+      } catch {
+        // Silencioso a propósito.
+      }
+    }
+    function onPointerMove(e: PointerEvent) {
+      if (!dragging) return;
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) > 3) moved = true;
+      el!.scrollLeft = dragStartScroll - dx;
+    }
+    function onPointerUp() {
+      dragging = false;
+      scheduleResume();
+    }
+    function onWheel() {
+      pauseNow();
+      scheduleResume();
+    }
+    // Si hubo arrastre real, el `click` que el navegador dispara al soltar
+    // no debe navegar el `<Link>` que quedó bajo el cursor.
+    function onClickCapture(e: MouseEvent) {
+      if (moved) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointercancel', onPointerUp);
+    el.addEventListener('wheel', onWheel, { passive: true });
+    el.addEventListener('click', onClickCapture, true);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(resumeTimer);
+      ro.disconnect();
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointercancel', onPointerUp);
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('click', onClickCapture, true);
+    };
+  }, [reduced]);
 
   return (
     <section
@@ -390,32 +572,45 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
               <Mail className="h-4 w-4" />
               {about.cta}
             </a>
+            <a
+              href={LINKS.cv}
+              download
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-cream/25 px-6 py-2.5 font-label text-xs font-medium uppercase tracking-[0.15em] text-cream transition-colors duration-300 hover:border-brand-red hover:text-brand-red"
+            >
+              <FileText className="h-4 w-4" />
+              {about.cvLabel}
+            </a>
           </div>
 
-          {/* Con `prefers-reduced-motion` el marquee no corre y la fila pasa a ser
-              scrolleable a mano: era la ÚNICA animación infinita del sitio y la
-              única sin guarda — todo lo demás (BackgroundDots, PillarMenu,
-              Preloader, CreditList, Trayectoria) ya la respetaba (auditoría
-              E1/H4). Sin `repeat: Infinity` no hace falta duplicar la
-              galería, así que en ese modo se renderiza una sola vez.
-              **2026-09-11:** las fichas también se achican con `svh` en modo
-              capa (`h-[clamp(3.5rem,11svh,7rem)]`) — mismo mecanismo que el
-              título/bio, para que el marquee no sea lo primero que se recorta
-              en un viewport bajo. */}
+          {/* Riel navegable con auto-scroll — ver docblock ("De marquee CSS
+              puro a auto-scroll navegable"). `overflow-x-auto` SIEMPRE
+              (antes solo en reduced-motion): scroll nativo de touch/
+              trackpad/rueda para cualquiera, más arrastre de mouse y
+              auto-avance manejados por el `useEffect` de arriba (que se
+              desactiva entero con `reduced`, dejando el scroll nativo a
+              mano intacto). Con `reduced` no hace falta duplicar la
+              galería (no hay loop que disimular). Fichas más grandes
+              (2026-09-12, mismo pedido): techo de `md:` sube a 10rem/160px. */}
           <div
+            ref={trackRef}
             className={cn(
-              'relative w-full [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]',
-              overlay ? 'mt-[clamp(0.375rem,1svh,0.75rem)] py-1' : 'mt-3 py-2',
-              reduced ? 'overflow-x-auto' : 'overflow-x-hidden overflow-y-visible'
+              'relative w-full cursor-grab select-none overflow-x-auto overflow-y-visible active:cursor-grabbing',
+              '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+              '[mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]',
+              overlay ? 'mt-[clamp(0.375rem,1svh,0.75rem)] py-1' : 'mt-3 py-2'
             )}
           >
-            <div className={cn('flex w-max gap-4', !reduced && 'animate-marquee')}>
+            <div className="flex w-max gap-4">
               {(reduced ? about.gallery : [...about.gallery, ...about.gallery]).map((item, i) => (
                 <Link
                   key={i}
                   to={item.href}
-                  className={cn('group flex-shrink-0', overlay ? 'w-[clamp(3.5rem,11svh,7rem)]' : 'w-24 sm:w-28')}
+                  className={cn(
+                    'group flex-shrink-0',
+                    overlay ? 'w-[clamp(4rem,12svh,8rem)] md:w-[clamp(5rem,12.5svh,9rem)]' : 'w-28 sm:w-32'
+                  )}
                   tabIndex={reduced ? undefined : i < about.gallery.length ? 0 : -1}
+                  draggable={false}
                 >
                   <figure>
                     <Picture
@@ -423,11 +618,13 @@ export default function AboutMe({ overlay = false, contentRef, inert }: AboutMeP
                       alt={item.alt}
                       loading="lazy"
                       decoding="async"
-                      sizes="(min-width: 640px) 112px, 96px"
+                      sizes="(min-width: 768px) 160px, 128px"
                       pictureClassName="block"
                       className={cn(
                         'w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110',
-                        overlay ? 'h-[clamp(3.5rem,11svh,7rem)]' : 'h-24 sm:h-28'
+                        overlay
+                          ? 'h-[clamp(4rem,12svh,8rem)] md:h-[clamp(5rem,12.5svh,9rem)]'
+                          : 'h-28 sm:h-32'
                       )}
                     />
                     <figcaption

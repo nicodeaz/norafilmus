@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { TRAYECTORIA_ENABLED } from '@/lib/features';
-import { useRevealPastHero } from '@/lib/hooks/use-reveal-past-hero';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 
@@ -64,11 +63,17 @@ interface NavItem {
  * mismos valores (paleta compartida, ver CLAUDE.md), pero acá ya existen
  * como utilities.
  *
- * Comparte `useRevealPastHero` con `Header` **solo para la rueda mobile**:
- * en `/` recién aparece pasado el Hero (que ya tiene su propio menú de
- * contacto al pie — una rueda fija ahí desde `scroll: 0` se superpondría a
- * la composición del afiche). En cualquier otra ruta está visible desde el
- * arranque.
+ * **La rueda mobile está siempre visible desde `scroll: 0`, incluso en `/`
+ * (2026-09-12), pedido explícito: "sacar los iconos de las redes en la home
+ * en la vista mobile y en su lugar quiero que el menú esté siempre
+ * visible".** Antes compartía `useRevealPastHero` con `Header` y recién
+ * aparecía pasado el Hero — la banda de contacto al pie de `Hero.tsx` (los
+ * íconos de Instagram/LinkedIn/mail) existía justamente para no competir con
+ * la rueda mientras estuvo oculta. Con la rueda ahora siempre puesta, esos
+ * íconos se sacan en mobile (`Hero.tsx`, `hidden md:block` en la banda) para
+ * no duplicar contacto/navegación en el mismo tramo de pantalla — quedan
+ * SOLO en desktop, donde la rueda no existe (ahí el nav es el rail vertical
+ * de más abajo) y la banda de contacto sigue teniendo trabajo que hacer.
  *
  * **El rail desktop es distinto desde 2026-09-11** (pedido explícito: "en la
  * home, resoluciones de escritorio, hacemos que el menú se vea desde el
@@ -122,14 +127,11 @@ export default function SectionNav() {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   const isHome = location.pathname === '/';
-  const wheelVisible = useRevealPastHero(isHome);
   const linkedPillars = t.pillars.filter((p) => p.href);
 
   const items: NavItem[] = useMemo(() => {
-    const aboutActive = isHome && location.hash === '#sobre-mi';
     const list: NavItem[] = [
-      { key: 'home', href: '/', label: t.nav.home, active: isHome && !aboutActive },
-      { key: 'about', href: '/#sobre-mi', label: t.nav.about, active: aboutActive },
+      { key: 'home', href: '/', label: t.nav.home, active: isHome },
       ...linkedPillars.map((p) => ({
         key: p.key,
         href: p.href!,
@@ -152,7 +154,7 @@ export default function SectionNav() {
       active: location.pathname === '/contacto',
     });
     return list;
-  }, [isHome, location.hash, location.pathname, linkedPillars, t]);
+  }, [isHome, location.pathname, linkedPillars, t]);
 
   const activeIndex = Math.max(
     0,
@@ -240,7 +242,9 @@ export default function SectionNav() {
               aria-hidden
               className={cn(
                 'h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-300',
-                item.active ? 'scale-125 bg-brand-red' : 'bg-cream/30 group-hover:bg-cream/60'
+                item.active
+                  ? 'scale-125 bg-brand-red'
+                  : 'bg-cream/30 group-hover:bg-cream/60 group-focus-visible:bg-cream/60'
               )}
             />
             <span
@@ -248,7 +252,7 @@ export default function SectionNav() {
                 'overflow-hidden whitespace-nowrap font-label text-[10px] uppercase tracking-[0.2em] transition-all duration-300',
                 item.active
                   ? 'max-w-[8rem] text-cream opacity-100'
-                  : 'max-w-0 text-cream/60 opacity-0 group-hover:max-w-[8rem] group-hover:opacity-100'
+                  : 'max-w-0 text-cream/60 opacity-0 group-hover:max-w-[8rem] group-hover:opacity-100 group-focus-visible:max-w-[8rem] group-focus-visible:opacity-100'
               )}
             >
               {item.label}
@@ -270,11 +274,7 @@ export default function SectionNav() {
           claro — medido, no a ojo. */}
       <nav
         aria-label={t.nav.sectionNav}
-        inert={!wheelVisible}
-        className={cn(
-          'fixed bottom-4 left-1/2 z-40 h-16 w-[320px] -translate-x-1/2 overflow-hidden rounded-full border border-cream/15 bg-ink/95 shadow-2xl backdrop-blur-md transition-opacity duration-300 lg:hidden',
-          wheelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
-        )}
+        className="fixed bottom-4 left-1/2 z-40 h-16 w-[320px] -translate-x-1/2 overflow-hidden rounded-full border border-cream/15 bg-ink/95 backdrop-blur-md lg:hidden"
         style={{
           maskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)',
@@ -308,7 +308,7 @@ export default function SectionNav() {
                 onClick={(e) => selectIndex(idx, e.detail === 0)}
               >
                 {distance === 0 ? (
-                  <span className="relative whitespace-nowrap rounded-full bg-brand-red-deep px-4 py-2 font-label text-xs font-bold uppercase tracking-wider text-cream shadow-md">
+                  <span className="relative whitespace-nowrap rounded-full border border-cream/15 bg-brand-red-deep px-4 py-2 font-label text-xs font-bold uppercase tracking-wider text-cream">
                     {item.label}
                     {pendingIndex !== null && !reduced && (
                       <span

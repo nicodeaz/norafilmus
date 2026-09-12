@@ -1,4 +1,4 @@
-import { Instagram, Linkedin, Mail } from 'lucide-react';
+import { FileText, Instagram, Linkedin, Mail } from 'lucide-react';
 import { CONTACT_FORM_ENABLED, SIGNATURE_WALL_ENABLED } from '@/lib/features';
 import { LINKS } from '@/src/i18n/content';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -59,6 +59,21 @@ import SignatureWall from './SignatureWall';
  * en cualquier tamaño. Se unifican los dos bloques de foto (panel desktop +
  * banner mobile apilado de la segunda vuelta) en uno solo, siempre visible.
  *
+ * **La foto cambia a una toma real en Irlanda, con marca de agua
+ * (2026-09-12), pedido explícito.** Primer intento: reemplazar la foto de
+ * `DSC01947.jpg` (sesión "Norah_") por una vista de Dublín generada con
+ * fal.ai/Seedream (sin foto real de por medio) — el usuario la vio y la
+ * rechazó ("ninguna, usemos esta"), pidiendo en cambio una foto real que ya
+ * existe en el archivo. Versión final: `rita-universos-DSC01731.jpg` — Nora
+ * como su personaje de clown "Rita Universos", en una terraza en Dublín
+ * (mismo edificio/sesión que ya usa la galería de `/crear`, crédito "Paula";
+ * reusa el archivo ya optimizado en `/img/crear/galeria/`, no se duplica el
+ * binario). Sigue siendo una foto real de Nora con su crédito real — la
+ * marca de agua (firma de Nora, `nora-firma-roja.png`, chica y
+ * semitransparente) se agrega IGUAL, en la esquina opuesta al crédito de
+ * foto para no superponerse, como capa extra de marca — no reemplaza al
+ * crédito de la fotógrafa, que sigue siendo verdadero acá.
+ *
  * `ContactForm` y `SignatureWall` siguen full-width más abajo, fuera de este
  * split — no tiene sentido angostarlos junto a la foto. Los dos están detrás
  * de flags en `lib/features.ts` (`CONTACT_FORM_ENABLED`/
@@ -88,7 +103,7 @@ export default function Contacto() {
             tamaño, sangra al borde izquierdo del viewport. */}
         <div className="relative w-1/3 shrink-0 overflow-hidden [mask-image:linear-gradient(to_left,transparent,black_28%)] [-webkit-mask-image:linear-gradient(to_left,transparent,black_28%)]">
           <Picture
-            src="/img/contacto/nora-contacto.jpg"
+            src="/img/crear/galeria/rita-universos-DSC01731.jpg"
             alt={contacto.photoAlt}
             sizes="34vw"
             fetchPriority="high"
@@ -98,10 +113,25 @@ export default function Contacto() {
             className="h-full w-full object-cover object-[50%_14%]"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink via-transparent to-ink/25" />
-          {/* Crédito de la foto — regla 3 de content.ts. */}
+          {/* Crédito de la foto — regla 3 de content.ts, foto real. */}
           <span className="pointer-events-none absolute bottom-4 left-5 font-label text-[10px] uppercase tracking-[0.15em] text-cream/60 [writing-mode:vertical-rl]">
             Foto: {hero.portraitCredit}
           </span>
+          {/* Marca de agua — firma de Nora, chica y sutil, esquina opuesta al
+              crédito para no superponerse (pedido explícito, 2026-09-12).
+              `top-20` y no `top-4`: el `Header` global es `fixed` y se
+              superpone a esta sección desde y=0 (no empuja el layout) — con
+              `top-4` la marca de agua quedaba tapada detrás de la barra
+              superior, invisible aunque el DOM la tuviera bien puesta. */}
+          <Picture
+            src="/img/nora-firma-roja.png"
+            alt=""
+            sizes="80px"
+            loading="lazy"
+            decoding="async"
+            pictureClassName="pointer-events-none absolute left-4 top-20 block w-14 opacity-35 sm:w-16"
+            className="h-auto w-full"
+          />
         </div>
 
         {/* Texto — columna de 2/3, alineado a la izquierda como en
@@ -135,6 +165,9 @@ export default function Contacto() {
           </Reveal>
 
           <Reveal as="div" delay={0.2} className="mt-10">
+            <span className="mb-3 block font-label text-xs uppercase tracking-[0.2em] text-cream/50">
+              {contacto.emailLabel}
+            </span>
             <a
               href={LINKS.email}
               className="group inline-flex items-center gap-4 font-display text-3xl uppercase leading-none text-cream transition-colors duration-300 hover:text-brand-red sm:text-4xl lg:text-5xl"
@@ -173,6 +206,14 @@ export default function Contacto() {
             <span className="font-label text-xs uppercase tracking-[0.15em] text-cream/50">
               {hero.location}
             </span>
+            <a
+              href={LINKS.cv}
+              download
+              className="inline-flex min-h-11 items-center gap-2 font-label text-xs uppercase tracking-[0.15em] text-cream/60 transition-colors duration-300 hover:text-brand-red"
+            >
+              <FileText className="h-4 w-4" />
+              {t.about.cvLabel}
+            </a>
           </Reveal>
         </div>
       </div>

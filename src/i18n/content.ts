@@ -340,7 +340,7 @@ export interface SiteContent {
     titleAccent: string;
     body: string;
     emailLabel: string;
-    /** Alt de la foto banner (2026-09-09, DSC01947.jpg, sesión "Norah_" — mismo crédito que el resto, "Paula"). */
+    /** Alt de la foto banner — rita-universos-DSC01731.jpg, foto real, crédito "Paula" (ver docblock de Contacto.tsx). */
     photoAlt: string;
     /** Formulario con captcha propio (honeypot + desafío firmado, sin cuenta externa) — envía por `/api/contact` (Resend). */
     form: {
@@ -521,8 +521,8 @@ export const content: Record<Language, SiteContent> = {
       firstName: 'Nora',
       lastName: 'Filmus',
       role: 'Actriz · Productora · Pedagoga teatral',
-      bio: 'Treinta y seis años en artes escénicas, entre Buenos Aires y Dublín. Actúo, produzco teatro y audiovisual, y coordino programas de formación artística.',
-      cta: 'Ver trayectoria',
+      bio: 'Soy actriz, productora y pedagoga teatral. Trabajo entre Buenos Aires y Dublín en proyectos de escena, audiovisual, formación artística y producción cultural.',
+      cta: 'Conocé mi trabajo',
       contactCta: 'Hablemos',
       location: 'Dublín, Irlanda',
       portraitAlt: 'Nora Filmus riendo a carcajadas en un retrato de estudio, con los brazos cruzados',
@@ -548,9 +548,9 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'Arriba del escenario',
       titleAccent: 'desde 1990.',
       body1:
-        'Empecé a estudiar teatro a los catorce años con Alicia Aller, y seguí formándome con Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas y Marcelo Subiotto, entre otros — cursé hasta tercer año la Licenciatura en Dirección Escénica en la UNA. Actué diez años con el grupo Los Ranz en salas como el Teatro Colón y el Centro Cultural Recoleta, y participé en La Comuna Orgón, dirigida por Marcelo Subiotto en Puerta Roja.',
+        'Trabajo como actriz en teatro, clown y audiovisual. Me formé desde los catorce años con Alicia Aller, Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas y Marcelo Subiotto, y cursé hasta tercer año la Licenciatura en Dirección Escénica en la UNA. Durante diez años integré Los Ranz, con funciones en el Teatro Colón y el Centro Cultural Recoleta, y también participé en La Comuna Orgón, dirigida por Marcelo Subiotto.',
       body2:
-        'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de la compañía Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones para Netflix, Polka y Telefé.',
+        'Escribí y actué en Chicha, Carmen y Angelita, integré el elenco de Rapiña y desde 2015 formo parte de Boquitas Pintadas, con la que hago Que no quede huella. En cine y televisión trabajé como extra en producciones para Netflix, Polka y Telefé. En esta página reúno obras, roles y material de archivo para que se entienda qué hice en cada proyecto.',
       gallery: [
       { src: '/img/crear/galeria/chicha-magdalena-foto-1.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
       { src: '/img/crear/galeria/chicha-magdalena-foto-6.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — foto de archivo', credit: 'Colo Gens' },
@@ -719,32 +719,24 @@ export const content: Record<Language, SiteContent> = {
 
     ensenar: {
       eyebrow: 'Docencia',
-      titleLead: 'Doce años',
-      titleAccent: 'formando en las artes escénicas.',
+      titleLead: 'Teatro para',
+      titleAccent: 'aprender, crear y vincularse.',
       body1:
-        'Mi práctica se construye en el cruce entre las artes escénicas y la pedagogía. A lo largo de mi recorrido como actriz, docente y coordinadora de proyectos artísticos y socioeducativos, fui profundizando una manera de trabajar en la que el teatro no es solamente un lenguaje artístico o una herramienta para la formación actoral: es también un espacio de exploración, encuentro y descubrimiento.',
+        'Diseño y coordino talleres, entrenamientos individuales y experiencias para grupos, equipos y organizaciones. Trabajo desde el teatro, la improvisación, el juego, el cuerpo y el clown para desarrollar presencia, expresividad, creatividad, escucha y confianza.',
       body2:
-        'Me interesa lo que sucede cuando la improvisación, el juego, el trabajo corporal, el clown y las herramientas de la actuación salen del entrenamiento estrictamente actoral y se ponen al servicio de otras necesidades: desarrollar presencia y expresividad, ampliar recursos de comunicación, estimular la creatividad, ganar confianza frente a otros, entrenar la escucha y relacionarse con lo inesperado.',
+        'Mi experiencia combina más de una década en proyectos artísticos y socioeducativos con una práctica escénica sostenida. Puedo trabajar con personas con o sin experiencia teatral, en procesos puntuales o recorridos más largos, en español y desde Dublín.',
       statNumber: '12',
       statLabel: 'años coordinando el Programa Adolescencia — sin fotos publicables: el material muestra adolescentes en situación de vulnerabilidad.',
       gallery: [
-      { src: '/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — caras desenfocadas', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-15.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — caras desenfocadas', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-36.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-37.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-40.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — foto de archivo', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/adolescentes-foto-6-blur.jpg', alt: 'Clases de teatro para adolescentes — caras desenfocadas', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/adolescentes-foto-20-blur.jpg', alt: 'Clases de teatro para adolescentes — caras desenfocadas', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg', alt: 'Muestra de alumnos, Marcos Paz — "Los Galponeros" — caras desenfocadas', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-6.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-7.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-12.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-34.jpg', alt: 'Programa Enamorar, Granadero Baigorria — foto de archivo', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg', alt: 'Multiespacio 1914 — foto de archivo', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg', alt: 'FICBA, cierre Programa Adolescencia 2013 — caras desenfocadas', credit: 'Archivo personal de Nora' },
-      { src: '/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-4.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-3.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg', alt: 'Casa Valle — foto de archivo', credit: 'Archivo personal de Nora' },
@@ -808,12 +800,12 @@ export const content: Record<Language, SiteContent> = {
 
     producir: {
       eyebrow: 'Producción',
-      titleLead: 'Detrás de escena,',
-      titleAccent: 'en teatro y en pantalla.',
+      titleLead: 'Producción y coordinación',
+      titleAccent: 'para escena, pantalla y eventos.',
       body1:
-        'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui productora de arte en El amor después del amor (Netflix), administradora de producción en Chocolate para 3, directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
+        'Trabajo en producción y coordinación para teatro, cine, televisión, festivales y eventos. Mi experiencia incluye producción teatral, gestión de subsidios, administración, dirección de arte, asistencia y coordinación de equipos: cada crédito de abajo indica el rol concreto que tuve.',
       body2:
-        'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
+        'En Dublín coordino Argentina Day para La Clave Group desde 2023 y participé en equipos de producción del St. Patrick\'s Festival, Rathe Gather Festivalito, The Floor y otros eventos. También trabajé en proyectos para Netflix, Star+, INCAA y productoras independientes.',
       gallery: [
         {
           src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
@@ -1106,7 +1098,7 @@ export const content: Record<Language, SiteContent> = {
       {
         key: 'ensenar',
         label: 'Enseñar',
-        caption: 'Doce años coordinando talleres de teatro para adolescentes.',
+        caption: 'Talleres, entrenamiento individual y experiencias para grupos y equipos.',
         // Sin foto a propósito: el material disponible muestra adolescentes
         // identificables del Programa Adolescencia. Ver regla 4 arriba.
         image: null,
@@ -1116,7 +1108,7 @@ export const content: Record<Language, SiteContent> = {
       {
         key: 'producir',
         label: 'Producir',
-        caption: 'Producción ejecutiva en teatro independiente, festivales y rodajes.',
+        caption: 'Producción y coordinación para escena, pantalla, festivales y eventos.',
         image: '/img/about/maldichas-foto-1.png',
         alt: 'Integrante de Maldichas en escena, trío que Nora produjo',
         credit: 'Ariel Ugolino',
@@ -1130,9 +1122,9 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Contacto',
       titleLead: '¿Un proyecto',
       titleAccent: 'en mente?',
-      body: 'Actúo, produzco y coordino formación artística entre Buenos Aires y Dublín. Si hay un proyecto en el que pueda sumar, escribime — respondo por correo o por Instagram.',
+      body: '¿Querés convocarme como actriz, productora o facilitadora de procesos de formación artística? Trabajo entre Buenos Aires y Dublín en proyectos de escena, audiovisual, festivales, eventos y educación artística. Contame qué estás desarrollando, dónde sucede y qué rol necesitás cubrir; te respondo por correo o Instagram.',
       emailLabel: 'Escribime',
-      photoAlt: 'Nora Filmus riendo, sentada y mirando hacia un costado, en una sesión de fotos editorial',
+      photoAlt: 'Nora Filmus como Rita Universos, su personaje de clown, en una terraza en Dublín',
       form: {
         nameLabel: 'Nombre',
         namePlaceholder: 'Tu nombre',
@@ -1165,9 +1157,9 @@ export const content: Record<Language, SiteContent> = {
     about: {
       eyebrow: '36 años en artes escénicas',
       titleLead: 'Treinta y seis años',
-      titleAccent: 'en escena.',
+      titleAccent: 'entre escena, aula y producción.',
       body1:
-        'Soy actriz, docente y productora audiovisual y cultural argentino-rumana, radicada en Dublín. Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
+        'Soy actriz, docente y productora audiovisual y cultural argentina-rumana, radicada en Dublín. Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
       body2:
         'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ e INCAA. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
       cta: 'Escribime',
@@ -1202,7 +1194,7 @@ export const content: Record<Language, SiteContent> = {
   en: {
     htmlLang: 'en',
     skipLink: 'Skip to content',
-    langToggle: { label: 'Ver el sitio en español', short: 'ES' },
+    langToggle: { label: 'View the site in Spanish', short: 'ES' },
     connectionError: {
       title: "This page couldn't load",
       body: 'It may be a weak or unstable connection. Check your connection and try again.',
@@ -1218,7 +1210,7 @@ export const content: Record<Language, SiteContent> = {
       firstName: 'Nora',
       lastName: 'Filmus',
       role: 'Actress · Producer · Theatre educator',
-      bio: 'Thirty-six years in the performing arts, between Buenos Aires and Dublin. I act, I produce for stage and screen, and I run arts education programmes.',
+      bio: 'I am an actress, producer and theatre educator working between Buenos Aires and Dublin across performance, screen, arts education and cultural production.',
       cta: 'See my work',
       contactCta: "Let's talk",
       location: 'Dublin, Ireland',
@@ -1245,9 +1237,9 @@ export const content: Record<Language, SiteContent> = {
       titleLead: 'On stage',
       titleAccent: 'since 1990.',
       body1:
-        'I started studying theatre at fourteen with Alicia Aller, and went on training with Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas and Marcelo Subiotto, among others — I completed three years of a degree in Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years acting with the company Los Ranz, performing in venues including the Teatro Colón and the Centro Cultural Recoleta in Buenos Aires, and took part in La Comuna Orgón, directed by Marcelo Subiotto at Teatro Puerta Roja.',
+        'I work as an actress across theatre, clown and screen. I began training at fourteen with Alicia Aller, Fabio Mosquito Sancineto, Héctor Beacón, Marisa Salas and Marcelo Subiotto, and completed three years of a Stage Direction degree at Argentina’s National University of the Arts (UNA). I spent ten years with Los Ranz, performing at venues including Teatro Colón and Centro Cultural Recoleta, and took part in La Comuna Orgón, directed by Marcelo Subiotto.',
       body2:
-        'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña, and have been part of the company Boquitas Pintadas since 2015, performing in Que no quede huella. In film and television I’ve worked as an extra on productions for Netflix, Polka and Telefé.',
+        'I co-wrote and performed in Chicha, Carmen y Angelita, joined the cast of Rapiña and have been part of Boquitas Pintadas since 2015, performing in Que no quede huella. I have also worked as an extra in film and television productions for Netflix, Polka and Telefé. This page brings together my work, roles and archive material so each project can be understood clearly.',
       gallery: [
       { src: '/img/crear/galeria/chicha-magdalena-foto-1.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
       { src: '/img/crear/galeria/chicha-magdalena-foto-6.jpg', alt: 'Chicha, Carmen y Angelita — Teatro Español de Magdalena — archive photo', credit: 'Colo Gens' },
@@ -1410,32 +1402,24 @@ export const content: Record<Language, SiteContent> = {
 
     ensenar: {
       eyebrow: 'Teaching',
-      titleLead: 'Twelve years',
-      titleAccent: 'training people in the performing arts.',
+      titleLead: 'Theatre to',
+      titleAccent: 'learn, create and connect.',
       body1:
-        'My practice sits at the crossing point between the performing arts and education. Through my work as an actress, theatre educator and coordinator of artistic and socially engaged projects, I have developed an approach that sees theatre not only as an art form or a space for actor training, but also as a powerful way to explore, connect and discover.',
+        'I design and facilitate workshops, one-to-one training and experiences for groups, teams and organisations. I use theatre, improvisation, play, physical work and clowning to develop presence, expressiveness, creativity, listening and confidence.',
       body2:
-        'I am particularly interested in what happens when improvisation, play, physical work, clowning and acting techniques move beyond traditional actor training: how they can help us develop presence and expressiveness, build confidence, strengthen communication and listening skills, stimulate creativity, become more comfortable with the unexpected, and discover new ways of responding and connecting with others.',
+        'My experience combines more than a decade of artistic and socially engaged projects with a sustained performance practice. I work with people with or without theatre experience, in one-off sessions or longer processes, in Spanish and from Dublin.',
       statNumber: '12',
       statLabel: 'years coordinating Programa Adolescencia — no publishable photos: the material shows teenagers in vulnerable circumstances.',
       gallery: [
-      { src: '/img/ensenar/galeria/vicente-lopez-foto-10-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — faces blurred', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-15.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/vicente-lopez-foto-33-blur.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — faces blurred', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-36.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-37.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/vicente-lopez-foto-40.jpg', alt: 'Comedor Comunitario Las Flores, Vicente López — archive photo', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/adolescentes-foto-6-blur.jpg', alt: 'Clases de teatro para adolescentes — faces blurred', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/adolescentes-foto-20-blur.jpg', alt: 'Clases de teatro para adolescentes — faces blurred', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/marcos-paz-foto-10-blur.jpg', alt: 'Muestra de alumnos, Marcos Paz — "Los Galponeros" — faces blurred', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-1.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-6.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-7.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-12.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/enamorar-baigorria-foto-34.jpg', alt: 'Programa Enamorar, Granadero Baigorria — archive photo', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/bs-taller-chicos-foto-1.jpg', alt: 'Multiespacio 1914 — archive photo', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/ficba-cierre-2013-foto-1-blur.jpg', alt: 'FICBA, cierre Programa Adolescencia 2013 — faces blurred', credit: 'Nora\'s personal archive' },
-      { src: '/img/ensenar/galeria/bs-taller-casa-valle-foto-1.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-4.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-3.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
       { src: '/img/ensenar/galeria/bs-apertura-casa-valle-foto-1.jpg', alt: 'Casa Valle — archive photo', credit: 'Nora\'s personal archive' },
@@ -1494,12 +1478,12 @@ export const content: Record<Language, SiteContent> = {
 
     producir: {
       eyebrow: 'Production',
-      titleLead: 'Behind the scenes,',
-      titleAccent: 'in theatre and on screen.',
+      titleLead: 'Production and coordination',
+      titleAccent: 'for stage, screen and events.',
       body1:
-        'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art producer on El amor después del amor (Netflix), production administrator on Chocolate para 3, art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
+        'I work in production and coordination across theatre, film, television, festivals and events. My experience includes theatre production, grant management, administration, art direction, production assistance and team coordination; each credit below identifies the role I held.',
       body2:
-        'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
+        'In Dublin I have coordinated Argentina Day for La Clave Group since 2023 and worked on production teams for St. Patrick\'s Festival, Rathe Gather Festivalito, The Floor and other events. I have also worked on projects for Netflix, Star+, INCAA and independent production companies.',
       gallery: [
         {
           src: '/img/archivo/mujeres-a-la-obra-foto-4.jpg',
@@ -1785,7 +1769,7 @@ export const content: Record<Language, SiteContent> = {
       {
         key: 'ensenar',
         label: 'Teach',
-        caption: 'Twelve years running theatre workshops for teenagers.',
+        caption: 'Workshops, one-to-one training and experiences for groups and teams.',
         image: null,
         alt: 'No publishable image for this strand yet',
         href: '/ensenar',
@@ -1793,7 +1777,7 @@ export const content: Record<Language, SiteContent> = {
       {
         key: 'producir',
         label: 'Produce',
-        caption: 'Executive production across independent theatre, festivals and film sets.',
+        caption: 'Production and coordination across stage, screen, festivals and events.',
         image: '/img/about/maldichas-foto-1.png',
         alt: 'A Maldichas performer on stage, the trio Nora produced',
         credit: 'Ariel Ugolino',
@@ -1807,9 +1791,9 @@ export const content: Record<Language, SiteContent> = {
       eyebrow: 'Contact',
       titleLead: 'Got a project',
       titleAccent: 'in mind?',
-      body: "I act, produce and run arts education programmes between Buenos Aires and Dublin. If there's a project I could be part of, get in touch — I reply by email or Instagram.",
+      body: 'Would you like to work with me as an actress, producer or arts facilitator? I work between Buenos Aires and Dublin across performance, screen, festivals, events and arts education. Tell me what you are developing, where it is based and what role you need; I reply by email or Instagram.',
       emailLabel: 'Get in touch',
-      photoAlt: 'Nora Filmus laughing, sitting and looking to the side, during an editorial photo session',
+      photoAlt: 'Nora Filmus as Rita Universos, her clown character, on a rooftop terrace in Dublin',
       form: {
         nameLabel: 'Name',
         namePlaceholder: 'Your name',
@@ -1842,7 +1826,7 @@ export const content: Record<Language, SiteContent> = {
     about: {
       eyebrow: '36 years in the performing arts',
       titleLead: 'Thirty-six years',
-      titleAccent: 'on stage.',
+      titleAccent: 'across performance, teaching and production.',
       body1:
         'I\'m an Argentine-Romanian actress, educator and audiovisual and cultural producer, based in Dublin. I trained at the IFT Integral Theatre School and studied Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years with the company Los Ranz, five with Marcelo Subiotto’s Colectivo Teatral Puerta Roja, and I have been part of the Boquitas Pintadas company since 2015.',
       body2:
