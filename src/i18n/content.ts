@@ -295,7 +295,7 @@ const GALLERY_ES: GalleryItem[] = [
     src: '/img/crear/pizarnikett-flyer.jpg',
     alt: 'Flyer de la obra Pizarn-i-kett Más?, Teatro El Refugio',
     work: 'Pizarn-i-kett Más? · 2009–2010',
-    role: 'Actuación, caracterización y maquillaje',
+    role: 'Actuación, caracterización, maquillaje y producción',
     credit: 'Teatro El Refugio',
   },
   {
@@ -342,7 +342,7 @@ const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
   role: [
     'Actor',
     'Playwright and performer',
-    'Acting, characterisation and make-up',
+    'Acting, characterisation, make-up and production',
     'Cultural manager and executive producer',
     'Produced the single performance',
     'Producer',
@@ -436,7 +436,7 @@ export const content: Record<Language, SiteContent> = {
             },
           ],
         },
-        { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2015' },
+        { work: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas', years: 'desde 2014' },
         // Sin año confirmado por Nora (su bio profesional, 2026-08-31, solo dice "temporadas");
         // no se agregó a Trayectoria porque esa lista necesita `decade` y no hay dato para inferirlo. CHEQUEAR con Nora.
         { work: 'Las Preciadas', detail: 'Festival Internacional de Buenos Aires (FIBA)', years: 'año a confirmar' },
@@ -460,7 +460,7 @@ export const content: Record<Language, SiteContent> = {
         { work: 'La Comuna Orgón', detail: 'Dirección: Marcelo Subiotto', years: '2010–2011' },
         {
           work: 'Pizarn-i-kett Más? (Un híbrido a la fuerza)',
-          detail: 'Actuación, caracterización y maquillaje — texto: Alejandra Pizarnik, dir. Gladys Huertos',
+          detail: 'Actuación, caracterización, maquillaje y producción — texto: Alejandra Pizarnik, dir. Gladys Huertos',
           years: '2009–2010',
           images: [
             {
@@ -560,7 +560,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'Produje teatro independiente —¡Mujeres a la obra! en el CELCIT, Improvisación Mosquito, Maldichas en el Teatro Solís de Montevideo y en el Teatro Roma de Avellaneda, Pizarn-i-kett Más? con el subsidio del Instituto Nacional del Teatro— y gestioné el subsidio de Proteatro para Que no quede huella. También produje la primera función de Los golpes de Clara, justo antes de que arrancara la pandemia; Carolina Guevara siguió la obra sola después. En cine y televisión trabajé en equipos de producción para Star+, Netflix y HBO: fui productora de arte en El amor después del amor (Netflix), administradora de producción en Chocolate para 3, directora de arte en Planners (Star+) y soy asistente de producción en By Pass, la película que dirige Fernán Mirás para Non Stop y Cinema7.',
       body2:
-        'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el Rathe Gather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
+        'Desde que vivo en Dublín sumé producción de eventos: coordino Argentina Day para La Clave Group desde 2023, fui runner de producción en el St. Patrick\'s Festival y en el RatherGather Festivalito, y trabajé en el equipo audiovisual del programa de TV The Floor para la productora Bigger Stage.',
       image: {
         src: '/img/about/maldichas-foto-1.png',
         alt: 'Escena de Maldichas, trío que Nora produjo',
@@ -670,7 +670,7 @@ export const content: Record<Language, SiteContent> = {
         { work: 'Christmas Market Latinoamericano', detail: 'Coordinación de producción — La Clave Group, Dtwo', years: '2025' },
         // La bio profesional de Nora (2026-08-31) lo escribe "Rather Gather Festivalito" —
         // se mantiene la grafía "Rathe" ya usada en todo el sitio hasta confirmar cuál es la correcta. CHEQUEAR con Nora.
-        { work: 'Rathe Gather Festivalito', detail: 'Asistencia y runner de producción', years: '2024' },
+        { work: 'RatherGather Festivalito', detail: 'Asistencia y runner de producción', years: '2024' },
         { work: 'La Peña Argentina en Dublín', detail: 'Producción — La Clave Group', years: '2024–2025' },
         { work: "St. Patrick's Festival", detail: 'Runner de producción (voluntariado)', years: '2023' },
       ],
@@ -720,7 +720,7 @@ export const content: Record<Language, SiteContent> = {
         { year: '2014–2015', title: 'Teatro y expresión corporal', detail: 'Comedor Comunitario Las Flores, Vicente López', category: 'docencia', decade: '2010s' },
         { year: '2015–2016', title: 'Teatro para adolescentes en situación de encierro', detail: 'Instituto de Menores San Martín — Programa Jóvenes Creadores', category: 'docencia', decade: '2010s' },
         { year: '2015', title: 'Premio "Jóvenes Creadores"', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
-        { year: '2015–2017', title: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas — actuación y gestión del subsidio Proteatro', category: 'actuacion', decade: '2010s' },
+        { year: '2014–2017', title: 'Que no quede huella', detail: 'Compañía Boquitas Pintadas — actuación y gestión del subsidio Proteatro', category: 'actuacion', decade: '2010s' },
         { year: '2017–2019', title: 'Teatro para niños y pre-adolescentes', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'desde 2017', title: 'Teatro para la tercera edad', detail: 'Fundación Encanto por la Vida — convenio PAMI', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — jefa de administración (INCAA)', category: 'produccion', decade: '2010s' },
@@ -792,7 +792,7 @@ export const content: Record<Language, SiteContent> = {
         { year: 'en curso', title: 'By Pass', detail: 'Non Stop / Cinema7 — asistente de producción, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
         { year: 'temporada 1', title: 'Planners', detail: 'Star+ / PEGSA Group — directora de arte', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Festival Internacional de Teatro Shakespeare', detail: '"Maten a Hamlet" (Los Macoco) — asistente de producción voluntaria, Craiova, Rumania', category: 'produccion', decade: '2020s' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown en escena, como Rita Universos, y asistencia de producción', category: 'actuacion', decade: '2020s' },
+        { year: '2024', title: 'RatherGather Festivalito', detail: 'Clown en escena, como Rita Universos, y asistencia de producción', category: 'actuacion', decade: '2020s' },
         { year: '2025', title: 'The Floor', detail: 'Bigger Stage — runner de producción audiovisual (temporadas 4 y 5, Bray)', category: 'produccion', decade: '2020s' },
         { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Irlanda', category: 'formacion', decade: '2020s' },
         { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Irlanda', category: 'formacion', decade: '2020s' },
@@ -847,7 +847,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'Soy actriz, docente y productora audiovisual y cultural argentino-rumana, radicada en Dublín. Me formé en la Escuela Integral de Teatro IFT y cursé la Licenciatura en Dirección Escénica en la UNA. Trabajé diez años con el grupo Los Ranz, cinco en el Colectivo Teatral Puerta Roja de Marcelo Subiotto, y desde 2015 integro la compañía Boquitas Pintadas.',
       body2:
-        'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ e INCAA. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el Rathe Gather Festival.',
+        'En paralelo coordiné durante doce años el Programa Adolescencia del Gobierno de la Ciudad de Buenos Aires —talleres artísticos para adolescentes en contextos de vulnerabilidad— y trabajé en producción de cine y televisión para Netflix, HBO, Star+ e INCAA. Desde 2023 vivo en Dublín, donde participé del St. Patrick’s Festival, Argentina Day y el RatherGather Festival.',
       cta: 'Escribime',
       cvLabel: 'Descargar CV',
       galleryTitle: 'Del archivo',
@@ -955,7 +955,7 @@ export const content: Record<Language, SiteContent> = {
             },
           ],
         },
-        { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2015' },
+        { work: 'Que no quede huella', detail: 'Boquitas Pintadas company', years: 'since 2014' },
         // No confirmed year from Nora's professional bio (2026-08-31, only says "seasons");
         // not added to the Timeline, which needs `decade` and there's no data to infer it from. CHECK with Nora.
         { work: 'Las Preciadas', detail: 'Buenos Aires International Festival (FIBA)', years: 'year to confirm' },
@@ -979,7 +979,7 @@ export const content: Record<Language, SiteContent> = {
         { work: 'La Comuna Orgón', detail: 'Dir. Marcelo Subiotto', years: '2010–2011' },
         {
           work: 'Pizarn-i-kett Más? (A Forced Hybrid)',
-          detail: 'Performer, hair & makeup — text: Alejandra Pizarnik, dir. Gladys Huertos',
+          detail: 'Performer, hair, make-up and production — text: Alejandra Pizarnik, dir. Gladys Huertos',
           years: '2009–2010',
           images: [
             {
@@ -1074,7 +1074,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'I produced independent theatre —¡Mujeres a la obra! at CELCIT, Improvisación Mosquito, Maldichas at the Teatro Solís in Montevideo and at the Teatro Roma de Avellaneda, Pizarn-i-kett Más? with a grant from Argentina\'s National Theatre Institute— and managed the Proteatro grant for Que no quede huella. I also produced the opening night of Los golpes de Clara, right before the pandemic hit; Carolina Guevara went on with the show alone afterwards. In film and television I worked on production teams for Star+, Netflix and HBO: I was art producer on El amor después del amor (Netflix), production administrator on Chocolate para 3, art director on Planners (Star+), and I am a production assistant on By Pass, the film Fernán Mirás is directing for Non Stop and Cinema7.',
       body2:
-        'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the Rathe Gather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
+        'Since moving to Dublin I have added event production to that: I have coordinated Argentina Day for La Clave Group since 2023, worked as a production runner at the St. Patrick\'s Festival and the RatherGather Festivalito, and joined the production crew for the TV show The Floor for the production company Bigger Stage.',
       image: {
         src: '/img/about/maldichas-foto-1.png',
         alt: 'Scene from Maldichas, the trio Nora produced',
@@ -1177,7 +1177,7 @@ export const content: Record<Language, SiteContent> = {
         { work: 'The Sugar Club', detail: 'Production assistant — Gustavo Ecclesia\'s solo album launch', years: '2025' },
         { work: 'International Literature Festival Dublin', detail: 'Volunteer production runner', years: '2025' },
         { work: 'Christmas Market Latinoamericano', detail: 'Production coordination — La Clave Group, Dtwo', years: '2025' },
-        { work: 'Rathe Gather Festivalito', detail: 'Production assistance and runner', years: '2024' },
+        { work: 'RatherGather Festivalito', detail: 'Production assistance and runner', years: '2024' },
         { work: 'La Peña Argentina en Dublín', detail: 'Production — La Clave Group', years: '2024–2025' },
         { work: "St. Patrick's Festival", detail: 'Production runner (volunteer)', years: '2023' },
       ],
@@ -1227,7 +1227,7 @@ export const content: Record<Language, SiteContent> = {
         { year: '2014–2015', title: 'Theatre and movement', detail: 'Las Flores community canteen, Vicente López', category: 'docencia', decade: '2010s' },
         { year: '2015–2016', title: 'Theatre for teenagers in detention', detail: 'Instituto de Menores San Martín — Jóvenes Creadores programme', category: 'docencia', decade: '2010s' },
         { year: '2015', title: '"Jóvenes Creadores" award', detail: 'SENAF / Asociación Argentina de Actores', category: 'docencia', decade: '2010s' },
-        { year: '2015–2017', title: 'Que no quede huella', detail: 'Boquitas Pintadas company — performer and managed the Proteatro grant', category: 'actuacion', decade: '2010s' },
+        { year: '2014–2017', title: 'Que no quede huella', detail: 'Boquitas Pintadas company — performer and managed the Proteatro grant', category: 'actuacion', decade: '2010s' },
         { year: '2017–2019', title: 'Theatre for children and pre-teens', detail: 'Escuela de Danzas Reina Reech', category: 'docencia', decade: '2010s' },
         { year: 'since 2017', title: 'Theatre for older adults', detail: 'Fundación Encanto por la Vida — PAMI programme', category: 'docencia', decade: '2010s' },
         { year: '2017–2018', title: 'Todavía', detail: 'Sánchez Cine — head of administration (INCAA)', category: 'produccion', decade: '2010s' },
@@ -1299,7 +1299,7 @@ export const content: Record<Language, SiteContent> = {
         { year: 'ongoing', title: 'By Pass', detail: 'Non Stop / Cinema7 — production assistant, dir. Fernán Mirás', category: 'produccion', decade: '2020s' },
         { year: 'season 1', title: 'Planners', detail: 'Star+ / PEGSA Group — art director', category: 'produccion', decade: '2020s' },
         { year: '2024', title: 'Shakespeare International Theatre Festival', detail: '"Maten a Hamlet" (Los Macoco) — volunteer production assistant, Craiova, Romania', category: 'produccion', decade: '2020s' },
-        { year: '2024', title: 'Rathe Gather Festivalito', detail: 'Clown performance as Rita Universos, and production assistance', category: 'actuacion', decade: '2020s' },
+        { year: '2024', title: 'RatherGather Festivalito', detail: 'Clown performance as Rita Universos, and production assistance', category: 'actuacion', decade: '2020s' },
         { year: '2025', title: 'The Floor', detail: 'Bigger Stage — production runner (Series 4 & 5, Bray)', category: 'produccion', decade: '2020s' },
         { year: '2026', title: 'Improv Theatre Workshop', detail: 'Marise Renate — Ireland', category: 'formacion', decade: '2020s' },
         { year: '2026', title: 'Intensive Clown Training Workshop', detail: 'Gregorio "Goyo" Richter — Ireland', category: 'formacion', decade: '2020s' },
@@ -1352,7 +1352,7 @@ export const content: Record<Language, SiteContent> = {
       body1:
         'I\'m an Argentine-Romanian actress, educator and audiovisual and cultural producer, based in Dublin. I trained at the IFT Integral Theatre School and studied Stage Direction at Argentina’s National University of the Arts (UNA). I spent ten years with the company Los Ranz, five with Marcelo Subiotto’s Colectivo Teatral Puerta Roja, and I have been part of the Boquitas Pintadas company since 2015.',
       body2:
-        'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and INCAA. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the Rathe Gather Festival.',
+        'Alongside that, I spent twelve years coordinating Programa Adolescencia for the City of Buenos Aires — arts workshops for teenagers in vulnerable contexts — and worked in film and television production for Netflix, HBO, Star+ and INCAA. Since 2023 I have been based in Dublin, working on the St. Patrick’s Festival, Argentina Day and the RatherGather Festival.',
       cta: 'Get in touch',
       cvLabel: 'Download CV',
       galleryTitle: 'From the archive',
