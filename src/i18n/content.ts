@@ -340,7 +340,7 @@ const GALLERY_EN: GalleryItem[] = GALLERY_ES.map((item, i) => ({
     'Poster for Improvisación Mosquito',
   ][i],
   role: [
-    'Actor',
+    'Actress',
     'Playwright and performer',
     'Acting, characterisation, make-up and production',
     'Cultural manager and executive producer',
@@ -886,7 +886,7 @@ export const content: Record<Language, SiteContent> = {
     hero: {
       firstName: 'Nora',
       lastName: 'Filmus',
-      role: 'Actor · Producer · Theatre educator',
+      role: 'Actress · Producer · Theatre educator',
       bio: 'Thirty-six years in the performing arts, between Buenos Aires and Dublin. I act, I produce for stage and screen, and I run arts education programmes.',
       cta: 'See my work',
       location: 'Dublin, Ireland',

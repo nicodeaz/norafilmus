@@ -8,7 +8,7 @@ import Reveal from './Reveal';
 
 type FilterKey = 'todos' | TimelineCategory;
 type Side = 'left' | 'right';
-const DECADES: Decade[] = ['1990s', '2000s', '2010s', '2020s'];
+const DECADES: Decade[] = ['2020s', '2010s', '2000s', '1990s'];
 
 /**
  * "El programa" — Trayectoria, la línea de tiempo completa. Rediseñada
@@ -74,7 +74,13 @@ export default function Trayectoria() {
   ];
 
   const groups = useMemo(() => {
-    const filtered = trayectoria.items.filter((i) => filter === 'todos' || i.category === filter);
+    // .reverse() sobre una copia: hito más reciente primero dentro de cada
+    // década, para que toda la espina lea "desde hoy para atrás" — pedido
+    // explícito del usuario (antes era ascendente, 1990s arriba).
+    const filtered = trayectoria.items
+      .filter((i) => filter === 'todos' || i.category === filter)
+      .slice()
+      .reverse();
     return DECADES.map((decade) => ({
       decade,
       items: filtered.filter((i) => i.decade === decade),
