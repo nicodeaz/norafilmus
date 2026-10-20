@@ -1,0 +1,378 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Nora Filmus — Lanzamiento web (Instagram)</title>
+<!--
+  Piezas de Instagram para presentar norafilmus.com. Misma línea visual que
+  los flyers de "Dar el Salto" (nora-landing/flyers): foto full-bleed en B&N,
+  fundido a #0F0E0D, glow rojo abajo a la izquierda, títulos en Bebas Neue
+  (sólido + contorno), textos en Montserrat con puntos rojos.
+
+  Una sola plantilla, se elige la pieza por query string:
+    post.html?fmt=feed&slide=1..5&lang=es|en   → carrusel 1080×1350
+    post.html?fmt=story&lang=es|en             → historia 1080×1920
+  render.mjs las exporta todas a PNG/JPG.
+
+  Todo el texto sale de src/i18n/content.ts (regla 1: dato verificable).
+  Fotos: Paula (book de estudio de Nora).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5EFE6;
+    --dark: #0F0E0D;
+    --red: #E53935;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1080px;
+    overflow: hidden;
+    background: var(--dark);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--cream);
+  }
+  .canvas {
+    position: relative;
+    width: 1080px;
+    height: 1350px;
+    overflow: hidden;
+  }
+  .story .canvas { height: 1920px; }
+  /* En historia la foto ocupa solo la parte de arriba: la cara no queda debajo del texto */
+  .story .photo-bg { bottom: 640px; background-position: 50% 30% !important; }
+  .story .photo-fade {
+    background: linear-gradient(180deg,
+      rgba(15,14,13,0.55) 0%,
+      rgba(15,14,13,0.00) 12%,
+      rgba(15,14,13,0.00) 40%,
+      rgba(15,14,13,0.70) 58%,
+      rgba(15,14,13,1) 67%,
+      rgba(15,14,13,1) 100%);
+  }
+  .story .cta-headline span { display: block; }
+
+  /* ---------- Foto ---------- */
+  .photo-bg {
+    position: absolute;
+    inset: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: grayscale(1) contrast(1.18) brightness(0.92);
+  }
+  .photo-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+      rgba(15,14,13,0.55) 0%,
+      rgba(15,14,13,0.00) 14%,
+      rgba(15,14,13,0.06) 34%,
+      rgba(15,14,13,0.45) 52%,
+      rgba(15,14,13,0.82) 68%,
+      rgba(15,14,13,0.96) 100%);
+  }
+  .photo-glow {
+    position: absolute;
+    left: -14%;
+    bottom: -14%;
+    width: 80%;
+    height: 62%;
+    background: radial-gradient(circle, rgba(229,57,53,0.24) 0%, rgba(229,57,53,0) 70%);
+  }
+
+  /* ---------- Cabecera: firma + folio ---------- */
+  .top {
+    position: absolute;
+    top: 56px;
+    left: 56px;
+    right: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 3;
+  }
+  .story .top { top: 210px; }
+  .wordmark { width: 190px; height: auto; display: block; }
+  .folio {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.2em;
+    padding-top: 14px;
+  }
+  .folio span { color: var(--red); }
+
+  /* Numeral de Acto, en contorno, como en el sitio */
+  .numeral {
+    position: absolute;
+    right: 40px;
+    top: 150px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 420px;
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 3px var(--cream);
+    opacity: 0.9;
+    z-index: 2;
+  }
+
+  /* ---------- Bloque de texto ---------- */
+  .content {
+    position: absolute;
+    left: 56px;
+    right: 56px;
+    bottom: 56px;
+    z-index: 3;
+  }
+  .story .content { bottom: 300px; }
+  .eyebrow {
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .eyebrow span { color: var(--red); }
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 188px;
+    line-height: 0.84;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-shadow: 0 6px 24px rgba(0,0,0,0.55);
+  }
+  .story .title { font-size: 232px; }
+  .title.md { font-size: 132px; line-height: 0.88; }
+  .title .outline {
+    color: transparent;
+    -webkit-text-stroke: 3px var(--cream);
+    text-shadow: none;
+  }
+  .title .red { color: var(--red); }
+  .subtitle {
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 22px;
+  }
+  .subtitle .dot { color: var(--red); margin: 0 10px; }
+  .lead {
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 1.35;
+    margin-top: 22px;
+    max-width: 860px;
+  }
+
+  .divider {
+    width: 130px;
+    height: 4px;
+    background: var(--red);
+    border-radius: 2px;
+    margin: 36px 0 28px;
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cta-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 36px;
+    white-space: nowrap;
+  }
+  .dot-ico {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--red); flex-shrink: 0;
+  }
+  .swipe {
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .swipe span { color: var(--red); }
+
+  .cta-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 104px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 0.95;
+  }
+  .cta-headline span { color: var(--red); }
+
+  .creds-label {
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-top: 30px;
+  }
+  .creds {
+    font-weight: 700;
+    font-size: 27px;
+    margin-top: 10px;
+  }
+  .creds .dot { color: var(--red); margin: 0 8px; }
+
+  .credit {
+    position: absolute;
+    right: 56px;
+    bottom: 22px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    z-index: 3;
+  }
+  .story .credit { bottom: 250px; }
+</style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="photo-bg" id="photo"></div>
+    <div class="photo-glow"></div>
+    <div class="photo-fade"></div>
+    <div class="top">
+      <img class="wordmark" src="assets/nora-firma.png" alt="Nora Filmus" />
+      <div class="folio" id="folio"></div>
+    </div>
+    <div id="slot"></div>
+  </div>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const fmt = q.get('fmt') || 'feed';
+  const lang = q.get('lang') === 'en' ? 'en' : 'es';
+  const slide = Number(q.get('slide') || 1);
+  const TOTAL = 5;
+
+  const T = {
+    es: {
+      newSite: 'Nueva web',
+      title1: 'Se abre', title2: 'el telón',
+      roles: ['Actriz', 'Productora', 'Pedagoga teatral'],
+      swipe: 'Deslizá',
+      act: 'Acto',
+      acts: [
+        { key: 'crear', label: 'Crear', lead: 'Arriba del escenario', accent: 'desde 1990.', line: 'Teatro, clown y audiovisual.' },
+        { key: 'ensenar', label: 'Enseñar', lead: 'Teatro para', accent: 'aprender, crear y vincularse.', line: 'Talleres, entrenamiento individual y experiencias para grupos y equipos.' },
+        { key: 'producir', label: 'Producir', lead: 'Producción y coordinación', accent: 'para escena, pantalla y eventos.', line: 'Netflix · HBO · Star+ · St. Patrick’s Festival.' },
+      ],
+      years: '36 años en artes escénicas',
+      ctaA: 'Pasá a ver', ctaB: 'el programa',
+      credsLabel: 'Créditos seleccionados',
+      bilingual: 'En español y en inglés',
+      photo: 'Foto: Paula',
+    },
+    en: {
+      newSite: 'New website',
+      title1: 'Curtain', title2: 'up',
+      roles: ['Actress', 'Producer', 'Theatre educator'],
+      swipe: 'Swipe',
+      act: 'Act',
+      acts: [
+        { key: 'crear', label: 'Create', lead: 'On stage', accent: 'since 1990.', line: 'Theatre, clown and screen.' },
+        { key: 'ensenar', label: 'Teach', lead: 'Theatre to', accent: 'learn, create and connect.', line: 'Workshops, one-to-one training and experiences for groups and teams.' },
+        { key: 'producir', label: 'Produce', lead: 'Production and coordination', accent: 'for stage, screen and events.', line: 'Netflix · HBO · Star+ · St. Patrick’s Festival.' },
+      ],
+      years: '36 years in the performing arts',
+      ctaA: 'Step inside', ctaB: 'the programme',
+      credsLabel: 'Selected credits',
+      bilingual: 'In English and Spanish',
+      photo: 'Photo: Paula',
+    },
+  }[lang];
+
+  // Encuadre de cada foto (background-position) — afinado a mano por pieza.
+  const PHOTOS = {
+    portada: ['assets/portada.jpg', '50% 18%'],
+    crear: ['assets/crear.jpg', '50% 10%'],
+    ensenar: ['assets/ensenar.jpg', '40% 30%'],
+    producir: ['assets/producir.jpg', '50% 20%'],
+    cierre: ['assets/cierre.jpg', '50% 22%'],
+  };
+  const NUMERALS = ['I', 'II', 'III'];
+
+  const roles = T.roles.join('<span class="dot">&middot;</span>');
+  const slot = document.getElementById('slot');
+  const folio = document.getElementById('folio');
+  let photoKey = 'portada';
+
+  if (fmt === 'story') {
+    document.body.classList.add('story');
+    document.documentElement.style.height = '1920px';
+    slot.innerHTML = `
+      <div class="content">
+        <div class="eyebrow">${T.newSite} <span>&middot; norafilmus.com</span></div>
+        <div class="title">${T.title1}<br/><span class="outline">${T.title2}</span></div>
+        <div class="subtitle">${roles}</div>
+        <div class="divider"></div>
+        <div class="cta-headline">${T.ctaA} <span>${T.ctaB}</span></div>
+        <div class="cta-line" style="margin-top:18px"><span class="dot-ico"></span>norafilmus.com</div>
+      </div>
+      <div class="credit">${T.photo}</div>`;
+  } else if (slide === 1) {
+    folio.innerHTML = `01 <span>/</span> 0${TOTAL}`;
+    slot.innerHTML = `
+      <div class="content">
+        <div class="eyebrow">${T.newSite} <span>&middot; Nora Filmus</span></div>
+        <div class="title">${T.title1}<br/><span class="outline">${T.title2}</span></div>
+        <div class="subtitle">${roles}</div>
+        <div class="divider"></div>
+        <div class="foot">
+          <div class="cta-line"><span class="dot-ico"></span>norafilmus.com</div>
+          <div class="swipe">${T.swipe} <span>&rarr;</span></div>
+        </div>
+      </div>
+      <div class="credit">${T.photo}</div>`;
+  } else if (slide >= 2 && slide <= 4) {
+    const i = slide - 2;
+    const a = T.acts[i];
+    photoKey = a.key;
+    folio.innerHTML = `0${slide} <span>/</span> 0${TOTAL}`;
+    slot.innerHTML = `
+      <div class="numeral">${NUMERALS[i]}</div>
+      <div class="content">
+        <div class="eyebrow">${T.act} ${NUMERALS[i]} <span>&middot; ${a.label}</span></div>
+        <div class="title md">${a.lead}<br/><span class="red">${a.accent}</span></div>
+        <div class="lead">${a.line}</div>
+        <div class="divider"></div>
+        <div class="foot">
+          <div class="cta-line"><span class="dot-ico"></span>norafilmus.com/${a.key}</div>
+          <div class="swipe">${T.swipe} <span>&rarr;</span></div>
+        </div>
+      </div>
+      <div class="credit">${T.photo}</div>`;
+  } else {
+    photoKey = 'cierre';
+    folio.innerHTML = `0${TOTAL} <span>/</span> 0${TOTAL}`;
+    slot.innerHTML = `
+      <div class="content">
+        <div class="eyebrow">${T.years}</div>
+        <div class="cta-headline" style="font-size:150px;line-height:0.88">${T.ctaA}<br/><span>${T.ctaB}</span></div>
+        <div class="creds-label">${T.credsLabel}</div>
+        <div class="creds">Netflix<span class="dot">&middot;</span>HBO<span class="dot">&middot;</span>Star+<span class="dot">&middot;</span>Teatro Colón<span class="dot">&middot;</span>St. Patrick’s Festival</div>
+        <div class="divider"></div>
+        <div class="cta-line"><span class="dot-ico"></span>norafilmus.com</div>
+        <div class="cta-line" style="margin-top:12px;font-size:28px"><span class="dot-ico"></span>${T.bilingual}</div>
+      </div>
+      <div class="credit">${T.photo}</div>`;
+  }
+
+  const [src, pos] = PHOTOS[photoKey];
+  const photo = document.getElementById('photo');
+  photo.style.backgroundImage = `url('${src}')`;
+  photo.style.backgroundPosition = pos;
+</script>
+</body>
+</html>
